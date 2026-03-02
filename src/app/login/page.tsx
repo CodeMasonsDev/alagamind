@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,8 +46,12 @@ export default function LoginPage() {
 
             {/* Heading */}
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-1">Welcome Back</h1>
-              <p className="text-slate-500 text-sm font-medium">Elevate your practice with intelligence.</p>
+              <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-1">
+                Welcome Back
+              </h1>
+              <p className="text-slate-500 text-sm font-medium">
+                Elevate your practice with intelligence.
+              </p>
             </div>
 
             {/* Form */}
@@ -55,11 +59,11 @@ export default function LoginPage() {
               {/* Email Field */}
               <div className="space-y-2">
                 <label className="block text-[11px] font-bold tracking-[0.2em] text-slate-400 uppercase">
-                  Institutional Email
+                  Email
                 </label>
                 <input
                   type="email"
-                  placeholder="name@organization.com"
+                  placeholder="name@gmail.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full px-4 py-3.5 rounded-xl border border-slate-200 bg-white/50 text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 transition-all duration-200"
@@ -71,9 +75,12 @@ export default function LoginPage() {
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <label className="block text-[11px] font-bold tracking-[0.2em] text-slate-400 uppercase">
-                    Security Key
+                    Password
                   </label>
-                  <a href="#" className="text-[11px] font-semibold text-teal-600 hover:text-teal-700 transition-colors">
+                  <a
+                    href="#"
+                    className="text-[11px] font-semibold text-teal-600 hover:text-teal-700 transition-colors"
+                  >
                     Recovery access?
                   </a>
                 </div>
@@ -92,8 +99,10 @@ export default function LoginPage() {
                 type="submit"
                 className="w-full bg-linear-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 active:scale-[0.98] text-white font-semibold py-4 rounded-xl shadow-xl shadow-teal-500/25 transition-all duration-200 flex items-center justify-center gap-2 group"
               >
-                Enter Workspace
-                <span className="group-hover:translate-x-1 transition-transform">→</span>
+                Login
+                <span className="group-hover:translate-x-1 transition-transform">
+                  →
+                </span>
               </button>
             </form>
 
@@ -103,7 +112,9 @@ export default function LoginPage() {
                 <span className="w-full border-t border-slate-100"></span>
               </div>
               <div className="relative flex justify-center text-[10px] uppercase tracking-[0.2em]">
-                <span className="bg-white/0 px-4 text-slate-400 font-bold backdrop-blur-xs">Federated Identity</span>
+                <span className="bg-white/0 px-4 text-slate-400 font-bold backdrop-blur-xs">
+                  Federated Identity
+                </span>
               </div>
             </div>
 
@@ -127,13 +138,16 @@ export default function LoginPage() {
                   fill="#EA4335"
                 />
               </svg>
-              Sign in with SSO
+              Sign in with Google
             </button>
 
             {/* Footer Navigation */}
             <div className="mt-8 text-center text-sm font-medium">
-              <span className="text-slate-400">New to the network? </span>
-              <a href="/signup" className="text-teal-600 hover:text-teal-700 font-bold transition-colors">
+              <span className="text-slate-400">No account yet? </span>
+              <a
+                href="/signup"
+                className="text-teal-600 hover:text-teal-700 font-bold transition-colors"
+              >
                 Create Account
               </a>
             </div>
@@ -142,13 +156,25 @@ export default function LoginPage() {
           {/* Compliance Footer */}
           <div className="mt-10 flex items-center justify-between px-4 text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase">
             <div className="flex items-center gap-1.5">
-              <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <svg
+                className="w-3 h-3"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
               </svg>
               HIPAA READY
             </div>
             <div className="flex items-center gap-1.5">
-              <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <svg
+                className="w-3 h-3"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                 <path d="M7 11V7a5 5 0 0 1 10 0v4" />
               </svg>

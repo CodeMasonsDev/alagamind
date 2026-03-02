@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 export default function SignupPage() {
   const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    password: '',
+    fullName: "",
+    email: "",
+    password: "",
   });
   const [agreed, setAgreed] = useState(false);
 
@@ -50,8 +50,12 @@ export default function SignupPage() {
 
             {/* Heading */}
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-1">Begin Your Journey</h1>
-              <p className="text-slate-500 text-sm font-medium">Step into a space of clarity and resilience.</p>
+              <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-1">
+                Begin Your Journey
+              </h1>
+              <p className="text-slate-500 text-sm font-medium">
+                Step into a space of clarity and resilience.
+              </p>
             </div>
 
             {/* Form */}
@@ -65,7 +69,9 @@ export default function SignupPage() {
                   type="text"
                   placeholder="Jordan Henderson"
                   value={formData.fullName}
-                  onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, fullName: e.target.value })
+                  }
                   className="w-full px-4 py-3.5 rounded-xl border border-slate-200 bg-white/50 text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 transition-all duration-200"
                   required
                 />
@@ -78,9 +84,11 @@ export default function SignupPage() {
                 </label>
                 <input
                   type="email"
-                  placeholder="name@organization.com"
+                  placeholder="name@email.com"
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
                   className="w-full px-4 py-3.5 rounded-xl border border-slate-200 bg-white/50 text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 transition-all duration-200"
                   required
                 />
@@ -95,21 +103,12 @@ export default function SignupPage() {
                   type="password"
                   placeholder="••••••••"
                   value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, password: e.target.value })
+                  }
                   className="w-full px-4 py-3.5 rounded-xl border border-slate-200 bg-white/50 text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 transition-all duration-200"
                   required
                 />
-              </div>
-
-              {/* Password Strength Indicator */}
-              <div className="space-y-3 py-1">
-                <div className="flex justify-between items-center text-[11px] font-bold tracking-[0.2em] uppercase">
-                  <span className="text-slate-400">Security Integrity</span>
-                  <span className="text-teal-600">85% — Strong</span>
-                </div>
-                <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-teal-500 rounded-full w-[85%] transition-all duration-500" />
-                </div>
               </div>
 
               {/* Agreement */}
@@ -124,16 +123,17 @@ export default function SignupPage() {
                     required
                   />
                 </div>
-                <label htmlFor="terms" className="text-sm text-slate-500 leading-tight cursor-pointer select-none">
-                  I acknowledge the{' '}
-                  <a href="#" className="text-teal-600 font-bold hover:underline">
+                <label
+                  htmlFor="terms"
+                  className="text-sm text-slate-500 leading-tight cursor-pointer select-none"
+                >
+                  I acknowledge the{" "}
+                  <a
+                    href="#"
+                    className="text-teal-600 font-bold hover:underline"
+                  >
                     Terms of Resilience
-                  </a>{' '}
-                  and{' '}
-                  <a href="#" className="text-teal-600 font-bold hover:underline">
-                    Privacy Protocol
-                  </a>
-                  .
+                  </a>{" "}
                 </label>
               </div>
 
@@ -142,15 +142,20 @@ export default function SignupPage() {
                 type="submit"
                 className="w-full bg-linear-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 active:scale-[0.98] text-white font-semibold py-4 rounded-xl shadow-xl shadow-teal-500/25 transition-all duration-200 flex items-center justify-center gap-2 group"
               >
-                Begin Resilience Journey
-                <span className="group-hover:translate-x-1 transition-transform">→</span>
+                Create Account
+                <span className="group-hover:translate-x-1 transition-transform">
+                  →
+                </span>
               </button>
             </form>
 
             {/* Footer Navigation */}
             <div className="mt-8 text-center text-sm font-medium">
-              <span className="text-slate-400">Already part of the network? </span>
-              <a href="/login" className="text-teal-600 hover:text-teal-700 font-bold transition-colors">
+              <span className="text-slate-400">Already have an account? </span>
+              <a
+                href="/login"
+                className="text-teal-600 hover:text-teal-700 font-bold transition-colors"
+              >
                 Sign In
               </a>
             </div>
@@ -159,13 +164,25 @@ export default function SignupPage() {
           {/* Compliance Footer */}
           <div className="mt-10 flex items-center justify-between px-4 text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase">
             <div className="flex items-center gap-1.5">
-              <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <svg
+                className="w-3 h-3"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
               </svg>
               HIPAA READY
             </div>
             <div className="flex items-center gap-1.5">
-              <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <svg
+                className="w-3 h-3"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                 <path d="M7 11V7a5 5 0 0 1 10 0v4" />
               </svg>
