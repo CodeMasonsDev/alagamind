@@ -85,7 +85,7 @@ const NAVIGATION_DATA: NavGroup[] = [
 
 export default function Sidebar() {
   return (
-    <aside className="flex flex-col w-72 h-screen bg-slate-50 border-r border-slate-200">
+    <aside className="flex flex-col w-60 h-screen bg-slate-50 border-r border-slate-200">
       {/* Header & Status */}
       <div className="p-6 pb-4">
         <div className="flex items-center gap-3 mb-6">

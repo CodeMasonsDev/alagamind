@@ -14,7 +14,7 @@ export default function FeaturesLayout({
 
       {/* 'flex-1' makes this section grow to fill all remaining space */}
       {/* 'overflow-y-auto' allows the dashboard to scroll independently of the sidebar */}
-      <main className="flex-1 h-full overflow-y-auto p-8">{children}</main>
+      <main className="flex-1 h-full overflow-y-auto  ">{children}</main>
     </div>
   );
 }
