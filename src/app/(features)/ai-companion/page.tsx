@@ -1,28 +1,9 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import {
-  Bot,
-  Circle,
-  Ellipsis,
-  Heart,
-  Loader2,
-  Lock,
-  Mic,
-  SendHorizontal,
-  Sparkles,
-  User,
-  WandSparkles,
-} from "lucide-react";
-import UserMessage from "@/components/ai-companion/user-message";
-import IntroAssistantCard from "@/components/ai-companion/intro-assistant-card";
-import AssistantCard from "@/components/ai-companion/assistant-card";
-import AssistantTextCard from "@/components/ai-companion/assistant-text-card";
-import SuggestionCard from "@/components/ai-companion/suggestion-card";
-import TypingIndicator from "@/components/ai-companion/typing-indicator";
+import { useEffect, useMemo, useRef, useState } from "react";
+
 import Composer from "@/components/ai-companion/composer";
 import TopBar from "@/components/ai-companion/top-bar";
-import InsightAssistantCard from "@/components/ai-companion/insight-assistant-card";
 import ConversationArea from "@/components/ai-companion/conversation-area";
 
 export type Suggestion = {
