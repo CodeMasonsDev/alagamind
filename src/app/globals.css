@@ -37,3 +37,33 @@ body {
     opacity: 1;
   }
 }
+
+/* Write page: Quill editor and blockquote overrides (scoped) */
+[data-write-editor] .ql-editor {
+  font-family: var(--font-geist-sans), ui-sans-serif, sans-serif;
+  font-size: 1rem;
+  line-height: 1.625;
+  color: #0f172a;
+  min-height: 280px;
+}
+
+[data-write-editor] .ql-editor blockquote {
+  border-left: 4px solid #14b8a6;
+  padding-left: 1rem;
+  margin: 1rem 0;
+  font-style: italic;
+  color: #334155;
+}
+
+[data-write-editor] .ql-toolbar.ql-snow {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  border-top-left-radius: 0.75rem;
+  border-top-right-radius: 0.75rem;
+}
+
+[data-write-editor] .ql-container.ql-snow {
+  border-color: #e2e8f0;
+  border-bottom-left-radius: 0.75rem;
+  border-bottom-right-radius: 0.75rem;
+}

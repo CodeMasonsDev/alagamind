@@ -1,418 +1,352 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
+import React, { useEffect, useRef, useState } from "react";
+import "quill/dist/quill.snow.css";
+import TurndownService from "turndown";
+import { MakeJournal, updateJournal } from "@/services/journals";
 import { useReflections } from "@/components/providers/reflections-provider";
-import {
-  ArrowLeft,
-  Bold,
-  Circle,
-  Heading1,
-  Heading2,
-  Heading3,
-  Italic,
-  List,
-  ListOrdered,
-  Minus,
-  MoreHorizontal,
-  Palette,
-  PenLine,
-  Quote,
-  Underline,
-} from "lucide-react";
+import Link from "next/link";
+export default function ReflectionEditor() {
+  const editorRef = useRef<HTMLDivElement>(null);
+  const quillRef = useRef<any>(null);
 
-const TOOLBAR_ITEMS = [
-  { label: "Bold", icon: Bold },
-  { label: "Italic", icon: Italic },
-  { label: "Underline", icon: Underline },
-  { label: "H1", icon: Heading1 },
-  { label: "H2", icon: Heading2 },
-  { label: "H3", icon: Heading3 },
-  { label: "Bullets", icon: List },
-  { label: "Numbered", icon: ListOrdered },
-  { label: "Quote", icon: Quote },
-  { label: "Divider", icon: Minus },
-  { label: "Edit", icon: PenLine },
-] as const;
-type ToolbarAction = (typeof TOOLBAR_ITEMS)[number]["label"];
-type SaveFeedback = {
-  type: "success" | "error";
-  message: string;
-};
+  // --- State ---
+  const [title, setTitle] = useState("Daily Equilibrium Check-in");
+  const [isSaving, setIsSaving] = useState(false);
+  const [journalId, setJournalId] = useState<string | null>(null);
 
-export default function JournalWritingPage() {
-  const { addEntry } = useReflections();
-  const [draft, setDraft] = useState("");
-  const [savedAt, setSavedAt] = useState<string | null>(null);
-  const [saveFeedback, setSaveFeedback] = useState<SaveFeedback | null>(null);
-  const editorRef = useRef<HTMLTextAreaElement | null>(null);
-  const isDraftEmpty = draft.trim().length === 0;
-  const currentDateLabel = useMemo(() => formatDisplayDate(new Date()), []);
+  // Hardcoded for testing; replace with actual auth context later
+  const userId = "7e9793a6-c652-4b3a-8bed-780c221ee33a";
+  const { refreshEntries } = useReflections();
 
+  // --- Initialize Quill ---
   useEffect(() => {
-    if (!saveFeedback) {
-      return;
-    }
-
-    const timer = window.setTimeout(() => {
-      setSaveFeedback(null);
-    }, 2400);
-
-    return () => window.clearTimeout(timer);
-  }, [saveFeedback]);
-
-  function handleSave() {
-    if (isDraftEmpty) {
-      setSaveFeedback({
-        type: "error",
-        message: "Write something first before saving your reflection.",
+    if (
+      typeof window !== "undefined" &&
+      editorRef.current &&
+      !quillRef.current
+    ) {
+      import("quill").then((QuillModule) => {
+        const Quill = QuillModule.default;
+        quillRef.current = new Quill(editorRef.current!, {
+          theme: "snow",
+          modules: {
+            toolbar: "#custom-toolbar",
+          },
+          placeholder: "Start your reflection...",
+        });
       });
-      return;
     }
+  }, []);
 
-    addEntry({
-      timestamp: formatTimestamp(new Date()),
-      mood: "REFLECTIVE",
-      title: buildTitleFromDraft(draft),
-      preview: buildPreviewFromDraft(draft),
-      tags: ["General"],
-      wordCount: `${countWords(draft)} words`,
-      action: "Open Entry",
-      moodClass: "bg-violet-50 text-violet-700 border-violet-100",
-      dotClass: "bg-violet-500",
-    });
-    setSavedAt(new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
-    setSaveFeedback({
-      type: "success",
-      message: "Reflection saved successfully.",
-    });
-  }
+  // --- Save / Update Logic ---
+  const handleSaveReflection = async () => {
+    if (!quillRef.current) return;
 
-  const saveLabel = useMemo(() => {
-    if (!savedAt) {
-      return "Not yet saved";
-    }
-    return `Saved at ${savedAt}`;
-  }, [savedAt]);
+    setIsSaving(true);
 
-  function applyToolbarAction(action: ToolbarAction) {
-    const textarea = editorRef.current;
-    if (!textarea) {
-      return;
-    }
-
-    const selectionStart = textarea.selectionStart;
-    const selectionEnd = textarea.selectionEnd;
-    const selectedText = draft.slice(selectionStart, selectionEnd);
-
-    const replaceSelection = ({
-      text,
-      nextStart,
-      nextEnd,
-    }: {
-      text: string;
-      nextStart?: number;
-      nextEnd?: number;
-    }) => {
-      const nextDraft =
-        draft.slice(0, selectionStart) + text + draft.slice(selectionEnd);
-      setDraft(nextDraft);
-
-      const start = nextStart ?? selectionStart + text.length;
-      const end = nextEnd ?? start;
-      window.requestAnimationFrame(() => {
-        textarea.focus();
-        textarea.setSelectionRange(start, end);
+    try {
+      // 1. Convert HTML to Markdown
+      const htmlContent = quillRef.current.root.innerHTML;
+      const turndownService = new TurndownService({
+        headingStyle: "atx",
+        codeBlockStyle: "fenced",
       });
-    };
+      const markdownContent = turndownService.turndown(htmlContent);
 
-    const wrapSelection = (
-      prefix: string,
-      suffix: string,
-      fallbackText: string,
-    ) => {
-      const innerText = selectedText || fallbackText;
-      const nextText = `${prefix}${innerText}${suffix}`;
-      const start = selectionStart + prefix.length;
-      const end = start + innerText.length;
-      replaceSelection({ text: nextText, nextStart: start, nextEnd: end });
-    };
+      if (journalId) {
+        // === UPDATE EXISTING JOURNAL ===
+        const payload = {
+          userId,
+          journalId,
+          title,
+          content: markdownContent,
+        };
 
-    const formatLines = (formatter: (line: string, index: number) => string) => {
-      const lines = (selectedText || "List item").split("\n");
-      const nextText = lines.map(formatter).join("\n");
-      replaceSelection({ text: nextText });
-    };
+        const updateRes = await updateJournal(payload);
+        if (!updateRes) throw new Error("Update failed: Empty response");
 
-    switch (action) {
-      case "Bold":
-        wrapSelection("**", "**", "bold text");
-        break;
-      case "Italic":
-        wrapSelection("*", "*", "italic text");
-        break;
-      case "Underline":
-        wrapSelection("<u>", "</u>", "underlined text");
-        break;
-      case "H1":
-        formatLines((line) => `# ${line.replace(/^#+\s*/, "")}`);
-        break;
-      case "H2":
-        formatLines((line) => `## ${line.replace(/^#+\s*/, "")}`);
-        break;
-      case "H3":
-        formatLines((line) => `### ${line.replace(/^#+\s*/, "")}`);
-        break;
-      case "Bullets":
-        formatLines((line) => `- ${line.replace(/^[-*]\s+/, "")}`);
-        break;
-      case "Numbered":
-        formatLines((line, index) => `${index + 1}. ${line.replace(/^\d+\.\s+/, "")}`);
-        break;
-      case "Quote":
-        formatLines((line) => `> ${line.replace(/^>\s*/, "")}`);
-        break;
-      case "Divider":
-        replaceSelection({ text: "\n\n---\n\n" });
-        break;
-      case "Edit":
-        textarea.focus();
-        break;
-      default:
-        break;
+        console.log("Journal updated successfully:", updateRes);
+
+        await refreshEntries();
+      } else {
+        // === CREATE NEW JOURNAL ===
+        const payload = {
+          title,
+          content: markdownContent,
+        };
+
+        const data = await MakeJournal(userId, payload);
+        if (!data) throw new Error("Create failed: Empty response");
+
+        // Save the ID so subsequent clicks trigger an Update
+        const newId = data.id || data.journalId || data.Id;
+        if (newId) {
+          setJournalId(newId);
+        }
+
+        console.log("Journal created successfully:", data);
+        await refreshEntries();
+      }
+    } catch (error) {
+      console.error("Failed to save journal:", error);
+      alert("Failed to save reflection. Check the console for details.");
+    } finally {
+      setIsSaving(false);
     }
-  }
+  };
 
   return (
-    <div className="flex min-h-full w-full flex-col bg-slate-50/60">
-      <TopBar onSave={handleSave} canSave={!isDraftEmpty} />
-
-      {saveFeedback ? (
-        <div className="pointer-events-none fixed right-6 top-6 z-50">
-          <div
-            className={`rounded-xl border px-4 py-3 text-sm font-semibold shadow-lg ${
-              saveFeedback.type === "success"
-                ? "border-teal-100 bg-teal-50 text-teal-700"
-                : "border-rose-100 bg-rose-50 text-rose-700"
-            }`}
-            role="status"
-            aria-live="polite"
-          >
-            {saveFeedback.message}
-          </div>
-        </div>
-      ) : null}
-
-      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
-        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-          <HeaderBlock
-            saveLabel={saveLabel}
-            currentDateLabel={currentDateLabel}
-          />
-          <EditorToolbar onAction={applyToolbarAction} />
-          <ReflectionEditor
-            draft={draft}
-            onChange={setDraft}
-            editorRef={editorRef}
-          />
-        </section>
-      </main>
-    </div>
-  );
-}
-
-function TopBar({ onSave, canSave }: { onSave: () => void; canSave: boolean }) {
-  return (
-    <header className="border-b border-slate-200 bg-white px-4 py-3 sm:px-6 lg:px-8">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-slate-500">
+    <div className="min-h-screen bg-white font-sans text-gray-900">
+      <header className="flex items-center justify-between px-8 py-4 border-b border-gray-100">
+        <div className="flex items-center space-x-6 text-sm font-medium text-gray-500">
           <Link
-            href="/journals-reflections"
-            className="inline-flex items-center gap-1.5 rounded-md px-1.5 py-1 text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
+            href={"/journals-reflections/archive"}
+            className="flex items-center hover:text-gray-900 transition-colors"
           >
-            <ArrowLeft size={14} />
+            <svg
+              className="w-4 h-4 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+              />
+            </svg>
             Back
           </Link>
-          <span className="text-slate-300">/</span>
-          <span className="flex items-center gap-1.5 text-teal-600">
-            <Circle className="h-2.5 w-2.5 fill-current" />
-            Vault Secured
-          </span>
+          <div className="flex items-center space-x-2 text-xs tracking-wider uppercase">
+            <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+            <span>Vault Secured</span>
+          </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-600 transition-colors hover:bg-slate-50"
-          >
-            Typography
-          </button>
-          <button
-            type="button"
-            className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-600 transition-colors hover:bg-slate-50"
-          >
-            Mood
-          </button>
-          <button
-            type="button"
-            onClick={onSave}
-            disabled={!canSave}
-            className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider transition-colors ${
-              canSave
-                ? "border-teal-100 bg-teal-500 text-white hover:bg-teal-600"
-                : "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
-            }`}
-          >
-            <Palette size={14} />
-            Save Reflection
-          </button>
-          <button
-            type="button"
-            className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
-          >
-            <MoreHorizontal size={18} />
-          </button>
-        </div>
-      </div>
-    </header>
-  );
-}
-
-function buildTitleFromDraft(draft: string) {
-  const firstLine = draft
-    .split("\n")
-    .map((line) => line.replace(/^[-#>*\s]+/, "").trim())
-    .find((line) => line.length > 0);
-
-  if (!firstLine) {
-    return "Untitled Reflection";
-  }
-
-  return firstLine.length > 44 ? `${firstLine.slice(0, 44).trimEnd()}...` : firstLine;
-}
-
-function buildPreviewFromDraft(draft: string) {
-  const cleaned = draft
-    .replace(/[>#*_`-]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-  if (!cleaned) {
-    return "No reflection content yet.";
-  }
-  return cleaned.length > 180 ? `${cleaned.slice(0, 180).trimEnd()}...` : cleaned;
-}
-
-function countWords(text: string) {
-  const words = text.trim().split(/\s+/).filter(Boolean);
-  return words.length;
-}
-
-function formatTimestamp(date: Date) {
-  const today = new Date();
-  const isToday = date.toDateString() === today.toDateString();
-  const time = date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  if (isToday) {
-    return `TODAY, ${time}`;
-  }
-  const day = date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "2-digit",
-  });
-  return `${day.toUpperCase()}, ${time}`;
-}
-
-function formatDisplayDate(date: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  }).format(date);
-}
-
-function HeaderBlock({
-  saveLabel,
-  currentDateLabel,
-}: {
-  saveLabel: string;
-  currentDateLabel: string;
-}) {
-  return (
-    <section className="mb-6">
-      <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-        Daily Equilibrium Check-in
-      </h1>
-
-      <div className="mt-4 flex flex-col gap-2 text-sm sm:flex-row sm:items-center sm:gap-6">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-bold uppercase tracking-widest text-slate-400">
-            Date
-          </span>
-          <span className="font-medium text-slate-700">
-            <span suppressHydrationWarning>{currentDateLabel}</span>
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-bold uppercase tracking-widest text-slate-400">
-            Session Type
-          </span>
-          <span className="rounded-md border border-teal-100 bg-teal-50 px-2 py-1 text-[11px] font-bold uppercase tracking-wider text-teal-700">
-            Self-Guided Reflection
-          </span>
-        </div>
-      </div>
-
-      <p className="mt-3 text-xs font-semibold uppercase tracking-widest text-slate-400">
-        {saveLabel}
-      </p>
-    </section>
-  );
-}
-
-function EditorToolbar({ onAction }: { onAction: (action: ToolbarAction) => void }) {
-  return (
-    <section className="mb-6 overflow-x-auto rounded-xl border border-slate-200 bg-white">
-      <div className="flex min-w-max items-center gap-1 px-2 py-2">
-        {TOOLBAR_ITEMS.map((item) => {
-          const Icon = item.icon;
-          return (
-            <button
-              key={item.label}
-              type="button"
-              onMouseDown={(event) => event.preventDefault()}
-              onClick={() => onAction(item.label)}
-              className="inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-xs font-semibold text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
+        <div className="flex items-center space-x-3 text-sm font-medium">
+          {/* Typography Button with Dropdown Arrow */}
+          <button className="flex items-center space-x-1 px-3 py-1.5 border border-gray-200 rounded-md text-gray-600 hover:bg-gray-50">
+            <span className="font-serif italic font-bold text-teal-700">
+              Tt
+            </span>
+            <span>Typography</span>
+            <svg
+              className="w-3 h-3 ml-1 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              <Icon size={14} />
-              {item.label}
-            </button>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </button>
 
-function ReflectionEditor({
-  draft,
-  onChange,
-  editorRef,
-}: {
-  draft: string;
-  onChange: (value: string) => void;
-  editorRef: React.RefObject<HTMLTextAreaElement | null>;
-}) {
-  return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-      <div className="mx-auto max-w-3xl">
-        <textarea
-          ref={editorRef}
-          value={draft}
-          onChange={(event) => onChange(event.target.value)}
-          placeholder="Start writing your reflection..."
-          className="min-h-[520px] w-full resize-y border-0 bg-transparent font-serif text-lg leading-9 text-slate-700 outline-none placeholder:text-slate-400"
-        />
-      </div>
-    </article>
+          {/* Mood Button */}
+          <button className="flex items-center space-x-2 px-3 py-1.5 border border-gray-200 rounded-md text-gray-600 hover:bg-gray-50">
+            <svg
+              className="w-4 h-4 text-teal-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+              />
+            </svg>
+            <span>Mood</span>
+          </button>
+
+          {/* Save Button */}
+          <button
+            onClick={handleSaveReflection}
+            disabled={isSaving}
+            className="flex items-center px-4 py-1.5 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mx-2"
+          >
+            {isSaving ? (
+              <span className="flex items-center">
+                <svg
+                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                Saving...
+              </span>
+            ) : (
+              <>
+                <svg
+                  className="w-4 h-4 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
+                  />
+                </svg>
+                {journalId ? "Update Reflection" : "Save Reflection"}
+              </>
+            )}
+          </button>
+
+          {/* MISSING ELEMENT ADDED: Three Dots Menu */}
+          <button className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-md transition-colors">
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <main className="max-w-4xl mx-auto px-8 py-12">
+        <div className="mb-10">
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="text-4xl font-bold tracking-tight text-gray-900 mb-6 w-full border-none outline-none bg-transparent placeholder-gray-300 focus:ring-0"
+            placeholder="Entry Title..."
+          />
+
+          <div className="grid grid-cols-[120px_1fr] gap-y-4 text-sm">
+            <div className="flex items-center text-gray-400">
+              <svg
+                className="w-4 h-4 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+              </svg>
+              Date
+            </div>
+            <div className="font-medium text-gray-700">
+              {new Date().toLocaleDateString("en-US", {
+                month: "long",
+                day: "numeric",
+                year: "numeric",
+              })}
+            </div>
+
+            <div className="flex items-center text-gray-400">
+              <svg
+                className="w-4 h-4 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                />
+              </svg>
+              Session Type
+            </div>
+            <div>
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-50 text-teal-700">
+                Self-Guided Reflection
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div
+          id="custom-toolbar"
+          className="flex items-center space-x-3 px-4 py-2 mb-8 bg-white border border-gray-100 rounded-xl shadow-[0_2px_8px_rgb(0,0,0,0.04)]"
+        >
+          <span className="ql-formats flex space-x-1">
+            <button className="ql-bold"></button>
+            <button className="ql-italic"></button>
+            <button className="ql-underline"></button>
+          </span>
+          <div className="w-px h-5 bg-gray-200"></div>
+
+          <span className="ql-formats flex items-center space-x-2">
+            <button
+              className="ql-header text-gray-500 font-bold text-sm"
+              value="1"
+            >
+              H1
+            </button>
+            <button
+              className="ql-header text-gray-500 font-bold text-sm"
+              value="2"
+            >
+              H2
+            </button>
+            <button
+              className="ql-header text-gray-500 font-bold text-sm"
+              value="3"
+            >
+              H3
+            </button>
+          </span>
+          <div className="w-px h-5 bg-gray-200"></div>
+
+          <span className="ql-formats flex space-x-1">
+            <button className="ql-list" value="bullet"></button>
+            <button className="ql-list" value="ordered"></button>
+            <button className="ql-blockquote"></button>
+          </span>
+          <div className="w-px h-5 bg-gray-200"></div>
+
+          <span className="ql-formats flex space-x-1">
+            <button className="ql-code-block"></button>
+            <button className="ql-link"></button>
+          </span>
+        </div>
+
+        <div ref={editorRef} className="custom-quill-editor" />
+      </main>
+
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+        .ql-toolbar.ql-snow { border: none; padding: 0; font-family: inherit; }
+        .ql-container.ql-snow { border: none !important; }
+        .ql-editor { padding: 0; font-family: 'Georgia', 'Times New Roman', serif; font-size: 1.15rem; line-height: 1.8; color: #374151; min-height: 400px; }
+        .ql-editor blockquote { border-left: 3px solid #99f6e4; padding-left: 1.5rem; margin-left: 0; font-style: italic; color: #94a3b8; }
+        .ql-editor h1, .ql-editor h2, .ql-editor h3 { font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; color: #111827; margin-top: 1.5em; margin-bottom: 0.5em; }
+        #custom-toolbar button { width: 28px; height: 28px; border-radius: 4px; transition: background-color 0.2s ease; }
+        #custom-toolbar button:hover { background-color: #f3f4f6; }
+        #custom-toolbar button.ql-active { color: #0d9488 !important; }
+        #custom-toolbar button.ql-active .ql-stroke { stroke: #0d9488 !important; }
+        #custom-toolbar button.ql-active .ql-fill { fill: #0d9488 !important; }
+      `,
+        }}
+      />
+    </div>
   );
 }
