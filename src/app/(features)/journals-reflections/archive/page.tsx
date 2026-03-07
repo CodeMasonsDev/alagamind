@@ -3,14 +3,7 @@
 import React, { useMemo, useState } from "react";
 import Link from "next/link";
 import { useReflections } from "@/components/providers/reflections-provider";
-import {
-  ChevronDown,
-  Grid2x2,
-  List,
-  Plus,
-  Search,
-  Shield,
-} from "lucide-react";
+import { ChevronDown, Grid2x2, List, Plus, Search, Shield } from "lucide-react";
 
 type JournalEntry = {
   id: string;
@@ -39,11 +32,19 @@ export default function JournalsArchivePage() {
   const allEntries = entries;
 
   const moodOptions = useMemo(
-    () => ["all", ...new Set(allEntries.map((entry) => entry.mood.toLowerCase()))],
+    () => [
+      "all",
+      ...new Set(allEntries.map((entry) => entry.mood.toLowerCase())),
+    ],
     [allEntries],
   );
   const tagOptions = useMemo(
-    () => ["all", ...new Set(allEntries.flatMap(getEntryTags).map((tag) => tag.toLowerCase()))],
+    () => [
+      "all",
+      ...new Set(
+        allEntries.flatMap(getEntryTags).map((tag) => tag.toLowerCase()),
+      ),
+    ],
     [allEntries],
   );
   const filteredEntries = useMemo(() => {
@@ -287,7 +288,9 @@ function FilterSelect({
   onChange: (value: string) => void;
 }) {
   const selectedLabel =
-    options.find((option) => option.value === value)?.label ?? options[0]?.label ?? "All";
+    options.find((option) => option.value === value)?.label ??
+    options[0]?.label ??
+    "All";
 
   return (
     <label
@@ -319,17 +322,14 @@ function FilterSelect({
 function JournalGrid({ entries }: { entries: JournalEntry[] }) {
   return (
     <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <AddCard />
       {entries.length > 0 ? (
-        entries.map((entry) => (
-          <JournalCard
-            key={`${entry.timestamp}-${entry.title}-${entry.preview.slice(0, 16)}`}
-            entry={entry}
-          />
+        entries.map((entry, userId) => (
+          <JournalCard key={userId} entry={entry} />
         ))
       ) : (
         <EmptyStateCard />
       )}
-      <AddCard />
     </section>
   );
 }
@@ -348,11 +348,8 @@ function ListView({ entries }: { entries: JournalEntry[] }) {
             <span>Metadata</span>
           </div>
 
-          {entries.map((entry) => (
-            <ListRow
-              key={`${entry.timestamp}-${entry.title}-${entry.preview.slice(0, 16)}`}
-              entry={entry}
-            />
+          {entries.map((entry, userId) => (
+            <ListRow key={userId} entry={entry} />
           ))}
           {entries.length === 0 ? (
             <div className="px-5 py-10 text-center text-sm font-medium text-slate-500">
@@ -383,7 +380,9 @@ function ListRow({ entry }: { entry: JournalEntry }) {
         </span>
       </div>
 
-      <p className="text-sm text-slate-500">{formatListDate(entry.timestamp)}</p>
+      <p className="text-sm text-slate-500">
+        {formatListDate(entry.timestamp)}
+      </p>
 
       <div>
         <p className="font-semibold text-slate-900">{entry.title}</p>
@@ -458,7 +457,9 @@ function AddCard() {
       <span className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white">
         <Plus size={18} />
       </span>
-      <span className="text-xs font-bold uppercase tracking-widest">New Reflection</span>
+      <span className="text-xs font-bold uppercase tracking-widest">
+        New Reflection
+      </span>
     </Link>
   );
 }
@@ -466,8 +467,12 @@ function AddCard() {
 function EmptyStateCard() {
   return (
     <article className="flex min-h-[260px] flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm">
-      <p className="text-sm font-semibold text-slate-700">No entries matched your filters.</p>
-      <p className="mt-2 text-xs text-slate-500">Try adjusting mood, date, or tag.</p>
+      <p className="text-sm font-semibold text-slate-700">
+        No entries matched your filters.
+      </p>
+      <p className="mt-2 text-xs text-slate-500">
+        Try adjusting mood, date, or tag.
+      </p>
     </article>
   );
 }
@@ -514,10 +519,18 @@ function getEntryTags(entry: JournalEntry) {
 
   const text = `${entry.title} ${entry.preview}`.toLowerCase();
   const inferredTags: string[] = [];
-  if (/(work|task|project|quarter|review|meeting|deadline|focus|career)/.test(text)) {
+  if (
+    /(work|task|project|quarter|review|meeting|deadline|focus|career)/.test(
+      text,
+    )
+  ) {
     inferredTags.push("Work");
   }
-  if (/(calm|sleep|detox|health|wellness|anxiety|stress|energy|recovery)/.test(text)) {
+  if (
+    /(calm|sleep|detox|health|wellness|anxiety|stress|energy|recovery)/.test(
+      text,
+    )
+  ) {
     inferredTags.push("Wellness");
   }
   if (/(reflection|growth|resilience|gratitude|mindset|clarity)/.test(text)) {
