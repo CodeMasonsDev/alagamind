@@ -4,31 +4,16 @@ export default function Composer({
   input,
   onInputChange,
   onSend,
-  onCommandSelect,
   isTyping,
 }: {
   input: string;
   onInputChange: (value: string) => void;
   onSend: (text: string) => void;
-  onCommandSelect: (command: string) => void;
   isTyping: boolean;
 }) {
   return (
     <section className="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/90">
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-4 py-4 sm:px-6 lg:px-8">
-        {/* <div className="flex flex-wrap gap-2">
-          {QUICK_COMMANDS.map((command) => (
-            <button
-              key={command}
-              type="button"
-              onClick={() => onCommandSelect(command)}
-              className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-500 transition-colors hover:border-teal-100 hover:bg-teal-50 hover:text-teal-700"
-            >
-              {command}
-            </button>
-          ))}
-        </div> */}
-
         <div className="flex items-center gap-3 rounded-full border border-slate-200 bg-white px-4 py-2 shadow-sm">
           <Bot className="h-5 w-5 shrink-0 text-slate-400" />
           <input

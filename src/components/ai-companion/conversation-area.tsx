@@ -12,7 +12,7 @@ export default function ConversationArea({
 }: {
   messages: ChatMessage[];
   isTyping: boolean;
-  onSuggestionStart: (command: string) => void;
+  onSuggestionStart?: (command: string) => void;
 }) {
   return (
     <section className="flex flex-1 flex-col gap-8 pb-28">
@@ -29,7 +29,7 @@ export default function ConversationArea({
           return (
             <InsightAssistantCard
               key={message.id}
-              onSuggestionStart={onSuggestionStart}
+              onSuggestionStart={onSuggestionStart ?? (() => {})}
             />
           );
         }
