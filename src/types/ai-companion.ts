@@ -17,3 +17,14 @@ export type ChatHistoryResponse = {
   session_id: string;
   history: Chat_history[];
 };
+
+export type NewSessionResponse = {
+  session_id: string;
+  message: string;
+};
+
+export type SessionListItem = {
+  id: string;
+  label: string;
+  createdAt: string;
+};
