@@ -44,7 +44,7 @@ export default function Dashboard() {
 
 function TopBar() {
   return (
-    <header className="flex items-center justify-between pb-4 border-b border-slate-200 p-4">
+    <header className="flex sticky top-0  z-10 items-center justify-between pb-4 border-b bg-white border-slate-200 p-4">
       <div className="flex items-center gap-2 text-xs font-bold tracking-widest text-slate-500 uppercase">
         <span className="flex items-center gap-2 text-teal-500">
           <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
