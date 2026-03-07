@@ -1,7 +1,9 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import {
+  type LucideIcon,
   Bell,
   Clock,
   Shield,
@@ -236,7 +238,7 @@ function EmotionBtn({
   label,
   isActive,
 }: {
-  icon: any;
+  icon: LucideIcon;
   label: string;
   isActive?: boolean;
 }) {
@@ -275,6 +277,7 @@ const SUITE_DATA = [
       { label: "Latency", value: "<200ms" },
     ],
     btnText: "CHAT NOW",
+    href: "/ai-companion",
     btnIcon: MessageSquare,
     btnStyle: "bg-slate-900 text-white hover:bg-slate-800",
   },
@@ -297,6 +300,7 @@ const SUITE_DATA = [
       },
     ],
     btnText: "WRITE NOW",
+    href: "/journals-reflections/write",
     btnIcon: PenLine,
     btnStyle:
       "bg-white text-slate-900 border border-slate-200 hover:bg-slate-50",
@@ -383,12 +387,23 @@ function IntegratedWellnessSuite() {
                 ))}
               </div>
 
-              <button
-                className={`w-full py-3.5 rounded-xl text-xs font-bold tracking-widest uppercase flex items-center justify-center gap-2 transition-all ${card.btnStyle}`}
-              >
-                {card.btnText}
-                <BtnIcon size={16} />
-              </button>
+              {card.href ? (
+                <Link
+                  href={card.href}
+                  className={`w-full py-3.5 rounded-xl text-xs font-bold tracking-widest uppercase flex items-center justify-center gap-2 transition-all ${card.btnStyle}`}
+                >
+                  {card.btnText}
+                  <BtnIcon size={16} />
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  className={`w-full py-3.5 rounded-xl text-xs font-bold tracking-widest uppercase flex items-center justify-center gap-2 transition-all ${card.btnStyle}`}
+                >
+                  {card.btnText}
+                  <BtnIcon size={16} />
+                </button>
+              )}
             </div>
           );
         })}
