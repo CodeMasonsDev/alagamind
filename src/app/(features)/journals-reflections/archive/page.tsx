@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState } from "react";
 import Link from "next/link";
+import { useReflections } from "@/components/providers/reflections-provider";
 import {
   ChevronDown,
   Grid2x2,
@@ -12,10 +13,13 @@ import {
 } from "lucide-react";
 
 type JournalEntry = {
+  id: string;
+  createdAt: number;
   timestamp: string;
   mood: string;
   title: string;
   preview: string;
+  tags?: string[];
   subBadge?: string;
   wordCount: string;
   action: string;
@@ -23,85 +27,98 @@ type JournalEntry = {
   dotClass: string;
 };
 
-const ENTRIES_STORAGE_KEY = "alagamind-journal-entries";
-
-const STATIC_JOURNAL_ENTRIES: JournalEntry[] = [
-  {
-    timestamp: "TODAY, 10:45 AM",
-    mood: "CALM",
-    title: "Quarterly Review Clarity",
-    preview:
-      "Reframed current priorities and identified the highest-leverage outcomes for the next quarter. Focus shifted from urgency to alignment.",
-    subBadge: "SYNCING",
-    wordCount: "682 words",
-    action: "Guided",
-    moodClass: "bg-teal-50 text-teal-700 border-teal-100",
-    dotClass: "bg-teal-500",
-  },
-  {
-    timestamp: "OCT 24, 05:20 PM",
-    mood: "FOCUSED",
-    title: "Deep Work & Velocity",
-    preview:
-      "Documented attention blockers and designed a tighter work cadence. The session clarified which tasks create momentum versus noise.",
-    wordCount: "514 words",
-    action: "Open Entry",
-    moodClass: "bg-sky-50 text-sky-700 border-sky-100",
-    dotClass: "bg-sky-500",
-  },
-  {
-    timestamp: "OCT 23, 09:10 PM",
-    mood: "REFLECTIVE",
-    title: "Evening Digital Detox",
-    preview:
-      "Noticed measurable calm after reducing late-night inputs. Captured sensory changes, sleep cues, and a healthier wind-down sequence.",
-    subBadge: "SYNCING",
-    wordCount: "431 words",
-    action: "Open Entry",
-    moodClass: "bg-violet-50 text-violet-700 border-violet-100",
-    dotClass: "bg-violet-500",
-  },
-  {
-    timestamp: "OCT 22, 07:35 AM",
-    mood: "ENERGIZED",
-    title: "Boundary Management",
-    preview:
-      "Mapped personal and professional boundaries for the week. Replaced reactive yes-patterns with proactive time protections.",
-    wordCount: "603 words",
-    action: "Guided",
-    moodClass: "bg-amber-50 text-amber-700 border-amber-100",
-    dotClass: "bg-amber-500",
-  },
-  {
-    timestamp: "OCT 21, 08:15 PM",
-    mood: "GRATEFUL",
-    title: "Small Wins Celebration",
-    preview:
-      "Collected evidence of progress and emotional resilience from the week. The exercise reinforced consistency and self-trust.",
-    wordCount: "388 words",
-    action: "Open Entry",
-    moodClass: "bg-emerald-50 text-emerald-700 border-emerald-100",
-    dotClass: "bg-emerald-500",
-  },
-];
+type DateFilter = "7" | "30" | "90" | "all";
 
 export default function JournalsArchivePage() {
+  const { entries } = useReflections();
   const [viewMode, setViewMode] = useState<"card" | "list">("card");
-  const [savedEntries] = useState<JournalEntry[]>(() => readStoredEntries());
-  const allEntries = useMemo(
-    () => [...savedEntries, ...STATIC_JOURNAL_ENTRIES],
-    [savedEntries],
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedMood, setSelectedMood] = useState("all");
+  const [selectedDate, setSelectedDate] = useState<DateFilter>("30");
+  const [selectedTag, setSelectedTag] = useState("all");
+  const allEntries = entries;
+
+  const moodOptions = useMemo(
+    () => ["all", ...new Set(allEntries.map((entry) => entry.mood.toLowerCase()))],
+    [allEntries],
   );
+  const tagOptions = useMemo(
+    () => ["all", ...new Set(allEntries.flatMap(getEntryTags).map((tag) => tag.toLowerCase()))],
+    [allEntries],
+  );
+  const filteredEntries = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    const days = selectedDate === "all" ? null : Number(selectedDate);
+    const cutoff = days === null ? null : getCutoffDate(days, new Date());
+
+    return allEntries.filter((entry) => {
+      if (selectedMood !== "all" && entry.mood.toLowerCase() !== selectedMood) {
+        return false;
+      }
+
+      const entryTags = getEntryTags(entry).map((tag) => tag.toLowerCase());
+      if (selectedTag !== "all" && !entryTags.includes(selectedTag)) {
+        return false;
+      }
+
+      if (cutoff) {
+        if (entry.createdAt < cutoff.getTime()) {
+          return false;
+        }
+      }
+
+      if (!query) {
+        return true;
+      }
+
+      const searchableText = [
+        entry.title,
+        entry.preview,
+        entry.mood,
+        entry.timestamp,
+        ...entryTags,
+      ]
+        .join(" ")
+        .toLowerCase();
+
+      return searchableText.includes(query);
+    });
+  }, [allEntries, searchQuery, selectedMood, selectedDate, selectedTag]);
+  const canClearFilters =
+    searchQuery.trim().length > 0 ||
+    selectedMood !== "all" ||
+    selectedDate !== "30" ||
+    selectedTag !== "all";
+
+  function clearFilters() {
+    setSearchQuery("");
+    setSelectedMood("all");
+    setSelectedDate("30");
+    setSelectedTag("all");
+  }
 
   return (
     <div className="flex min-h-full w-full flex-col bg-slate-50/60">
       <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
         <HeaderSection viewMode={viewMode} setViewMode={setViewMode} />
-        <FilterToolbar />
+        <FilterToolbar
+          searchQuery={searchQuery}
+          onSearchQueryChange={setSearchQuery}
+          selectedMood={selectedMood}
+          onSelectedMoodChange={setSelectedMood}
+          selectedDate={selectedDate}
+          onSelectedDateChange={setSelectedDate}
+          selectedTag={selectedTag}
+          onSelectedTagChange={setSelectedTag}
+          moodOptions={moodOptions}
+          tagOptions={tagOptions}
+          canClearFilters={canClearFilters}
+          onClearFilters={clearFilters}
+        />
         {viewMode === "card" ? (
-          <JournalGrid entries={allEntries} />
+          <JournalGrid entries={filteredEntries} />
         ) : (
-          <ListView entries={allEntries} />
+          <ListView entries={filteredEntries} />
         )}
       </main>
 
@@ -163,7 +180,48 @@ function HeaderSection({
   );
 }
 
-function FilterToolbar() {
+function FilterToolbar({
+  searchQuery,
+  onSearchQueryChange,
+  selectedMood,
+  onSelectedMoodChange,
+  selectedDate,
+  onSelectedDateChange,
+  selectedTag,
+  onSelectedTagChange,
+  moodOptions,
+  tagOptions,
+  canClearFilters,
+  onClearFilters,
+}: {
+  searchQuery: string;
+  onSearchQueryChange: (value: string) => void;
+  selectedMood: string;
+  onSelectedMoodChange: (value: string) => void;
+  selectedDate: DateFilter;
+  onSelectedDateChange: (value: DateFilter) => void;
+  selectedTag: string;
+  onSelectedTagChange: (value: string) => void;
+  moodOptions: string[];
+  tagOptions: string[];
+  canClearFilters: boolean;
+  onClearFilters: () => void;
+}) {
+  const moodFilterOptions = moodOptions.map((mood) => ({
+    value: mood,
+    label: mood === "all" ? "All" : formatFilterLabel(mood),
+  }));
+  const dateFilterOptions: Array<{ value: DateFilter; label: string }> = [
+    { value: "7", label: "Last 7 Days" },
+    { value: "30", label: "Last 30 Days" },
+    { value: "90", label: "Last 90 Days" },
+    { value: "all", label: "All Time" },
+  ];
+  const tagFilterOptions = tagOptions.map((tag) => ({
+    value: tag,
+    label: tag === "all" ? "All" : formatFilterLabel(tag),
+  }));
+
   return (
     <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -171,6 +229,8 @@ function FilterToolbar() {
           <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
+            value={searchQuery}
+            onChange={(event) => onSearchQueryChange(event.target.value)}
             placeholder="Search entries, keywords, or sentiments..."
             className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50/60 pl-10 pr-4 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:border-teal-200 focus:bg-white"
           />
@@ -178,11 +238,31 @@ function FilterToolbar() {
 
         <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
           <span className="mr-1 text-slate-400">Filters:</span>
-          <FilterChip label="Mood: All" active />
-          <FilterChip label="Date: Last 30 Days" />
-          <FilterChip label="Tags: Work" />
+          <FilterSelect
+            prefix="Mood"
+            value={selectedMood}
+            options={moodFilterOptions}
+            active={selectedMood !== "all"}
+            onChange={(value) => onSelectedMoodChange(value)}
+          />
+          <FilterSelect
+            prefix="Date"
+            value={selectedDate}
+            options={dateFilterOptions}
+            active={selectedDate !== "30"}
+            onChange={(value) => onSelectedDateChange(value as DateFilter)}
+          />
+          <FilterSelect
+            prefix="Tags"
+            value={selectedTag}
+            options={tagFilterOptions}
+            active={selectedTag !== "all"}
+            onChange={(value) => onSelectedTagChange(value)}
+          />
           <button
             type="button"
+            disabled={!canClearFilters}
+            onClick={onClearFilters}
             className="rounded-md px-2 py-1 text-teal-700 transition-colors hover:bg-teal-50"
           >
             Clear All
@@ -193,31 +273,62 @@ function FilterToolbar() {
   );
 }
 
-function FilterChip({ label, active }: { label: string; active?: boolean }) {
+function FilterSelect({
+  prefix,
+  value,
+  options,
+  active,
+  onChange,
+}: {
+  prefix: string;
+  value: string;
+  options: Array<{ value: string; label: string }>;
+  active?: boolean;
+  onChange: (value: string) => void;
+}) {
+  const selectedLabel =
+    options.find((option) => option.value === value)?.label ?? options[0]?.label ?? "All";
+
   return (
-    <button
-      type="button"
-      className={`inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 ${
+    <label
+      className={`relative inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 ${
         active
           ? "border-teal-100 bg-teal-50 text-teal-700"
           : "border-slate-200 bg-white text-slate-600"
       }`}
     >
-      {label}
+      <span>
+        {prefix}: {selectedLabel}
+      </span>
       <ChevronDown size={13} />
-    </button>
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="absolute inset-0 cursor-pointer appearance-none rounded-lg opacity-0"
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
 
 function JournalGrid({ entries }: { entries: JournalEntry[] }) {
   return (
     <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {entries.map((entry) => (
-        <JournalCard
-          key={`${entry.timestamp}-${entry.title}-${entry.preview.slice(0, 16)}`}
-          entry={entry}
-        />
-      ))}
+      {entries.length > 0 ? (
+        entries.map((entry) => (
+          <JournalCard
+            key={`${entry.timestamp}-${entry.title}-${entry.preview.slice(0, 16)}`}
+            entry={entry}
+          />
+        ))
+      ) : (
+        <EmptyStateCard />
+      )}
       <AddCard />
     </section>
   );
@@ -243,6 +354,11 @@ function ListView({ entries }: { entries: JournalEntry[] }) {
               entry={entry}
             />
           ))}
+          {entries.length === 0 ? (
+            <div className="px-5 py-10 text-center text-sm font-medium text-slate-500">
+              No entries matched your current filters.
+            </div>
+          ) : null}
         </div>
       </div>
 
@@ -347,6 +463,15 @@ function AddCard() {
   );
 }
 
+function EmptyStateCard() {
+  return (
+    <article className="flex min-h-[260px] flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm">
+      <p className="text-sm font-semibold text-slate-700">No entries matched your filters.</p>
+      <p className="mt-2 text-xs text-slate-500">Try adjusting mood, date, or tag.</p>
+    </article>
+  );
+}
+
 function FooterStrip() {
   return (
     <footer className="border-t border-slate-200 bg-white px-4 py-3 sm:px-6 lg:px-8">
@@ -367,47 +492,44 @@ function FooterStrip() {
   );
 }
 
-function readStoredEntries(): JournalEntry[] {
-  if (typeof window === "undefined") {
-    return [];
-  }
-
-  try {
-    const raw = window.localStorage.getItem(ENTRIES_STORAGE_KEY);
-    if (!raw) {
-      return [];
-    }
-    const parsed: unknown = JSON.parse(raw);
-    if (!Array.isArray(parsed)) {
-      return [];
-    }
-    return parsed.filter(isJournalEntry);
-  } catch {
-    return [];
-  }
-}
-
-function isJournalEntry(value: unknown): value is JournalEntry {
-  if (!value || typeof value !== "object") {
-    return false;
-  }
-  const candidate = value as Record<string, unknown>;
-  return (
-    typeof candidate.timestamp === "string" &&
-    typeof candidate.mood === "string" &&
-    typeof candidate.title === "string" &&
-    typeof candidate.preview === "string" &&
-    typeof candidate.wordCount === "string" &&
-    typeof candidate.action === "string" &&
-    typeof candidate.moodClass === "string" &&
-    typeof candidate.dotClass === "string"
-  );
-}
-
 function formatListDate(timestamp: string) {
   return timestamp
     .replace("TODAY", "Today")
     .replace(/^([A-Z]{3})\s/, (_, month: string) => {
       return `${month[0]}${month.slice(1).toLowerCase()} `;
     });
+}
+
+function formatFilterLabel(value: string) {
+  return value
+    .split(" ")
+    .map((word) => word[0].toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
+function getEntryTags(entry: JournalEntry) {
+  if (entry.tags && entry.tags.length > 0) {
+    return entry.tags;
+  }
+
+  const text = `${entry.title} ${entry.preview}`.toLowerCase();
+  const inferredTags: string[] = [];
+  if (/(work|task|project|quarter|review|meeting|deadline|focus|career)/.test(text)) {
+    inferredTags.push("Work");
+  }
+  if (/(calm|sleep|detox|health|wellness|anxiety|stress|energy|recovery)/.test(text)) {
+    inferredTags.push("Wellness");
+  }
+  if (/(reflection|growth|resilience|gratitude|mindset|clarity)/.test(text)) {
+    inferredTags.push("Growth");
+  }
+
+  return inferredTags.length > 0 ? inferredTags : ["General"];
+}
+
+function getCutoffDate(days: number, referenceNow: Date) {
+  const cutoff = new Date(referenceNow);
+  cutoff.setHours(0, 0, 0, 0);
+  cutoff.setDate(cutoff.getDate() - days);
+  return cutoff;
 }

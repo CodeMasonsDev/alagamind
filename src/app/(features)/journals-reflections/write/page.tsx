@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useReflections } from "@/components/providers/reflections-provider";
 import {
   ArrowLeft,
   Bold,
@@ -34,61 +35,57 @@ const TOOLBAR_ITEMS = [
   { label: "Edit", icon: PenLine },
 ] as const;
 type ToolbarAction = (typeof TOOLBAR_ITEMS)[number]["label"];
-
-const STORAGE_KEY = "alagamind-journal-draft";
-const ENTRIES_STORAGE_KEY = "alagamind-journal-entries";
-
-const INITIAL_DRAFT = `Today I noticed a subtle return of clarity in my thoughts. There was a quieter rhythm behind the usual urgency, as if my mind had more room to observe instead of react.
-
-My environment shaped my internal dialogue more than I expected. When I slowed the pace around me, my self-talk became less critical and more precise.
-
-"The mind did not need more force today. It needed structure, patience, and permission to pause."
-
-For the upcoming week, I want to focus my reflection on three practical goals that keep me grounded while supporting consistent growth.
-
-- Protect one uninterrupted 20-minute writing block each morning.
-- Convert open loops into a short, trusted capture list every day.
-- End each evening by naming one emotional signal and one next step.`;
-
-type StoredJournalEntry = {
-  timestamp: string;
-  mood: string;
-  title: string;
-  preview: string;
-  wordCount: string;
-  action: string;
-  moodClass: string;
-  dotClass: string;
+type SaveFeedback = {
+  type: "success" | "error";
+  message: string;
 };
 
 export default function JournalWritingPage() {
-  const [draft, setDraft] = useState(() => {
-    if (typeof window === "undefined") {
-      return INITIAL_DRAFT;
-    }
-    return window.localStorage.getItem(STORAGE_KEY) ?? INITIAL_DRAFT;
-  });
+  const { addEntry } = useReflections();
+  const [draft, setDraft] = useState("");
   const [savedAt, setSavedAt] = useState<string | null>(null);
+  const [saveFeedback, setSaveFeedback] = useState<SaveFeedback | null>(null);
   const editorRef = useRef<HTMLTextAreaElement | null>(null);
+  const isDraftEmpty = draft.trim().length === 0;
+  const currentDateLabel = useMemo(() => formatDisplayDate(new Date()), []);
+
+  useEffect(() => {
+    if (!saveFeedback) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setSaveFeedback(null);
+    }, 2400);
+
+    return () => window.clearTimeout(timer);
+  }, [saveFeedback]);
 
   function handleSave() {
-    window.localStorage.setItem(STORAGE_KEY, draft);
-    const existingEntries = readStoredEntries();
-    const nextEntry: StoredJournalEntry = {
+    if (isDraftEmpty) {
+      setSaveFeedback({
+        type: "error",
+        message: "Write something first before saving your reflection.",
+      });
+      return;
+    }
+
+    addEntry({
       timestamp: formatTimestamp(new Date()),
       mood: "REFLECTIVE",
       title: buildTitleFromDraft(draft),
       preview: buildPreviewFromDraft(draft),
+      tags: ["General"],
       wordCount: `${countWords(draft)} words`,
       action: "Open Entry",
       moodClass: "bg-violet-50 text-violet-700 border-violet-100",
       dotClass: "bg-violet-500",
-    };
-    window.localStorage.setItem(
-      ENTRIES_STORAGE_KEY,
-      JSON.stringify([nextEntry, ...existingEntries]),
-    );
+    });
     setSavedAt(new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
+    setSaveFeedback({
+      type: "success",
+      message: "Reflection saved successfully.",
+    });
   }
 
   const saveLabel = useMemo(() => {
@@ -188,11 +185,30 @@ export default function JournalWritingPage() {
 
   return (
     <div className="flex min-h-full w-full flex-col bg-slate-50/60">
-      <TopBar onSave={handleSave} />
+      <TopBar onSave={handleSave} canSave={!isDraftEmpty} />
+
+      {saveFeedback ? (
+        <div className="pointer-events-none fixed right-6 top-6 z-50">
+          <div
+            className={`rounded-xl border px-4 py-3 text-sm font-semibold shadow-lg ${
+              saveFeedback.type === "success"
+                ? "border-teal-100 bg-teal-50 text-teal-700"
+                : "border-rose-100 bg-rose-50 text-rose-700"
+            }`}
+            role="status"
+            aria-live="polite"
+          >
+            {saveFeedback.message}
+          </div>
+        </div>
+      ) : null}
 
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
         <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-          <HeaderBlock saveLabel={saveLabel} />
+          <HeaderBlock
+            saveLabel={saveLabel}
+            currentDateLabel={currentDateLabel}
+          />
           <EditorToolbar onAction={applyToolbarAction} />
           <ReflectionEditor
             draft={draft}
@@ -202,6 +218,63 @@ export default function JournalWritingPage() {
         </section>
       </main>
     </div>
+  );
+}
+
+function TopBar({ onSave, canSave }: { onSave: () => void; canSave: boolean }) {
+  return (
+    <header className="border-b border-slate-200 bg-white px-4 py-3 sm:px-6 lg:px-8">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-slate-500">
+          <Link
+            href="/journals-reflections"
+            className="inline-flex items-center gap-1.5 rounded-md px-1.5 py-1 text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
+          >
+            <ArrowLeft size={14} />
+            Back
+          </Link>
+          <span className="text-slate-300">/</span>
+          <span className="flex items-center gap-1.5 text-teal-600">
+            <Circle className="h-2.5 w-2.5 fill-current" />
+            Vault Secured
+          </span>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-600 transition-colors hover:bg-slate-50"
+          >
+            Typography
+          </button>
+          <button
+            type="button"
+            className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-600 transition-colors hover:bg-slate-50"
+          >
+            Mood
+          </button>
+          <button
+            type="button"
+            onClick={onSave}
+            disabled={!canSave}
+            className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider transition-colors ${
+              canSave
+                ? "border-teal-100 bg-teal-500 text-white hover:bg-teal-600"
+                : "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
+            }`}
+          >
+            <Palette size={14} />
+            Save Reflection
+          </button>
+          <button
+            type="button"
+            className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+          >
+            <MoreHorizontal size={18} />
+          </button>
+        </div>
+      </div>
+    </header>
   );
 }
 
@@ -248,92 +321,21 @@ function formatTimestamp(date: Date) {
   return `${day.toUpperCase()}, ${time}`;
 }
 
-function readStoredEntries(): StoredJournalEntry[] {
-  try {
-    const raw = window.localStorage.getItem(ENTRIES_STORAGE_KEY);
-    if (!raw) {
-      return [];
-    }
-    const parsed: unknown = JSON.parse(raw);
-    if (!Array.isArray(parsed)) {
-      return [];
-    }
-    return parsed.filter(isStoredJournalEntry);
-  } catch {
-    return [];
-  }
+function formatDisplayDate(date: Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
 }
 
-function isStoredJournalEntry(value: unknown): value is StoredJournalEntry {
-  if (!value || typeof value !== "object") {
-    return false;
-  }
-  const candidate = value as Record<string, unknown>;
-  return (
-    typeof candidate.timestamp === "string" &&
-    typeof candidate.mood === "string" &&
-    typeof candidate.title === "string" &&
-    typeof candidate.preview === "string" &&
-    typeof candidate.wordCount === "string" &&
-    typeof candidate.action === "string" &&
-    typeof candidate.moodClass === "string" &&
-    typeof candidate.dotClass === "string"
-  );
-}
-
-function TopBar({ onSave }: { onSave: () => void }) {
-  return (
-    <header className="border-b border-slate-200 bg-white px-4 py-3 sm:px-6 lg:px-8">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-slate-500">
-          <Link
-            href="/journals-reflections"
-            className="inline-flex items-center gap-1.5 rounded-md px-1.5 py-1 text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
-          >
-            <ArrowLeft size={14} />
-            Back
-          </Link>
-          <span className="text-slate-300">/</span>
-          <span className="flex items-center gap-1.5 text-teal-600">
-            <Circle className="h-2.5 w-2.5 fill-current" />
-            Vault Secured
-          </span>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-600 transition-colors hover:bg-slate-50"
-          >
-            Typography
-          </button>
-          <button
-            type="button"
-            className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-600 transition-colors hover:bg-slate-50"
-          >
-            Mood
-          </button>
-          <button
-            type="button"
-            onClick={onSave}
-            className="inline-flex items-center gap-1.5 rounded-md border border-teal-100 bg-teal-500 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-white transition-colors hover:bg-teal-600"
-          >
-            <Palette size={14} />
-            Save Reflection
-          </button>
-          <button
-            type="button"
-            className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
-          >
-            <MoreHorizontal size={18} />
-          </button>
-        </div>
-      </div>
-    </header>
-  );
-}
-
-function HeaderBlock({ saveLabel }: { saveLabel: string }) {
+function HeaderBlock({
+  saveLabel,
+  currentDateLabel,
+}: {
+  saveLabel: string;
+  currentDateLabel: string;
+}) {
   return (
     <section className="mb-6">
       <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
@@ -345,7 +347,9 @@ function HeaderBlock({ saveLabel }: { saveLabel: string }) {
           <span className="text-xs font-bold uppercase tracking-widest text-slate-400">
             Date
           </span>
-          <span className="font-medium text-slate-700">October 25, 2023</span>
+          <span className="font-medium text-slate-700">
+            <span suppressHydrationWarning>{currentDateLabel}</span>
+          </span>
         </div>
 
         <div className="flex items-center gap-2">

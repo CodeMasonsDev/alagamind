@@ -8,7 +8,9 @@ export default function NavItem({ item }: { item: NavItems }) {
   const Icon = item.icon;
   const pathname = usePathname();
 
-  const isActive = pathname == item.href;
+  const isActive =
+    item.href !== "#" &&
+    (pathname === item.href || pathname.startsWith(`${item.href}/`));
 
   return (
     <li className="relative group">
@@ -31,7 +33,7 @@ export default function NavItem({ item }: { item: NavItems }) {
           className={`w-5 h-5 ${isActive ? "text-slate-800" : "text-slate-400 group-hover:text-slate-600"}`}
         />
         <span
-          className={`text-sm ${item.isActive ? "font-semibold" : "font-medium"}`}
+          className={`text-sm ${isActive ? "font-semibold" : "font-medium"}`}
         >
           {item.label}
         </span>
