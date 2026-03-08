@@ -11,6 +11,7 @@ import React, {
 
 export type ReflectionEntry = {
   id: string;
+  user_id: string;
   createdAt: number;
   timestamp: string;
   mood: string;
@@ -27,7 +28,9 @@ export type ReflectionEntry = {
 type ReflectionStore = {
   entries: ReflectionEntry[];
   isLoading: boolean;
-  addEntry: (entry: Omit<ReflectionEntry, "id" | "createdAt">) => void;
+  addEntry: (
+    entry: Omit<ReflectionEntry, "id" | "createdAt" | "user_id">,
+  ) => void;
   refreshEntries: () => Promise<void>; // Expose this so you can trigger a re-fetch after saving
 };
 
@@ -43,6 +46,7 @@ export function ReflectionsProvider({
 
   // Hardcoded for now per your request
   const userId = "7e9793a6-c652-4b3a-8bed-780c221ee33a";
+  const journal_id = "072392ed-38f6-4a76-83b7-aa99f4be163a";
 
   const fetchEntries = async () => {
     setIsLoading(true);
@@ -60,6 +64,7 @@ export function ReflectionsProvider({
 
         return {
           id: item.id,
+          user_id: userId,
           createdAt: dateObj.getTime(),
           timestamp: dateObj.toLocaleDateString("en-US", {
             month: "long",
@@ -106,6 +111,7 @@ export function ReflectionsProvider({
               typeof crypto !== "undefined" && "randomUUID" in crypto
                 ? crypto.randomUUID()
                 : `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+            user_id: userId,
             createdAt: Date.now(),
           },
           ...previous,
