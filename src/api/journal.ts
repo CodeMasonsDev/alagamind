@@ -68,3 +68,19 @@ export async function GetUserJournals(user_id: string) {
     console.log("Unable to retrieve your journals");
   }
 }
+
+export async function GetUserJournal(user_id: string, journal_id: string) {
+  try {
+    const response = await axiosInstance.get(
+      `${BASEURLDOTNETAPI}api/Journal/GetJournalById?userId=${user_id}&journalId=${journal_id}`,
+    );
+
+    if (!response) {
+      console.log("Empty response");
+    }
+
+    return response.data;
+  } catch (error) {
+    console.log("Unable to retrieve your journals");
+  }
+}
