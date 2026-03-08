@@ -22,6 +22,7 @@ import {
   LayoutGrid,
   PenLine,
 } from "lucide-react";
+import { CheckInModal } from "@/components/dashboard/check-in-modal";
 
 // ----------------------------------------------------------------------
 // MAIN DASHBOARD COMPONENT
@@ -85,13 +86,20 @@ function WellnessIntelligence() {
   const [selectedEmotion, setSelectedEmotion] = useState("Focused");
   const [showToast, setShowToast] = useState(false);
   const [toastKey, setToastKey] = useState(0);
+  const [showCheckInModal, setShowCheckInModal] = useState(false);
+  const [lastLoggedIntensity, setLastLoggedIntensity] = useState<number | null>(
+    null,
+  );
 
   const activeEmotion =
     emotions.find((emotion) => emotion.label === selectedEmotion) ?? emotions[2];
-  const intensityProgress = `${activeEmotion.intensity * 10}%`;
+  const displayIntensity = lastLoggedIntensity ?? activeEmotion.intensity;
+  const intensityProgress = `${displayIntensity * 10}%`;
 
-  const handleEmotionSelect = (emotion: string) => {
-    setSelectedEmotion(emotion);
+  const handleCheckInSuccess = (state: number, intensity: number) => {
+    const emotionLabels = ["Stressed", "Tired", "Focused", "Calm", "Energized"];
+    setSelectedEmotion(emotionLabels[state] ?? "Focused");
+    setLastLoggedIntensity(intensity);
     setShowToast(true);
     setToastKey((prev) => prev + 1);
   };
@@ -116,7 +124,18 @@ function WellnessIntelligence() {
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Card 1: Quick Check-In */}
-          <div className="p-6 bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col col-span-2">
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => setShowCheckInModal(true)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setShowCheckInModal(true);
+              }
+            }}
+            className="p-6 bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col col-span-2 cursor-pointer hover:border-teal-200 transition-colors"
+          >
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xs font-bold tracking-widest text-slate-900 uppercase">
                 Quick Check-In
@@ -137,7 +156,7 @@ function WellnessIntelligence() {
                     icon={icon}
                     label={label}
                     isActive={selectedEmotion === label}
-                    onClick={() => handleEmotionSelect(label)}
+                    onClick={() => setShowCheckInModal(true)}
                   />
                 ))}
               </div>
@@ -148,7 +167,7 @@ function WellnessIntelligence() {
                     Intensity
                   </span>
                   <span className="text-sm font-bold text-teal-500">
-                    {activeEmotion.intensity.toFixed(1)}
+                    {displayIntensity.toFixed(1)}
                   </span>
                 </div>
                 <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
@@ -270,6 +289,12 @@ function WellnessIntelligence() {
           </div>
         </div>
       </section>
+
+      <CheckInModal
+        isOpen={showCheckInModal}
+        onClose={() => setShowCheckInModal(false)}
+        onSuccess={handleCheckInSuccess}
+      />
 
       <div className="fixed bottom-6 right-6 z-50 pointer-events-none">
         <div
