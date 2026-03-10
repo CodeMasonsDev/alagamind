@@ -2,25 +2,22 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import "quill/dist/quill.snow.css";
-import TurndownService from "turndown";
 import { MakeJournal, updateJournal } from "@/services/journals";
 import { useReflections } from "@/components/providers/reflections-provider";
 import Link from "next/link";
+
 export default function ReflectionEditor() {
   const editorRef = useRef<HTMLDivElement>(null);
   const quillRef = useRef<any>(null);
 
-  // --- State ---
   const [title, setTitle] = useState("Daily Equilibrium Check-in");
   const [isSaving, setIsSaving] = useState(false);
   const [journalId, setJournalId] = useState<string | null>(null);
 
-  // Hardcoded for testing; replace with actual auth context later
   const userId = "7e9793a6-c652-4b3a-8bed-780c221ee33a";
 
   const { refreshEntries, addEntry } = useReflections();
 
-  // --- Initialize Quill ---
   useEffect(() => {
     if (
       typeof window !== "undefined" &&
@@ -40,55 +37,61 @@ export default function ReflectionEditor() {
     }
   }, []);
 
-  // --- Save / Update Logic ---
   const handleSaveReflection = async () => {
     if (!quillRef.current) return;
 
     setIsSaving(true);
 
     try {
-      // 1. Convert HTML to Markdown
       const htmlContent = quillRef.current.root.innerHTML;
-      console.log("htmlContent: ", htmlContent);
-
-      const turndownService = new TurndownService({
-        headingStyle: "atx",
-        codeBlockStyle: "fenced",
-      });
+      const plainContent = stripHtml(htmlContent);
+      const resolvedTitle = title.trim() || "Untitled Reflection";
 
       if (journalId) {
-        // === UPDATE EXISTING JOURNAL ===
         const payload = {
           userId,
           journalId,
-          title,
+          title: resolvedTitle,
           content: htmlContent,
         };
 
         const updateRes = await updateJournal(payload);
         if (!updateRes) throw new Error("Update failed: Empty response");
 
-        console.log("Journal updated successfully:", updateRes);
-
         await refreshEntries();
       } else {
-        // === CREATE NEW JOURNAL ===
         const payload = {
           userId,
-          title,
+          title: resolvedTitle,
           content: htmlContent,
         };
 
         const data = await MakeJournal(payload);
         if (!data) throw new Error("Create failed: Empty response");
 
-        // Save the ID so subsequent clicks trigger an Update
-        const newId = data.journalId;
+        const newId = data.journalId ?? data.id;
         if (newId) {
           setJournalId(newId);
         }
 
-        console.log("Journal created successfully:", data);
+        addEntry({
+          id:
+            newId ??
+            `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+          timestamp: formatTimestamp(Date.now()),
+          mood: "Neutral",
+          title: resolvedTitle,
+          preview:
+            plainContent.length > 120
+              ? `${plainContent.slice(0, 120).trimEnd()}...`
+              : plainContent || "No content",
+          tags: [],
+          action: "View Reflection",
+          wordCount: `${plainContent.split(/\s+/).filter(Boolean).length} words`,
+          moodClass: "text-gray-700 bg-gray-50 ring-gray-600/20",
+          dotClass: "bg-gray-500",
+        });
+
         await refreshEntries();
       }
     } catch (error) {
@@ -104,7 +107,7 @@ export default function ReflectionEditor() {
       <header className="flex items-center justify-between px-8 py-4 border-b border-gray-100">
         <div className="flex items-center space-x-6 text-sm font-medium text-gray-500">
           <Link
-            href={"/journals-reflections/archive"}
+            href="/journals-reflections/archive"
             className="flex items-center hover:text-gray-900 transition-colors"
           >
             <svg
@@ -129,7 +132,6 @@ export default function ReflectionEditor() {
         </div>
 
         <div className="flex items-center space-x-3 text-sm font-medium">
-          {/* Typography Button with Dropdown Arrow */}
           <button className="flex items-center space-x-1 px-3 py-1.5 border border-gray-200 rounded-md text-gray-600 hover:bg-gray-50">
             <span className="font-serif italic font-bold text-teal-700">
               Tt
@@ -150,7 +152,6 @@ export default function ReflectionEditor() {
             </svg>
           </button>
 
-          {/* Mood Button */}
           <button className="flex items-center space-x-2 px-3 py-1.5 border border-gray-200 rounded-md text-gray-600 hover:bg-gray-50">
             <svg
               className="w-4 h-4 text-teal-600"
@@ -168,7 +169,6 @@ export default function ReflectionEditor() {
             <span>Mood</span>
           </button>
 
-          {/* Save Button */}
           <button
             onClick={handleSaveReflection}
             disabled={isSaving}
@@ -217,7 +217,6 @@ export default function ReflectionEditor() {
             )}
           </button>
 
-          {/* MISSING ELEMENT ADDED: Three Dots Menu */}
           <button className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-md transition-colors">
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
               <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
@@ -352,4 +351,16 @@ export default function ReflectionEditor() {
       />
     </div>
   );
+}
+
+function stripHtml(content: string) {
+  return content.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function formatTimestamp(createdAt: number) {
+  return new Date(createdAt).toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
 }
