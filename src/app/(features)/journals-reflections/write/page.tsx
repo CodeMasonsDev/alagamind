@@ -17,7 +17,8 @@ export default function ReflectionEditor() {
 
   // Hardcoded for testing; replace with actual auth context later
   const userId = "7e9793a6-c652-4b3a-8bed-780c221ee33a";
-  const { refreshEntries } = useReflections();
+
+  const { refreshEntries, addEntry } = useReflections();
 
   // --- Initialize Quill ---
   useEffect(() => {
@@ -48,11 +49,12 @@ export default function ReflectionEditor() {
     try {
       // 1. Convert HTML to Markdown
       const htmlContent = quillRef.current.root.innerHTML;
+      console.log("htmlContent: ", htmlContent);
+
       const turndownService = new TurndownService({
         headingStyle: "atx",
         codeBlockStyle: "fenced",
       });
-      const markdownContent = turndownService.turndown(htmlContent);
 
       if (journalId) {
         // === UPDATE EXISTING JOURNAL ===
@@ -60,7 +62,7 @@ export default function ReflectionEditor() {
           userId,
           journalId,
           title,
-          content: markdownContent,
+          content: htmlContent,
         };
 
         const updateRes = await updateJournal(payload);
@@ -72,15 +74,16 @@ export default function ReflectionEditor() {
       } else {
         // === CREATE NEW JOURNAL ===
         const payload = {
+          userId,
           title,
-          content: markdownContent,
+          content: htmlContent,
         };
 
-        const data = await MakeJournal(userId, payload);
+        const data = await MakeJournal(payload);
         if (!data) throw new Error("Create failed: Empty response");
 
         // Save the ID so subsequent clicks trigger an Update
-        const newId = data.id || data.journalId || data.Id;
+        const newId = data.journalId;
         if (newId) {
           setJournalId(newId);
         }

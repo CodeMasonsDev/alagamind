@@ -2,7 +2,9 @@ import axiosInstance from "@/lib/axios";
 import { BASEURLDOTNETAPI } from "@/lib/base";
 
 export type CreateJournal = {
+  userId: string;
   title: string;
+
   content: string;
 };
 
@@ -14,10 +16,10 @@ export type UpdateJournalPayload = {
 };
 
 // --- CREATE ---
-export async function Create(userId: string, payload: CreateJournal) {
+export async function Create(payload: CreateJournal) {
   try {
     const response = await axiosInstance.post(
-      `${BASEURLDOTNETAPI}api/Journal/CreateJournal/${userId}`,
+      `${BASEURLDOTNETAPI}api/Journal/CreateJournal`,
       payload,
     );
 
