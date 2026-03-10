@@ -67,3 +67,89 @@ body {
   border-bottom-left-radius: 0.75rem;
   border-bottom-right-radius: 0.75rem;
 }
+
+/* My-journal page: render saved Quill HTML output */
+[data-journal-content] {
+  font-family: "Georgia", "Times New Roman", serif;
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: #334155;
+}
+
+[data-journal-content] p + p {
+  margin-top: 0.75rem;
+}
+
+[data-journal-content] h1,
+[data-journal-content] h2,
+[data-journal-content] h3 {
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  color: #0f172a;
+  line-height: 1.3;
+}
+
+[data-journal-content] h1 {
+  font-size: 2rem;
+}
+
+[data-journal-content] h2 {
+  font-size: 1.5rem;
+}
+
+[data-journal-content] h3 {
+  font-size: 1.25rem;
+}
+
+[data-journal-content] ul,
+[data-journal-content] ol {
+  margin: 0.75rem 0 0.75rem 1.5rem;
+}
+
+[data-journal-content] ul {
+  list-style: disc;
+}
+
+[data-journal-content] ol {
+  list-style: decimal;
+}
+
+[data-journal-content] ol li[data-list="bullet"] {
+  list-style-type: disc;
+}
+
+[data-journal-content] ol li[data-list="ordered"] {
+  list-style-type: decimal;
+}
+
+[data-journal-content] li {
+  margin-top: 0.25rem;
+}
+
+[data-journal-content] blockquote {
+  border-left: 4px solid #14b8a6;
+  padding-left: 1rem;
+  margin: 1rem 0;
+  color: #475569;
+  font-style: italic;
+}
+
+[data-journal-content] pre {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin: 1rem 0;
+  overflow-x: auto;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.9rem;
+}
+
+[data-journal-content] code {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+[data-journal-content] a {
+  color: #0f766e;
+  text-decoration: underline;
+}
