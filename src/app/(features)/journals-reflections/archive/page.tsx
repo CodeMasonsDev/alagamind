@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useReflections } from "@/components/providers/reflections-provider";
 import { ChevronDown, Grid2x2, List, Plus, Search, Shield } from "lucide-react";
-
+import LongMenu from "@/components/ui/long-menu";
+import { GetUserJournals } from "@/api/journal";
 type JournalEntry = {
   id: string;
   user_id: string;
@@ -31,6 +32,25 @@ export default function JournalsArchivePage() {
   const [selectedDate, setSelectedDate] = useState<DateFilter>("30");
   const [selectedTag, setSelectedTag] = useState("all");
   const allEntries = entries;
+  const userId = "7e9793a6-c652-4b3a-8bed-780c221ee33a";
+
+  const [journals, setJournals] = useState<JournalEntry[]>();
+
+  useEffect(() => {
+    const fetchJournals = async () => {
+      try {
+        const journals = await GetUserJournals(userId);
+
+        if (!journals) console.log("Empty response");
+        setJournals(journals);
+        console.log("journals: ", journals);
+      } catch (error) {
+        console.log("error");
+      }
+    };
+
+    fetchJournals();
+  }, []);
 
   const moodOptions = useMemo(
     () => [
@@ -418,11 +438,21 @@ function JournalCard({ entry }: { entry: JournalEntry }) {
           <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
             {entry.timestamp}
           </p>
-          <span
-            className={`rounded-md border px-2 py-1 text-[10px] font-bold uppercase tracking-wider ${entry.moodClass}`}
-          >
-            {entry.mood}
-          </span>
+          <section className="flex gap-0">
+            <span
+              className={`rounded-md border px-2 py-3 text-[10px] font-bold uppercase  ${entry.moodClass}`}
+            >
+              {entry.mood}
+            </span>
+            <div
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+              }}
+            >
+              <LongMenu />
+            </div>
+          </section>
         </div>
 
         <h3 className="text-lg font-bold text-slate-900">{entry.title}</h3>
