@@ -4,16 +4,15 @@ import { BASEURLDOTNETAPI } from "@/lib/base";
 import { UpdateJournal } from "@/types/journals";
 
 export type CreateJournal = {
+  userId: string;
   title: string;
+
   content: string;
 };
 
-export async function MakeJournal(
-  userId: string,
-  { title, content }: CreateJournal,
-) {
+export async function MakeJournal(payload: CreateJournal) {
   try {
-    const response = await Create(userId, { title, content });
+    const response = await Create(payload);
 
     if (!response) {
       console.log("Empty response");
