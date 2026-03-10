@@ -15,6 +15,11 @@ export type UpdateJournalPayload = {
   content: string;
 };
 
+export type DeleteJournal = {
+  userId: string;
+  journalId: string;
+};
+
 // --- CREATE ---
 export async function Create(payload: CreateJournal) {
   try {
@@ -84,5 +89,22 @@ export async function GetUserJournal(user_id: string, journal_id: string) {
     return response.data;
   } catch (error) {
     console.log("Unable to retrieve your journals");
+  }
+}
+
+export async function DeleteJournal({ userId, journalId }: DeleteJournal) {
+  try {
+    const response = await axiosInstance.delete(
+      `${BASEURLDOTNETAPI}api/Journal/DeleteJournalId?userId=${userId}&journalId=${journalId}`,
+    );
+
+    if (!response) {
+      console.log("empty response");
+      return null;
+    }
+
+    return response.data;
+  } catch (error) {
+    console.log(error);
   }
 }

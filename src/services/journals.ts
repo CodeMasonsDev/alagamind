@@ -1,4 +1,4 @@
-import { Create, GetUserJournals, Update } from "@/api/journal";
+import { Create, DeleteJournal, GetUserJournals, Update } from "@/api/journal";
 import axiosInstance from "@/lib/axios";
 import { BASEURLDOTNETAPI } from "@/lib/base";
 import { UpdateJournal } from "@/types/journals";
@@ -54,5 +54,17 @@ export async function GetAllJournalsByUser(userId: string) {
   } catch (error) {
     console.error("Unable to retrieve journals:", error);
     return []; // Return an empty array on error so .map() doesn't crash
+  }
+}
+
+export async function DeleteJournalId(userId: string, journalId: string) {
+  try {
+    const response = await DeleteJournal({ userId, journalId });
+    if (!response) {
+      console.log("empty response");
+    }
+    return response;
+  } catch (error) {
+    console.log(error);
   }
 }

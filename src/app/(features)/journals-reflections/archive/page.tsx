@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ChevronDown, Grid2x2, List, Plus, Search, Shield } from "lucide-react";
 import LongMenu from "@/components/ui/long-menu";
-import { GetUserJournals } from "@/api/journal";
+import { DeleteJournal, GetUserJournals } from "@/api/journal";
+import { DeleteJournalId } from "@/services/journals";
 
 type RawJournal = {
   id?: string;
@@ -177,6 +178,15 @@ export default function JournalsArchivePage() {
     setSelectedTag("all");
   }
 
+  const HandlesDelete = async (userId: string, journalId: string) => {
+    const res = await DeleteJournalId(userId, journalId);
+
+    if (!res) console.log("unable to delete journal");
+
+    console.log("Journal deleted successfully!");
+    setJournals((prev) => prev.filter((j) => j.id !== journalId));
+  };
+
   return (
     <div className="flex min-h-full w-full flex-col bg-slate-50/60">
       <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
@@ -202,7 +212,7 @@ export default function JournalsArchivePage() {
             Loading journals...
           </section>
         ) : viewMode === "card" ? (
-          <JournalGrid entries={filteredEntries} />
+          <JournalGrid entries={filteredEntries} onDelete={HandlesDelete} />
         ) : (
           <ListView entries={filteredEntries} />
         )}
@@ -418,12 +428,19 @@ function FilterSelect({
   );
 }
 
-function JournalGrid({ entries }: { entries: JournalEntri[] }) {
+type Params = {
+  entries: JournalEntri[];
+  onDelete: (useId: string, journalId: string) => void;
+};
+
+function JournalGrid({ entries, onDelete }: Params) {
   return (
     <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       <AddCard />
       {entries.length > 0 ? (
-        entries.map((entry) => <JournalCard key={entry.id} entry={entry} />)
+        entries.map((entry) => (
+          <JournalCard key={entry.id} entries={entry} onDelete={onDelete} />
+        ))
       ) : (
         <EmptyStateCard />
       )}
@@ -499,20 +516,26 @@ function ListRow({ entry }: { entry: JournalEntri }) {
   );
 }
 
-function JournalCard({ entry }: { entry: JournalEntri }) {
+type Props = {
+  entries: JournalEntri;
+  onDelete: (useId: string, journalId: string) => void;
+};
+function JournalCard({ entries, onDelete }: Props) {
   return (
-    <Link href={`/journals-reflections/my-journal/${entry.userId}/${entry.id}`}>
+    <Link
+      href={`/journals-reflections/my-journal/${entries.userId}/${entries.id}`}
+    >
       <article className="flex min-h-[260px] flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
         <div className="mb-4 flex items-start justify-between gap-2">
           <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-            {formatCardDate(entry.createdAt)}
+            {formatCardDate(entries.createdAt)}
           </p>
 
           <section className="flex items-start gap-2">
             <span
-              className={`rounded-md border px-2 py-3 text-[10px] font-bold uppercase ${entry.moodClass}`}
+              className={`rounded-md border px-2 py-3 text-[10px] font-bold uppercase ${entries.moodClass}`}
             >
-              {entry.mood}
+              {entries.mood}
             </span>
 
             <div
@@ -521,34 +544,34 @@ function JournalCard({ entry }: { entry: JournalEntri }) {
                 e.preventDefault();
               }}
             >
-              <LongMenu />
+              <LongMenu onDelete={() => onDelete(entries.userId, entries.id)} />
             </div>
           </section>
         </div>
 
-        <h3 className="text-lg font-bold text-slate-900">{entry.title}</h3>
+        <h3 className="text-lg font-bold text-slate-900">{entries.title}</h3>
 
         <p className="mt-2 line-clamp-4 text-sm leading-relaxed text-slate-500">
-          {entry.preview}
+          {entries.preview}
         </p>
 
-        {entry.subBadge ? (
+        {entries.subBadge ? (
           <span className="mt-3 inline-flex w-fit rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">
-            {entry.subBadge}
+            {entries.subBadge}
           </span>
         ) : null}
 
         <div className="mt-auto flex items-center justify-between pt-5">
           <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
-            <span className={`h-2 w-2 rounded-full ${entry.dotClass}`} />
-            {getEstimatedReadTime(entry.content)}
+            <span className={`h-2 w-2 rounded-full ${entries.dotClass}`} />
+            {getEstimatedReadTime(entries.content)}
           </div>
 
           <button
             type="button"
             className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-700 transition-colors hover:bg-slate-50"
           >
-            {entry.action}
+            {entries.action}
           </button>
         </div>
       </article>

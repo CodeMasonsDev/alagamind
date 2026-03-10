@@ -8,13 +8,20 @@ const options = ["Update", "Delete"];
 
 const ITEM_HEIGHT = 40;
 
-export default function LongMenu() {
+type Props = {
+  onDelete: () => void;
+};
+
+export default function LongMenu({ onDelete }: Props) {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
+    console.log("longmenu clicked!");
+    setAnchorEl(event.currentTarget);
   };
-  const handleClose = () => {
+  const handleClose = (event: React.MouseEvent<HTMLElement>) => {
+    event?.stopPropagation();
     setAnchorEl(null);
   };
 
@@ -47,7 +54,8 @@ export default function LongMenu() {
           },
         }}
       >
-        {options.map((option) => (
+        {/* uncomment this if you want to map dyamically the menu's name  */}
+        {/* {options.map((option) => (
           <MenuItem
             key={option}
             selected={option === "Pyxis"}
@@ -55,7 +63,27 @@ export default function LongMenu() {
           >
             {option}
           </MenuItem>
-        ))}
+          
+        ))} */}
+
+        <MenuItem
+          onClick={(e) => {
+            e.stopPropagation();
+            handleClose(e);
+          }}
+        >
+          Update
+        </MenuItem>
+
+        <MenuItem
+          onClick={(e) => {
+            e.stopPropagation();
+            handleClose(e);
+            onDelete();
+          }}
+        >
+          Delete
+        </MenuItem>
       </Menu>
     </div>
   );
