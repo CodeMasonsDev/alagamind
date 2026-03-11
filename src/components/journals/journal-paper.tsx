@@ -55,10 +55,47 @@ export default function JournalPaper({
 }
 
 function sanitizeJournalHtml(content: string) {
-  return content
+  const sanitized = content
     .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
     .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, "")
     .replace(/<iframe[\s\S]*?>[\s\S]*?<\/iframe>/gi, "")
     .replace(/\son\w+=("[^"]*"|'[^']*'|[^\s>]+)/gi, "")
     .replace(/\s(href|src)\s*=\s*(['"])\s*javascript:[\s\S]*?\2/gi, "");
+
+  return normalizedQuillHtml(sanitized);
+}
+
+function normalizedQuillHtml(content: string) {
+  return content
+    .replace(
+      /<span[^>]*class=(['"])[^'"]*\bql-ui\b[^'"]*\1[^>]*>[\s\S]*?<\/span>/gi,
+      "",
+    )
+    .replace(
+      /<(p|blockquote|h[1-6]|li)>\s*(?:<br\s*\/?>|&nbsp;|\s)*<\/\1>/gi,
+      "",
+    )
+    .replace(/<ol>([\s\S]*?)<\/ol>/gi, (fullMatch, listBody: string) => {
+      const listItems = listBody.match(/<li[\s\S]*?<\/li>/gi);
+
+      if (!listItems?.length) {
+        return fullMatch;
+      }
+
+      const isBulletOnlyList = listItems.every((item) =>
+        /data-list\s*=\s*['"]bullet['"]/i.test(item),
+      );
+
+      if (!isBulletOnlyList) {
+        return fullMatch;
+      }
+
+      const cleanedListBody = listBody.replace(
+        /\sdata-list\s*=\s*(['"])bullet\1/gi,
+        "",
+      );
+
+      return `<ul>${cleanedListBody}</ul>`;
+    })
+    .trim();
 }

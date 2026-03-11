@@ -88,6 +88,7 @@ export default function JournalsArchivePage() {
         normalized.sort(sortJournalsNewestFirst);
 
         setJournals(normalized);
+        console.log(response);
       } catch (error) {
         console.error("Failed to fetch journals:", error);
         setJournals([]);
