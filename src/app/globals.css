@@ -126,6 +126,10 @@ body {
   margin-top: 0.25rem;
 }
 
+[data-journal-content] .ql-ui {
+  display: none;
+}
+
 [data-journal-content] blockquote {
   border-left: 4px solid #14b8a6;
   padding-left: 1rem;
