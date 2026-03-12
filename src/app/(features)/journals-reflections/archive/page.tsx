@@ -2,9 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ChevronDown, Grid2x2, List, Plus, Search, Shield } from "lucide-react";
 import LongMenu from "@/components/ui/long-menu";
-import { DeleteJournal, GetUserJournals } from "@/api/journal";
+import { GetUserJournals } from "@/api/journal";
 import { DeleteJournalId } from "@/services/journals";
 
 type RawJournal = {
@@ -56,6 +57,7 @@ type DateFilter = "7" | "30" | "90" | "all";
 type ViewMode = "card" | "list";
 
 export default function JournalsArchivePage() {
+  const router = useRouter();
   const [viewMode, setViewMode] = useState<ViewMode>("card");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedMood, setSelectedMood] = useState("all");
@@ -188,6 +190,15 @@ export default function JournalsArchivePage() {
     setJournals((prev) => prev.filter((j) => j.id !== journalId));
   };
 
+  const handleUpdate = (userId: string, journalId: string) => {
+    const queryParams = new URLSearchParams({
+      userId,
+      journalId,
+    });
+
+    router.push(`/journals-reflections/write?${queryParams.toString()}`);
+  };
+
   return (
     <div className="flex min-h-full w-full flex-col bg-slate-50/60">
       <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
@@ -213,7 +224,11 @@ export default function JournalsArchivePage() {
             Loading journals...
           </section>
         ) : viewMode === "card" ? (
-          <JournalGrid entries={filteredEntries} onDelete={HandlesDelete} />
+          <JournalGrid
+            entries={filteredEntries}
+            onDelete={HandlesDelete}
+            onUpdate={handleUpdate}
+          />
         ) : (
           <ListView entries={filteredEntries} />
         )}
@@ -432,15 +447,21 @@ function FilterSelect({
 type Params = {
   entries: JournalEntri[];
   onDelete: (useId: string, journalId: string) => void;
+  onUpdate: (userId: string, journalId: string) => void;
 };
 
-function JournalGrid({ entries, onDelete }: Params) {
+function JournalGrid({ entries, onDelete, onUpdate }: Params) {
   return (
     <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       <AddCard />
       {entries.length > 0 ? (
         entries.map((entry) => (
-          <JournalCard key={entry.id} entries={entry} onDelete={onDelete} />
+          <JournalCard
+            key={entry.id}
+            entries={entry}
+            onDelete={onDelete}
+            onUpdate={onUpdate}
+          />
         ))
       ) : (
         <EmptyStateCard />
@@ -520,8 +541,9 @@ function ListRow({ entry }: { entry: JournalEntri }) {
 type Props = {
   entries: JournalEntri;
   onDelete: (useId: string, journalId: string) => void;
+  onUpdate: (userId: string, journalId: string) => void;
 };
-function JournalCard({ entries, onDelete }: Props) {
+function JournalCard({ entries, onDelete, onUpdate }: Props) {
   return (
     <Link
       href={`/journals-reflections/my-journal/${entries.userId}/${entries.id}`}
@@ -545,7 +567,10 @@ function JournalCard({ entries, onDelete }: Props) {
                 e.preventDefault();
               }}
             >
-              <LongMenu onDelete={() => onDelete(entries.userId, entries.id)} />
+              <LongMenu
+                onDelete={() => onDelete(entries.userId, entries.id)}
+                onUpdate={() => onUpdate(entries.userId, entries.id)}
+              />
             </div>
           </section>
         </div>
