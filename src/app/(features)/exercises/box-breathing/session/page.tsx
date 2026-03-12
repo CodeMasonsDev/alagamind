@@ -9,6 +9,7 @@ import {
   Volume2,
   Waves,
 } from "lucide-react";
+import CognitiveReframingPanel from "@/components/exercises/cognitive-reframing-panel";
 
 type BreathingPhase = "Inhale..." | "Hold" | "Exhale..." | "Hold";
 
@@ -215,7 +216,6 @@ export default function BoxBreathingSessionPage() {
             </div>
           </div>
         </section>
-
         <aside className="space-y-4">
           <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="mb-4 flex items-center justify-between">
@@ -232,7 +232,11 @@ export default function BoxBreathingSessionPage() {
               <p className="mt-2 text-3xl font-black text-teal-600">88%</p>
 
               <div className="mt-4 rounded-lg border border-slate-200 bg-white p-3">
-                <svg viewBox="0 0 220 70" className="h-14 w-full" aria-hidden="true">
+                <svg
+                  viewBox="0 0 220 70"
+                  className="h-14 w-full"
+                  aria-hidden="true"
+                >
                   <line
                     x1="0"
                     y1="42"
