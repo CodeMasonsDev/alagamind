@@ -4,15 +4,14 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 
-const options = ["Update", "Delete"];
-
 const ITEM_HEIGHT = 40;
 
 type Props = {
   onDelete: () => void;
+  onUpdate?: () => void;
 };
 
-export default function LongMenu({ onDelete }: Props) {
+export default function LongMenu({ onDelete, onUpdate }: Props) {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -70,9 +69,10 @@ export default function LongMenu({ onDelete }: Props) {
           onClick={(e) => {
             e.stopPropagation();
             handleClose(e);
+            onUpdate?.();
           }}
         >
-          Update
+          Edit
         </MenuItem>
 
         <MenuItem
