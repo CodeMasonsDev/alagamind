@@ -64,14 +64,15 @@ const featuredProtocols: FeaturedProtocol[] = [
     duration: "6 MINUTES",
     badge: "92% Match",
     icon: BrainCircuit,
+    href: "/exercises/cognitive-reframing",
   },
   {
     title: "Grounding: 5-4-3-2-1",
-    description:
-      "Immediate sensory-based anxiety relief for acute regulation.",
+    description: "Immediate sensory-based anxiety relief for acute regulation.",
     duration: "5 MINUTES",
     badge: "Acute Relief",
     icon: Crosshair,
+    href: "/exercises/cognitive-reframing",
   },
 ];
 
@@ -165,7 +166,8 @@ const categoryClasses: Record<Protocol["category"], string> = {
 
 export default function ExercisesPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedFilter, setSelectedFilter] = useState<FocusFilter>("All Focus");
+  const [selectedFilter, setSelectedFilter] =
+    useState<FocusFilter>("All Focus");
   const [selectedDuration, setSelectedDuration] =
     useState<DurationFilter>("All Durations");
 
@@ -331,7 +333,7 @@ function FeaturedProtocolCard({ protocol }: { protocol: FeaturedProtocol }) {
       return (
         <Link
           href={protocol.href}
-          className="relative block overflow-hidden rounded-2xl border border-slate-900/40 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 shadow-sm shadow-slate-900/20 transition-opacity hover:opacity-95"
+          className="relative block overflow-hidden rounded-2xl border cursor-pointer border-slate-900/40 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 shadow-sm shadow-slate-900/20 transition-opacity hover:opacity-95"
         >
           {featuredContent}
         </Link>
@@ -346,7 +348,10 @@ function FeaturedProtocolCard({ protocol }: { protocol: FeaturedProtocol }) {
   }
 
   return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-colors hover:border-teal-100">
+    <Link
+      href={protocol.href as string}
+      className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-colors hover:border-teal-100"
+    >
       <div className="mb-5 flex items-start justify-between gap-3">
         <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-teal-50 text-teal-600">
           <Icon size={18} />
@@ -369,7 +374,7 @@ function FeaturedProtocolCard({ protocol }: { protocol: FeaturedProtocol }) {
         </p>
         <ArrowRight size={18} className="text-slate-400" />
       </div>
-    </article>
+    </Link>
   );
 }
 
@@ -555,7 +560,9 @@ function BrowseLibraryCard() {
         <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-500">
           <Plus size={20} />
         </span>
-        <h3 className="mt-4 text-lg font-bold text-slate-900">Browse Library</h3>
+        <h3 className="mt-4 text-lg font-bold text-slate-900">
+          Browse Library
+        </h3>
         <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-slate-500">
           View 40+ Additional Protocols
         </p>
