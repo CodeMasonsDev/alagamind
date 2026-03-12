@@ -5,16 +5,37 @@ import "quill/dist/quill.snow.css";
 import { MakeJournal, updateJournal } from "@/services/journals";
 import { useReflections } from "@/components/providers/reflections-provider";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { GetUserJournal } from "@/api/journal";
+
+type QuillEditor = import("quill").default;
 
 export default function ReflectionEditor() {
   const editorRef = useRef<HTMLDivElement>(null);
-  const quillRef = useRef<any>(null);
+  const quillRef = useRef<QuillEditor | null>(null);
 
   const [title, setTitle] = useState("Daily Equilibrium Check-in");
   const [isSaving, setIsSaving] = useState(false);
   const [journalId, setJournalId] = useState<string | null>(null);
+  const [isEditorReady, setIsEditorReady] = useState(false);
+  const [isHydratingUpdate, setIsHydratingUpdate] = useState(false);
+  const [editorHtml, setEditorHtml] = useState("");
+  const [baselineTitle, setBaselineTitle] = useState("");
+  const [baselineEditorHtml, setBaselineEditorHtml] = useState("");
+  const searchParams = useSearchParams();
 
-  const userId = "7e9793a6-c652-4b3a-8bed-780c221ee33a";
+  const defaultUserId = "7e9793a6-c652-4b3a-8bed-780c221ee33a";
+  const requestedUserId = searchParams.get("userId")?.trim();
+  const requestedJournalId = searchParams.get("journalId")?.trim();
+  const userId = requestedUserId || defaultUserId;
+  const isUpdateMode = Boolean(requestedJournalId || journalId);
+  const hasPendingChanges =
+    !isUpdateMode ||
+    normalizeTitleForCompare(title) !== normalizeTitleForCompare(baselineTitle) ||
+    normalizeHtmlForCompare(editorHtml) !==
+      normalizeHtmlForCompare(baselineEditorHtml);
+  const isSaveDisabled =
+    isSaving || isHydratingUpdate || (isUpdateMode && !hasPendingChanges);
 
   const { refreshEntries, addEntry } = useReflections();
 
@@ -33,9 +54,99 @@ export default function ReflectionEditor() {
           },
           placeholder: "Start your reflection...",
         });
+        setIsEditorReady(true);
       });
     }
   }, []);
+
+  useEffect(() => {
+    if (!isEditorReady || !quillRef.current) {
+      return;
+    }
+
+    const quill = quillRef.current;
+
+    const syncEditorHtml = () => {
+      setEditorHtml(quill.root.innerHTML);
+    };
+
+    syncEditorHtml();
+    quill.on("text-change", syncEditorHtml);
+
+    return () => {
+      quill.off("text-change", syncEditorHtml);
+    };
+  }, [isEditorReady]);
+
+  useEffect(() => {
+    if (!isEditorReady || !quillRef.current) {
+      return;
+    }
+
+    if (!requestedJournalId) {
+      setIsHydratingUpdate(false);
+      return;
+    }
+
+    let isCancelled = false;
+    setIsHydratingUpdate(true);
+
+    const hydrateEditorForUpdate = async () => {
+      try {
+        const journal = await GetUserJournal(userId, requestedJournalId);
+        if (!journal || isCancelled || !quillRef.current) return;
+
+        const resolvedTitle =
+          String(journal.title ?? "").trim() || "Untitled Reflection";
+        const resolvedJournalId = String(
+          journal.id ?? journal.journalId ?? requestedJournalId,
+        );
+        const sanitizedHtmlContent = sanitizeEditorHtml(
+          String(journal.content ?? ""),
+        );
+
+        setTitle(resolvedTitle);
+        setJournalId(resolvedJournalId);
+        quillRef.current.setText("");
+        if (sanitizedHtmlContent) {
+          quillRef.current.clipboard.dangerouslyPasteHTML(sanitizedHtmlContent);
+        }
+        quillRef.current.history.clear();
+        const hydratedHtml = quillRef.current.root.innerHTML;
+        setEditorHtml(hydratedHtml);
+        setBaselineEditorHtml(hydratedHtml);
+        setBaselineTitle(resolvedTitle);
+      } catch (error) {
+        console.error("Failed to load journal for update:", error);
+      } finally {
+        if (!isCancelled) {
+          setIsHydratingUpdate(false);
+        }
+      }
+    };
+
+    hydrateEditorForUpdate();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [isEditorReady, requestedJournalId, userId]);
+
+  useEffect(() => {
+    if (!isEditorReady || requestedJournalId || !quillRef.current) {
+      return;
+    }
+
+    setJournalId(null);
+    setTitle("Daily Equilibrium Check-in");
+    quillRef.current.setText("");
+    quillRef.current.history.clear();
+    const resetHtml = quillRef.current.root.innerHTML;
+    setEditorHtml(resetHtml);
+    setBaselineEditorHtml("");
+    setBaselineTitle("");
+    setIsHydratingUpdate(false);
+  }, [isEditorReady, requestedJournalId]);
 
   const handleSaveReflection = async () => {
     if (!quillRef.current) return;
@@ -58,6 +169,11 @@ export default function ReflectionEditor() {
         const updateRes = await updateJournal(payload);
         if (!updateRes) throw new Error("Update failed: Empty response");
 
+        const savedHtml = quillRef.current.root.innerHTML;
+        setEditorHtml(savedHtml);
+        setBaselineEditorHtml(savedHtml);
+        setBaselineTitle(resolvedTitle);
+
         await refreshEntries();
       } else {
         const payload = {
@@ -74,10 +190,13 @@ export default function ReflectionEditor() {
           setJournalId(newId);
         }
 
+        const savedHtml = quillRef.current.root.innerHTML;
+        setEditorHtml(savedHtml);
+        setBaselineEditorHtml(savedHtml);
+        setBaselineTitle(resolvedTitle);
+
         addEntry({
-          id:
-            newId ??
-            `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+          id: newId ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`,
           timestamp: formatTimestamp(Date.now()),
           mood: "Neutral",
           title: resolvedTitle,
@@ -125,53 +244,12 @@ export default function ReflectionEditor() {
             </svg>
             Back
           </Link>
-          <div className="flex items-center space-x-2 text-xs tracking-wider uppercase">
-            <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-            <span>Vault Secured</span>
-          </div>
         </div>
 
         <div className="flex items-center space-x-3 text-sm font-medium">
-          <button className="flex items-center space-x-1 px-3 py-1.5 border border-gray-200 rounded-md text-gray-600 hover:bg-gray-50">
-            <span className="font-serif italic font-bold text-teal-700">
-              Tt
-            </span>
-            <span>Typography</span>
-            <svg
-              className="w-3 h-3 ml-1 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
-          </button>
-
-          <button className="flex items-center space-x-2 px-3 py-1.5 border border-gray-200 rounded-md text-gray-600 hover:bg-gray-50">
-            <svg
-              className="w-4 h-4 text-teal-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-              />
-            </svg>
-            <span>Mood</span>
-          </button>
-
           <button
             onClick={handleSaveReflection}
-            disabled={isSaving}
+            disabled={isSaveDisabled}
             className="flex items-center px-4 py-1.5 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mx-2"
           >
             {isSaving ? (
@@ -212,7 +290,7 @@ export default function ReflectionEditor() {
                     d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
                   />
                 </svg>
-                {journalId ? "Update Reflection" : "Save Reflection"}
+                {isUpdateMode ? "Update Reflection" : "Save Reflection"}
               </>
             )}
           </button>
@@ -224,8 +302,7 @@ export default function ReflectionEditor() {
           </button>
         </div>
       </header>
-
-      <main className="max-w-4xl mx-auto px-8 py-12">
+      <main className="max-w-6xl mx-auto px-8 py-12">
         <div className="mb-10">
           <input
             type="text"
@@ -294,7 +371,6 @@ export default function ReflectionEditor() {
             <button className="ql-underline"></button>
           </span>
           <div className="w-px h-5 bg-gray-200"></div>
-
           <span className="ql-formats flex items-center space-x-2">
             <button
               className="ql-header text-gray-500 font-bold text-sm"
@@ -315,28 +391,25 @@ export default function ReflectionEditor() {
               H3
             </button>
           </span>
-          <div className="w-px h-5 bg-gray-200"></div>
 
+          <div className="w-px h-5 bg-gray-200"></div>
           <span className="ql-formats flex space-x-1">
             <button className="ql-list" value="bullet"></button>
             <button className="ql-list" value="ordered"></button>
             <button className="ql-blockquote"></button>
           </span>
           <div className="w-px h-5 bg-gray-200"></div>
-
           <span className="ql-formats flex space-x-1">
             <button className="ql-code-block"></button>
             <button className="ql-link"></button>
           </span>
         </div>
-
         <div ref={editorRef} className="custom-quill-editor" />
       </main>
-
       <style
         dangerouslySetInnerHTML={{
           __html: `
-        .ql-toolbar.ql-snow { border: none; padding: 0; font-family: inherit; }
+        .ql-toolbar.ql-snow { border: none; padding: 10; font-family: inherit; }
         .ql-container.ql-snow { border: none !important; }
         .ql-editor { padding: 0; font-family: 'Georgia', 'Times New Roman', serif; font-size: 1.15rem; line-height: 1.8; color: #374151; min-height: 400px; }
         .ql-editor blockquote { border-left: 3px solid #99f6e4; padding-left: 1.5rem; margin-left: 0; font-style: italic; color: #94a3b8; }
@@ -354,7 +427,35 @@ export default function ReflectionEditor() {
 }
 
 function stripHtml(content: string) {
-  return content.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  return content
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/(p|div|h[1-6]|li|blockquote)>/gi, "\n")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+}
+
+function sanitizeEditorHtml(content: string) {
+  return content
+    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
+    .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, "")
+    .replace(/<iframe[\s\S]*?>[\s\S]*?<\/iframe>/gi, "")
+    .replace(/\son\w+=("[^"]*"|'[^']*'|[^\s>]+)/gi, "")
+    .replace(/\s(href|src)\s*=\s*(['"])\s*javascript:[\s\S]*?\2/gi, "");
+}
+
+function normalizeTitleForCompare(content: string) {
+  return content.replace(/\s+/g, " ").trim();
+}
+
+function normalizeHtmlForCompare(content: string) {
+  return content.replace(/>\s+</g, "><").replace(/\s+/g, " ").trim();
 }
 
 function formatTimestamp(createdAt: number) {

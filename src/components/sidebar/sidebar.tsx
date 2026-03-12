@@ -76,9 +76,9 @@ const NAVIGATION_DATA: NavGroup[] = [
   {
     title: "System",
     items: [
-      { label: "Settings", icon: Settings, href: "#" },
-      { label: "Privacy & Security", icon: ShieldCheck, href: "#" },
-      { label: "Help & Support", icon: HelpCircle, href: "#" },
+      { label: "Settings", icon: Settings, href: "/settings" },
+      { label: "Privacy & Security", icon: ShieldCheck, href: "/privacy" },
+      { label: "Help & Support", icon: HelpCircle, href: "/help-support" },
     ],
   },
 ];
