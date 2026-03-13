@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   type LucideIcon,
@@ -23,6 +23,7 @@ import {
   PenLine,
 } from "lucide-react";
 import { CheckInModal } from "@/components/dashboard/check-in-modal";
+import { GetCurrentState } from "@/api/check-in";
 
 // ----------------------------------------------------------------------
 // MAIN DASHBOARD COMPONENT
@@ -78,12 +79,13 @@ function WellnessIntelligence() {
   const emotions = [
     { label: "Stressed", icon: Frown, intensity: 3.2 },
     { label: "Tired", icon: Meh, intensity: 4.8 },
-    { label: "Focused", icon: Smile, intensity: 7.5 },
+    { label: "Focused", icon: Smile, intensity: 0 },
     { label: "Calm", icon: Smile, intensity: 6.4 },
     { label: "Energized", icon: Zap, intensity: 8.6 },
   ];
+  const userId = "7e9793a6-c652-4b3a-8bed-780c221ee33a";
 
-  const [selectedEmotion, setSelectedEmotion] = useState("Focused");
+  const [selectedEmotion, setSelectedEmotion] = useState("");
   const [showToast, setShowToast] = useState(false);
   const [toastKey, setToastKey] = useState(0);
   const [showCheckInModal, setShowCheckInModal] = useState(false);
@@ -91,8 +93,25 @@ function WellnessIntelligence() {
     null,
   );
 
+  const GetUserState = async (userId: string) => {
+    const res = await GetCurrentState(userId);
+    if (!res) {
+      return null;
+    }
+    const emotionLabels = ["Stressed", "Tired", "Focused", "Calm", "Energized"];
+    setSelectedEmotion(emotionLabels[res.state]);
+    setLastLoggedIntensity(res.intensity);
+    console.log(res.state);
+    setToastKey(res.intensity);
+  };
+
+  useEffect(() => {
+    GetUserState(userId);
+  }, [selectedEmotion]);
+
   const activeEmotion =
-    emotions.find((emotion) => emotion.label === selectedEmotion) ?? emotions[2];
+    emotions.find((emotion) => emotion.label === selectedEmotion) ??
+    emotions[2];
   const displayIntensity = lastLoggedIntensity ?? activeEmotion.intensity;
   const intensityProgress = `${displayIntensity * 10}%`;
 
