@@ -10,9 +10,9 @@ import {
   Save,
 } from "lucide-react";
 import CbtChatAssistantPanel from "./cbt-chat-assistant-panel";
-import { DISTORTIONS } from "@/features/cognitive-reframing/constants";
-import { useGuidedCbtWorkflow } from "@/features/cognitive-reframing/use-guided-cbt-workflow";
-import { useCbtChatAssistant } from "@/features/cognitive-reframing/use-cbt-chat-assistant";
+import { DISTORTIONS } from "@/components/features/cognitive-reframing/constants";
+import { useGuidedCbtWorkflow } from "@/components/features/cognitive-reframing/use-guided-cbt-workflow";
+import { useCbtChatAssistant } from "@/components/features/cognitive-reframing/use-cbt-chat-assistant";
 
 type StepId =
   | "automaticThought"
