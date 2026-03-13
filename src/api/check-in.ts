@@ -25,3 +25,21 @@ export async function CreateCheckIn(payload: CheckInPayload) {
     return null;
   }
 }
+
+export async function GetCurrentState(userId: string) {
+  try {
+    const res = await axiosInstance.get(
+      `${BASEURLDOTNETAPI}api/MoodLog/GetCurrentState?userId=${userId}`,
+    );
+
+    if (!res) {
+      console.log("Empty response");
+      return null;
+    }
+
+    return res.data;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+}
