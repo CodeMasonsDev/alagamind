@@ -1,7 +1,7 @@
 "use client";
 
 import { Bot, Lightbulb, SendHorizontal, X } from "lucide-react";
-import { CbtChatMessage } from "@/features/cognitive-reframing/cbt-chat-service";
+import { CbtChatMessage } from "@/components/features/cognitive-reframing/cbt-chat-service";
 
 type Props = {
   isOpen: boolean;

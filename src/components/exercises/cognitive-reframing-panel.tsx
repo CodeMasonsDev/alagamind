@@ -8,8 +8,8 @@ import {
   Save,
   Sparkles,
 } from "lucide-react";
-import { DISTORTIONS } from "@/features/cognitive-reframing/constants";
-import { useCognitiveReframing } from "@/features/cognitive-reframing/use-cognitive-reframing";
+import { DISTORTIONS } from "@/components/features/cognitive-reframing/constants";
+import { useCognitiveReframing } from "@/components/features/cognitive-reframing/use-cognitive-reframing";
 
 type Props = {
   className?: string;
