@@ -7,6 +7,7 @@ import { useReflections } from "@/components/providers/reflections-provider";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { GetUserJournal } from "@/api/journal";
+import { AnalyzeJournal } from "@/api/reframing";
 
 type QuillEditor = import("quill").default;
 
@@ -31,7 +32,8 @@ export default function ReflectionEditor() {
   const isUpdateMode = Boolean(requestedJournalId || journalId);
   const hasPendingChanges =
     !isUpdateMode ||
-    normalizeTitleForCompare(title) !== normalizeTitleForCompare(baselineTitle) ||
+    normalizeTitleForCompare(title) !==
+      normalizeTitleForCompare(baselineTitle) ||
     normalizeHtmlForCompare(editorHtml) !==
       normalizeHtmlForCompare(baselineEditorHtml);
   const isSaveDisabled =
@@ -166,6 +168,13 @@ export default function ReflectionEditor() {
           content: htmlContent,
         };
 
+        const payload2 = {
+          userId: userId,
+          journalId: journalId,
+          content: htmlContent,
+          dateTime: new Date(),
+        };
+
         const updateRes = await updateJournal(payload);
         if (!updateRes) throw new Error("Update failed: Empty response");
 
@@ -174,7 +183,9 @@ export default function ReflectionEditor() {
         setBaselineEditorHtml(savedHtml);
         setBaselineTitle(resolvedTitle);
 
-        await refreshEntries();
+        AnalyzeJournal(payload2)
+          .then((res) => console.log("udpate analyze_journal", res))
+          .catch((err) => console.error(err));
       } else {
         const payload = {
           userId,
@@ -185,10 +196,21 @@ export default function ReflectionEditor() {
         const data = await MakeJournal(payload);
         if (!data) throw new Error("Create failed: Empty response");
 
-        const newId = data.journalId ?? data.id;
+        const newId = data.id;
         if (newId) {
           setJournalId(newId);
         }
+
+        const payload2 = {
+          userId: userId,
+          journalId: data.id,
+          content: htmlContent,
+          dateTime: new Date(),
+        };
+
+        AnalyzeJournal(payload2)
+          .then((res) => console.log("create analyze_journal", res))
+          .catch((err) => console.error(err));
 
         const savedHtml = quillRef.current.root.innerHTML;
         setEditorHtml(savedHtml);
@@ -210,8 +232,6 @@ export default function ReflectionEditor() {
           moodClass: "text-gray-700 bg-gray-50 ring-gray-600/20",
           dotClass: "bg-gray-500",
         });
-
-        await refreshEntries();
       }
     } catch (error) {
       console.error("Failed to save journal:", error);
