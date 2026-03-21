@@ -91,7 +91,7 @@ const TopBar = ({
     <header className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3">
       <div className="flex  gap-2  w-full">
         <Link
-          href={"/journals-reflections"}
+          href={"/journals-reflections/archive"}
           className="flex items-center transition-colors hover:text-gray-900"
         >
           <svg

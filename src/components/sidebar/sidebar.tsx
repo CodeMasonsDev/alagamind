@@ -49,13 +49,13 @@ const NAVIGATION_DATA: NavGroup[] = [
       {
         label: "Journal & Reflections",
         icon: BookOpen,
-        href: "/journals-reflections",
+        href: "/journals-reflections/archive",
         isActive: false,
       },
       {
-        label: "Mood & Trends",
+        label: "Reframing & Insights",
         icon: Activity,
-        href: "/mood-trends",
+        href: "/reframing-insights",
         isActive: false,
       },
       {
