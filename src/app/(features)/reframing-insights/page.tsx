@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import {
   Brain,
@@ -14,6 +14,7 @@ import {
   WandSparkles,
   X,
 } from "lucide-react";
+import { fetchThoughtsByUsers, generateReframes } from "@/api/reframing";
 
 type Distortion =
   | "Catastrophizing"
@@ -25,11 +26,11 @@ type Distortion =
 type ReframeKind = "logical" | "compassionate" | "direct";
 
 type Thought = {
-  id: string;
+  thought_Id: string;
   text: string;
   source: string;
   time: string;
-  distortion: Distortion;
+  distortion: string;
 };
 
 type Reframe = {
@@ -49,118 +50,15 @@ type SavedReframe = {
   savedAt: string;
 };
 
-const thoughts: Thought[] = [
-  {
-    id: "presentation",
-    text: "I'm going to fail this presentation.",
-    source: "Nervous about work",
-    time: "Today - 10:42 AM",
-    distortion: "Catastrophizing",
-  },
-  {
-    id: "manager",
-    text: "My manager must think I'm incompetent after that meeting.",
-    source: "Bad day at work",
-    time: "Yesterday - 11:15 PM",
-    distortion: "Mind reading",
-  },
-  {
-    id: "perfect",
-    text: "I can't handle any of this unless everything is perfect.",
-    source: "Feeling overwhelmed",
-    time: "Mar 16 - 8:30 PM",
-    distortion: "All-or-nothing",
-  },
-  {
-    id: "behind",
-    text: "I should be further along by now.",
-    source: "Comparing myself again",
-    time: "Mar 15 - 9:10 PM",
-    distortion: "Should statements",
-  },
-];
-
-const reframeMap: Record<string, Reframe[]> = {
-  presentation: [
-    {
-      id: "logical",
-      title: "Logical",
-      tone: "evidence-based correction",
-      text: "One presentation is not a verdict on my ability. I prepared, I know the material, and anxiety is not proof that I will fail.",
-    },
-    {
-      id: "compassionate",
-      title: "Compassionate",
-      tone: "validates then steadies",
-      text: "It makes sense that I feel pressure. I can be nervous and still do this well enough, one slide at a time.",
-    },
-    {
-      id: "direct",
-      title: "Direct",
-      tone: "firm reality check",
-      text: "This is your brain predicting disaster, not reporting facts. Stop calling discomfort failure and focus on the next clear point.",
-    },
-  ],
-  manager: [
-    {
-      id: "logical",
-      title: "Logical",
-      tone: "evidence-based correction",
-      text: "Questions in a meeting usually mean clarification, not condemnation. I do not have evidence that one meeting erased my competence.",
-    },
-    {
-      id: "compassionate",
-      title: "Compassionate",
-      tone: "validates then steadies",
-      text: "That meeting activated my fear, so my mind is filling in the blanks harshly. I can offer myself more fairness than my anxiety is offering me.",
-    },
-    {
-      id: "direct",
-      title: "Direct",
-      tone: "firm reality check",
-      text: "Mind reading is not insight. Until someone says there is a problem, stop treating your worst guess like confirmed truth.",
-    },
-  ],
-  perfect: [
-    {
-      id: "logical",
-      title: "Logical",
-      tone: "evidence-based correction",
-      text: "I do not need perfect conditions to cope. I have handled unfinished and messy situations before, and progress still counts when it is imperfect.",
-    },
-    {
-      id: "compassionate",
-      title: "Compassionate",
-      tone: "validates then steadies",
-      text: "Feeling overwhelmed can make everything feel extreme. I can lower the bar, do one manageable piece, and still be taking myself seriously.",
-    },
-    {
-      id: "direct",
-      title: "Direct",
-      tone: "firm reality check",
-      text: "Perfection is not your entry ticket to functioning. That standard is making the problem bigger and blocking the next useful move.",
-    },
-  ],
-  behind: [
-    {
-      id: "logical",
-      title: "Logical",
-      tone: "evidence-based correction",
-      text: "'Should' is a comparison to an imagined standard. Other people's timelines are not visible to me, and my worth is not measured by borrowed pacing.",
-    },
-    {
-      id: "compassionate",
-      title: "Compassionate",
-      tone: "validates then steadies",
-      text: "It hurts to feel behind. I can admit that feeling without turning it into proof that I am failing my life.",
-    },
-    {
-      id: "direct",
-      title: "Direct",
-      tone: "firm reality check",
-      text: "This is comparison dressed up as a rule. Drop the fake deadline and return to the next real step that is actually yours.",
-    },
-  ],
+type ApiThought = {
+  thought_id: number;
+  text: string;
+  distortion: string;
+  confidence: number;
+  position: number;
+  created_at: string;
+  context_note: string;
+  journal_id: string;
 };
 
 const patternCards = [
@@ -201,8 +99,10 @@ const baselineBreakdown = [
 ] as const;
 
 export default function MoodTrendsPage() {
+  const [thoughts, setThougts] = useState<Thought[]>([]);
+
   const [selectedThoughtId, setSelectedThoughtId] = useState<string>(
-    thoughts[0]?.id ?? "",
+    thoughts[0]?.thought_Id ?? "",
   );
   const [generatedThoughtId, setGeneratedThoughtId] = useState<string | null>(
     null,
@@ -234,7 +134,8 @@ export default function MoodTrendsPage() {
   const [isInsightsOpen, setIsInsightsOpen] = useState(false);
 
   const selectedThought =
-    thoughts.find((thought) => thought.id === selectedThoughtId) ?? null;
+    thoughts.find((thought) => thought.thought_Id === selectedThoughtId) ??
+    null;
   const hasGeneratedSelection =
     generatedThoughtId === selectedThoughtId && generatedReframes.length > 0;
 
@@ -289,37 +190,90 @@ export default function MoodTrendsPage() {
       },
     ];
   }, [savedReframes]);
+  const defaultUserId = "7e9793a6-c652-4b3a-8bed-780c221ee33a";
 
-  function handleThoughtSelect(thoughtId: string) {
+  function mapApiThoughtToUi(item: ApiThought): Thought {
+    return {
+      thought_Id: String(item.thought_id),
+      text: item.text,
+      source: item.context_note || "Journal thought",
+      time: item.created_at || "Unknown time",
+      distortion: item.distortion || "Unknown",
+    };
+  }
+
+  async function fetchThoughts() {
+    try {
+      const res = await fetchThoughtsByUsers(defaultUserId);
+      if (res == null) if (res == null) console.log("cant process request");
+      console.log("thoughts:", res);
+
+      const items: ApiThought[] = Array.isArray(res) ? res : [res];
+      const mappedThoughts = items.map(mapApiThoughtToUi);
+      setThougts(mappedThoughts);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  async function generateThoughts(thought_id: number, text: string) {
+    try {
+      const res = await generateReframes({ thought_id, text });
+      console.log("generated reframes", res);
+
+      setGeneratedReframes(res);
+
+      return res;
+    } catch (error) {
+      console.log("failed to fetch");
+    }
+  }
+
+  useEffect(() => {
+    fetchThoughts();
+  }, []);
+
+  function handleThoughtSelect(thoughtId: string, text: string) {
     setSelectedThoughtId(thoughtId);
     setGeneratedThoughtId(null);
     setGeneratedReframes([]);
     setIsGenerating(false);
   }
-
-  function handleGenerate() {
+  async function handleGenerate() {
     if (!selectedThought) return;
+
     setIsGenerating(true);
     setGeneratedThoughtId(null);
     setGeneratedReframes([]);
 
-    window.setTimeout(() => {
-      setGeneratedThoughtId(selectedThought.id);
-      setGeneratedReframes(reframeMap[selectedThought.id] ?? []);
-      setIsGenerating(false);
-    }, 1200);
-  }
+    console.log("generating reframing...");
 
+    try {
+      const res = await generateThoughts(
+        Number(selectedThought.thought_Id),
+        selectedThought.text,
+      );
+
+      console.log("res", res);
+
+      setGeneratedThoughtId(selectedThought.thought_Id);
+      setGeneratedReframes(Array.isArray(res) ? res : []);
+    } catch (error) {
+      console.error("Failed to generate reframes:", error);
+      setGeneratedReframes([]);
+    } finally {
+      setIsGenerating(false);
+    }
+  }
   function handleSave(reframe: Reframe) {
     if (!selectedThought || !hasGeneratedSelection) return;
-    const id = `${selectedThought.id}-${reframe.id}`;
+    const id = `${selectedThought.thought_Id}-${reframe.id}`;
 
     setSavedReframes((current) => {
       if (current.some((item) => item.id === id)) return current;
       return [
         {
           id,
-          thoughtId: selectedThought.id,
+          thoughtId: selectedThought.thought_Id,
           thoughtText: selectedThought.text,
           distortion: selectedThought.distortion,
           reframeType: reframe.id,
@@ -339,7 +293,7 @@ export default function MoodTrendsPage() {
   }
 
   return (
-    <div className="min-h-full w-full bg-[#fbfcfc]  ">
+    <div className="min-h-full w-full bg-[#fbfcfc]  p-3">
       <div className="mx-auto w-full max-w-[1440px] space-y-6">
         <header className="overflow-hidden border border-slate-200 bg-white shadow-[0_18px_50px_-34px_rgba(15,23,42,0.28)]">
           <div className="flex flex-col gap-4 px-5 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
@@ -389,8 +343,8 @@ export default function MoodTrendsPage() {
           </div>
         </header>
 
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
-          <section className="border border-slate-200 bg-white shadow-[0_18px_50px_-34px_rgba(15,23,42,0.28)]">
+        <div className=" flex gap-4 ">
+          <section className="w-[50%] border border-slate-200 bg-white shadow-[0_18px_50px_-34px_rgba(15,23,42,0.28)]">
             <div className="border-b border-slate-200 px-5 py-4 sm:px-6">
               <SectionTitle
                 eyebrow="Step 1 - Select a thought"
@@ -399,13 +353,15 @@ export default function MoodTrendsPage() {
               />
             </div>
 
-            <div className="space-y-3 px-5 py-5 sm:px-6">
+            <div className="space-y-3 px-5 py-5 sm:px-6 overflow-auto h-[300px]">
               {thoughts.map((thought) => (
                 <ThoughtCard
-                  key={thought.id}
+                  key={thought.thought_Id}
                   thought={thought}
-                  selected={thought.id === selectedThoughtId}
-                  onSelect={() => handleThoughtSelect(thought.id)}
+                  selected={thought.thought_Id === selectedThoughtId}
+                  onSelect={() =>
+                    handleThoughtSelect(thought.thought_Id, thought.text)
+                  }
                 />
               ))}
             </div>
@@ -455,7 +411,7 @@ export default function MoodTrendsPage() {
             </div>
           </section>
 
-          <section className="border border-slate-200 bg-white shadow-[0_18px_50px_-34px_rgba(15,23,42,0.28)]">
+          <section className="w-[50%] border border-slate-200 bg-white shadow-[0_18px_50px_-34px_rgba(15,23,42,0.28)]">
             <div className="border-b border-slate-200 px-5 py-4 sm:px-6">
               <SectionTitle
                 eyebrow="Step 3 - Choose a reframe to save"
