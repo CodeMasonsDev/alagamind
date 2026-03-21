@@ -19,6 +19,7 @@ import {
   fetchThoughtsByUsers,
   generateReframes,
   getDetectedPatterns,
+  getDistortionBreakDown,
   getSaveReframe,
   saveGeneratedReframeThought,
 } from "@/api/reframing";
@@ -88,35 +89,7 @@ type DectedPatterns = {
   keywords: string[] | null;
 };
 
-const patternCards = [
-  {
-    id: "stakes",
-    title: "You catastrophize before high-stakes events",
-    subtitle: "Dominant pattern - 30 entries analyzed",
-    percent: 70,
-    icon: Sparkles,
-    shell: "bg-violet-50 text-violet-700",
-    bar: "bg-violet-500",
-  },
-  {
-    id: "late-night",
-    title: "Negative thoughts spike after 10 PM",
-    subtitle: "Time signal - 18 of 30 entries at night",
-    percent: 60,
-    icon: MoonStar,
-    shell: "bg-sky-50 text-sky-700",
-    bar: "bg-sky-500",
-  },
-  {
-    id: "work",
-    title: "Work stress dominates your entries",
-    subtitle: "Topic signal - keywords: deadline, manager",
-    percent: 40,
-    icon: ScanSearch,
-    shell: "bg-orange-50 text-orange-700",
-    bar: "bg-orange-500",
-  },
-] as const;
+type DistortionBreakdowns = Record<string, number>;
 
 const baselineBreakdown = [
   { label: "Catastrophizing", value: 70, color: "bg-violet-500" },
@@ -133,21 +106,9 @@ export default function MoodTrendsPage() {
     [],
   );
 
-  async function fetchDetectedPatterns(user_id: string) {
-    try {
-      const res = await getDetectedPatterns(user_id);
-      if (res) {
-        console.log("patterns:", res);
-        setDetectedPatterns(res);
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  useEffect(() => {
-    fetchDetectedPatterns(defaultUserId);
-  }, []);
+  const [distortionBreakdowns, setDistortionBreakdown] = useState<
+    DistortionBreakdowns[]
+  >([]);
 
   const [selectedThoughtId, setSelectedThoughtId] = useState<string>(
     thoughts[0]?.thought_Id ?? "",
@@ -217,6 +178,35 @@ export default function MoodTrendsPage() {
       },
     ];
   }, [savedReframes]);
+
+  async function fetchDistortionBreakdown(user_id: string) {
+    try {
+      const res = await getDistortionBreakDown(user_id);
+      if (res) {
+        console.log("distortions:", res);
+        setDistortionBreakdown(res);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async function fetchDetectedPatterns(user_id: string) {
+    try {
+      const res = await getDetectedPatterns(user_id);
+      if (res) {
+        console.log("patterns:", res);
+        setDetectedPatterns(res);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  useEffect(() => {
+    fetchDetectedPatterns(defaultUserId);
+    fetchDistortionBreakdown(defaultUserId);
+  }, []);
 
   function mapApiThoughtToUi(item: ApiThought): Thought {
     return {
@@ -543,7 +533,7 @@ export default function MoodTrendsPage() {
         open={isInsightsOpen}
         savedReframes={savedReframes}
         detectedPattern={detectedPatterns}
-        distortionBreakdown={distortionBreakdown}
+        distortionBreakdowns={distortionBreakdowns}
         onClose={() => setIsInsightsOpen(false)}
       />
     </div>
@@ -723,15 +713,18 @@ function InsightsDrawer({
   open,
   savedReframes,
   detectedPattern,
-  distortionBreakdown,
+  distortionBreakdowns,
   onClose,
 }: {
   open: boolean;
   savedReframes: SavedReframe[];
   detectedPattern: DectedPatterns[];
-  distortionBreakdown: Array<{ label: string; value: number; color: string }>;
+  distortionBreakdowns: DistortionBreakdowns;
   onClose: () => void;
 }) {
+  const items = Object.entries(distortionBreakdowns)
+    .map(([label, value]) => ({ label, value }))
+    .sort((a, b) => b.value - a.value);
   return (
     <>
       <div
@@ -796,20 +789,49 @@ function InsightsDrawer({
             <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-slate-500">
               Distortion breakdown
             </p>
-            <div className="mt-3 space-y-3">
-              {distortionBreakdown.map((item) => (
-                <DistortionBar
-                  key={item.label}
-                  label={item.label}
-                  value={item.value}
-                  color={item.color}
-                />
-              ))}
+            <div className="mt-1">
+              <div className="space-y-2">
+                {items.map((item) => (
+                  <DistortionRow
+                    key={item.label}
+                    label={item.label}
+                    value={item.value}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </aside>
     </>
+  );
+}
+
+function DistortionRow({ label, value }: { label: string; value: number }) {
+  const barColors = [
+    "bg-violet-500",
+    "bg-sky-500",
+    "bg-pink-500",
+    "bg-orange-500",
+    "bg-emerald-500",
+    "bg-indigo-500",
+  ];
+
+  const barClass = barColors[Math.floor(Math.random() * barColors.length)];
+
+  return (
+    <div>
+      <div className="flex items-center justify-between ">
+        <p className="text-sm font-medium text-slate-900">{label}</p>
+        <span className="text-sm font-semibold text-slate-500">
+          {value.toFixed(1)}%
+        </span>
+      </div>
+
+      <div className="mt-1 h-1.5 w-full bg-slate-100">
+        <div className={`h-full ${barClass}`} style={{ width: `${value}%` }} />
+      </div>
+    </div>
   );
 }
 
