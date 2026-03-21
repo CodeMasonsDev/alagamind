@@ -24,3 +24,51 @@ export const AnalyzeJournal = async (
     console.log(error);
   }
 };
+
+type thoughtProps = {
+  thought_id: number;
+  text: string;
+  distortion: string;
+  confidence: Float16Array;
+  position: number;
+  created_at: string;
+  context_note: string;
+  journal_id: string;
+};
+
+export const fetchThoughtsByUsers = async (
+  userid: string,
+): Promise<thoughtProps> => {
+  const res = await axiosInstance.get(
+    `${BASEURL}api/thoughts/by-user?user_id=${userid}`,
+  );
+
+  if (res == null) console.log("cant process request");
+
+  return res.data;
+};
+
+type Reframe = {
+  id: string;
+  title: string;
+  tone: string;
+  text: string;
+};
+
+type reframeProps = {
+  thought_id: number;
+  text: string;
+};
+
+export const generateReframes = async (
+  body: reframeProps,
+): Promise<Reframe> => {
+  const res = await axiosInstance.post(`${BASEURL}api/reframes/generate`, {
+    thought_id: body.thought_id,
+    text: body.text,
+  });
+
+  if (res == null) console.log("empty response");
+
+  return res.data;
+};
