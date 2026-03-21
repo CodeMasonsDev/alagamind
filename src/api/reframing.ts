@@ -127,3 +127,13 @@ export const getDetectedPatterns = async (
 
   return res.data.detected_patterns;
 };
+
+export const getDistortionBreakDown = async (user_id: string) => {
+  const res = await axiosInstance.get(
+    `${BASEURL}api/insights?user_id=${user_id}`,
+  );
+
+  if (res == null) console.log("empty response");
+
+  return res.data.distortion_breakdown;
+};
