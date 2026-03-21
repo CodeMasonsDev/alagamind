@@ -83,7 +83,7 @@ type SaveThought = {
 
 export const saveGeneratedReframeThought = async (
   body: SaveThought,
-): Promise<SaveThought> => {
+): Promise<SaveThought[]> => {
   const res = await axiosInstance.post(`${BASEURL}api/reframes/save`, {
     user_id: body.user_id,
     thought_id: body.thought_id,
@@ -104,4 +104,26 @@ export const getSaveReframe = async (user_id: string): any => {
   if (res == null) console.log("empty response");
 
   return res.data;
+};
+
+type DectedPatterns = {
+  type: string; //"distortion",
+  title: string; // "Unknown shows up a lot",
+  share: number; //0.3,
+  count: number; //7,
+  severity: string; //"dominant",
+  window: string; //null,
+  keywords: string; //null
+};
+
+export const getDetectedPatterns = async (
+  user_id: string,
+): Promise<DectedPatterns[]> => {
+  const res = await axiosInstance.get(
+    `${BASEURL}api/insights?user_id=${user_id}`,
+  );
+
+  if (res == null) console.log("empty response");
+
+  return res.data.detected_patterns;
 };
