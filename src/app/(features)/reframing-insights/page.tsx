@@ -14,7 +14,12 @@ import {
   WandSparkles,
   X,
 } from "lucide-react";
-import { fetchThoughtsByUsers, generateReframes } from "@/api/reframing";
+import {
+  fetchThoughtsByUsers,
+  generateReframes,
+  getSaveReframe,
+  saveGeneratedReframeThought,
+} from "@/api/reframing";
 
 type Distortion =
   | "Catastrophizing"
@@ -44,8 +49,8 @@ type SavedReframe = {
   id: string;
   thoughtId: string;
   thoughtText: string;
-  distortion: Distortion;
-  reframeType: ReframeKind;
+  distortion: string;
+  reframeType: string;
   reframeText: string;
   savedAt: string;
 };
@@ -59,6 +64,16 @@ type ApiThought = {
   created_at: string;
   context_note: string;
   journal_id: string;
+};
+
+type ApiSaveThought = {
+  reframe_id: number;
+  thought_id: number;
+  thought_text: string;
+  distortion: string;
+  style: string;
+  text: string;
+  created_at: string;
 };
 
 const patternCards = [
@@ -100,6 +115,7 @@ const baselineBreakdown = [
 
 export default function MoodTrendsPage() {
   const [thoughts, setThougts] = useState<Thought[]>([]);
+  const defaultUserId = "7e9793a6-c652-4b3a-8bed-780c221ee33a";
 
   const [selectedThoughtId, setSelectedThoughtId] = useState<string>(
     thoughts[0]?.thought_Id ?? "",
@@ -108,28 +124,7 @@ export default function MoodTrendsPage() {
     null,
   );
   const [generatedReframes, setGeneratedReframes] = useState<Reframe[]>([]);
-  const [savedReframes, setSavedReframes] = useState<SavedReframe[]>([
-    {
-      id: "seed-1",
-      thoughtId: "seed-a",
-      thoughtText: "I always mess up under pressure",
-      distortion: "Catastrophizing",
-      reframeType: "compassionate",
-      reframeText:
-        "Pressure makes me tense, but it does not erase my ability to recover and continue.",
-      savedAt: "Mar 12",
-    },
-    {
-      id: "seed-2",
-      thoughtId: "seed-b",
-      thoughtText: "Nobody respects my opinion in meetings",
-      distortion: "Mind reading",
-      reframeType: "direct",
-      reframeText:
-        "That is a conclusion, not evidence. I need to separate silence from rejection.",
-      savedAt: "Mar 14",
-    },
-  ]);
+  const [savedReframes, setSavedReframes] = useState<SavedReframe[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isInsightsOpen, setIsInsightsOpen] = useState(false);
 
@@ -190,7 +185,6 @@ export default function MoodTrendsPage() {
       },
     ];
   }, [savedReframes]);
-  const defaultUserId = "7e9793a6-c652-4b3a-8bed-780c221ee33a";
 
   function mapApiThoughtToUi(item: ApiThought): Thought {
     return {
@@ -264,7 +258,7 @@ export default function MoodTrendsPage() {
       setIsGenerating(false);
     }
   }
-  function handleSave(reframe: Reframe) {
+  async function handleSave(reframe: Reframe) {
     if (!selectedThought || !hasGeneratedSelection) return;
     const id = `${selectedThought.thought_Id}-${reframe.id}`;
 
@@ -283,7 +277,52 @@ export default function MoodTrendsPage() {
         ...current,
       ];
     });
+
+    const responseData = {
+      user_id: defaultUserId,
+      thought_id: Number(selectedThought.thought_Id),
+      style: reframe.title.toLowerCase(),
+      text: reframe.text,
+      corrected_distortion: selectedThought.distortion,
+    };
+
+    const res = await saveGeneratedReframeThought(responseData);
+    if (!res) {
+      console.log("failed to fetch");
+    } else {
+      console.log("saved reframe:", responseData);
+    }
   }
+
+  function mapApiSaveThoughtToUi(item: ApiSaveThought): SavedReframe {
+    return {
+      id: String(item.reframe_id),
+      thoughtId: String(item.thought_id),
+      thoughtText: item.thought_text,
+      distortion: item.distortion,
+      reframeType: item.style,
+      reframeText: item.text,
+      savedAt: item.created_at,
+    };
+  }
+
+  async function getSaveReframes(user_id: string) {
+    try {
+      const res = await getSaveReframe(user_id);
+      console.log("save", res);
+
+      const items: ApiSaveThought[] = Array.isArray(res) ? res : [res];
+      const mappedThoughts = items.map(mapApiSaveThoughtToUi);
+
+      setSavedReframes(mappedThoughts);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  useEffect(() => {
+    getSaveReframes(defaultUserId);
+  }, []);
 
   function isSaved(type: ReframeKind) {
     return savedReframes.some(
@@ -703,9 +742,9 @@ function InsightsDrawer({
             <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-slate-500">
               Live feed
             </p>
-            <div className="mt-3 space-y-2.5">
-              {savedReframes.map((item) => (
-                <SavedFeedItem key={item.id} item={item} />
+            <div className="mt-3 space-y-2.5 overflow-y-auto h-[150px]">
+              {savedReframes.map((item, index) => (
+                <SavedFeedItem key={index} item={item} />
               ))}
             </div>
           </div>
@@ -888,9 +927,9 @@ function InfoPill({ children }: { children: ReactNode }) {
 }
 
 function trimText(value: string, max: number) {
-  return value.length <= max ? value : `${value.slice(0, max).trimEnd()}...`;
+  return value?.length <= max ? value : `${value?.slice(0, max)?.trimEnd()}...`;
 }
 
 function titleCase(value: string) {
-  return value.charAt(0).toUpperCase() + value.slice(1);
+  return value?.charAt(0)?.toUpperCase() + value?.slice(1);
 }
