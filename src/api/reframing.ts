@@ -72,3 +72,36 @@ export const generateReframes = async (
 
   return res.data;
 };
+
+type SaveThought = {
+  user_id: string;
+  thought_id: number;
+  style: string;
+  text: string;
+  corrected_distortion: string;
+};
+
+export const saveGeneratedReframeThought = async (
+  body: SaveThought,
+): Promise<SaveThought> => {
+  const res = await axiosInstance.post(`${BASEURL}api/reframes/save`, {
+    user_id: body.user_id,
+    thought_id: body.thought_id,
+    style: body.style,
+    text: body.text,
+    corrected_distortion: body.corrected_distortion,
+  });
+
+  if (res == null) console.log("empty response");
+
+  return res.data;
+};
+
+export const getSaveReframe = async (user_id: string): any => {
+  const res = await axiosInstance.get(
+    `${BASEURL}api/reframes/by-user?user_id=${user_id}`,
+  );
+  if (res == null) console.log("empty response");
+
+  return res.data;
+};
