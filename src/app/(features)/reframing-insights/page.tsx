@@ -14,9 +14,11 @@ import {
   WandSparkles,
   X,
 } from "lucide-react";
+
 import {
   fetchThoughtsByUsers,
   generateReframes,
+  getDetectedPatterns,
   getSaveReframe,
   saveGeneratedReframeThought,
 } from "@/api/reframing";
@@ -76,6 +78,16 @@ type ApiSaveThought = {
   created_at: string;
 };
 
+type DectedPatterns = {
+  type: string;
+  title: string;
+  share: number;
+  count: number;
+  severity: string | null;
+  window: string | null;
+  keywords: string[] | null;
+};
+
 const patternCards = [
   {
     id: "stakes",
@@ -116,6 +128,26 @@ const baselineBreakdown = [
 export default function MoodTrendsPage() {
   const [thoughts, setThougts] = useState<Thought[]>([]);
   const defaultUserId = "7e9793a6-c652-4b3a-8bed-780c221ee33a";
+
+  const [detectedPatterns, setDetectedPatterns] = useState<DectedPatterns[]>(
+    [],
+  );
+
+  async function fetchDetectedPatterns(user_id: string) {
+    try {
+      const res = await getDetectedPatterns(user_id);
+      if (res) {
+        console.log("patterns:", res);
+        setDetectedPatterns(res);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  useEffect(() => {
+    fetchDetectedPatterns(defaultUserId);
+  }, []);
 
   const [selectedThoughtId, setSelectedThoughtId] = useState<string>(
     thoughts[0]?.thought_Id ?? "",
@@ -510,7 +542,7 @@ export default function MoodTrendsPage() {
       <InsightsDrawer
         open={isInsightsOpen}
         savedReframes={savedReframes}
-        patternCards={patternCards}
+        detectedPattern={detectedPatterns}
         distortionBreakdown={distortionBreakdown}
         onClose={() => setIsInsightsOpen(false)}
       />
@@ -690,13 +722,13 @@ function ReframeCard({
 function InsightsDrawer({
   open,
   savedReframes,
-  patternCards,
+  detectedPattern,
   distortionBreakdown,
   onClose,
 }: {
   open: boolean;
   savedReframes: SavedReframe[];
-  patternCards: typeof patternCards;
+  detectedPattern: DectedPatterns[];
   distortionBreakdown: Array<{ label: string; value: number; color: string }>;
   onClose: () => void;
 }) {
@@ -754,8 +786,8 @@ function InsightsDrawer({
               Detected patterns
             </p>
             <div className="mt-3 space-y-3">
-              {patternCards.map((pattern) => (
-                <PatternCard key={pattern.id} pattern={pattern} />
+              {detectedPattern.map((pattern, index) => (
+                <PatternCard key={index} pattern={pattern} />
               ))}
             </div>
           </div>
@@ -803,37 +835,74 @@ function SavedFeedItem({ item }: { item: SavedReframe }) {
   );
 }
 
-function PatternCard({ pattern }: { pattern: (typeof patternCards)[number] }) {
-  const Icon = pattern.icon;
+function PatternCard({ pattern }: { pattern: DectedPatterns }) {
+  const percent = Math.round((pattern.share ?? 0) * 100);
+
+  const Icon =
+    pattern.type === "time"
+      ? MoonStar
+      : pattern.type === "topic"
+        ? ScanSearch
+        : Sparkles;
+
+  const iconWrapClass =
+    pattern.type === "time"
+      ? "bg-sky-50 text-sky-500"
+      : pattern.type === "topic"
+        ? "bg-orange-50 text-orange-500"
+        : "bg-violet-50 text-violet-500";
+
+  const barClass =
+    pattern.type === "time"
+      ? "bg-sky-500"
+      : pattern.type === "topic"
+        ? "bg-orange-500"
+        : "bg-violet-500";
+
+  const subtitle =
+    pattern.type === "time"
+      ? `Time signal - ${pattern.count} of ${pattern.count} entries at night${pattern.window ? ` • ${pattern.window}` : ""}`
+      : pattern.type === "topic"
+        ? `Topic signal - keywords: ${pattern.keywords?.length ? pattern.keywords.join(", ") : "None"}`
+        : `${pattern.severity ? `${capitalize(pattern.severity)} pattern` : "Pattern"} - ${pattern.count} entries analyzed`;
 
   return (
-    <article className="border border-slate-200 bg-white p-4 shadow-sm">
+    <article className="border border-slate-200 bg-white p-3 shadow-sm">
       <div className="flex items-start gap-3">
-        <span className={`p-2 ${pattern.shell}`}>
+        <div
+          className={`flex h-10 w-10 shrink-0 items-center justify-center ${iconWrapClass}`}
+        >
           <Icon className="h-4 w-4" />
-        </span>
+        </div>
+
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-3">
-            <p className="text-sm font-medium leading-relaxed text-slate-950">
-              {pattern.title}
-            </p>
-            <span className="text-sm font-medium text-slate-600">
-              {pattern.percent}%
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium text-slate-900">
+                {pattern.title}
+              </p>
+              <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
+            </div>
+
+            <span className="shrink-0 text-sm font-semibold text-slate-500">
+              {percent}%
             </span>
           </div>
-          <p className="mt-1 text-sm leading-relaxed text-slate-500">
-            {pattern.subtitle}
-          </p>
-          <div className="mt-3 h-1.5 bg-slate-100">
+
+          <div className="mt-2 h-1.5 w-full bg-slate-100">
             <div
-              className={`h-full ${pattern.bar}`}
-              style={{ width: `${pattern.percent}%` }}
+              className={`h-full ${barClass}`}
+              style={{ width: `${percent}%` }}
             />
           </div>
         </div>
       </div>
     </article>
   );
+}
+
+function capitalize(value: string) {
+  return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
 function DistortionBar({
