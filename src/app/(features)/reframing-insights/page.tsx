@@ -12,7 +12,6 @@ import {
   ScanSearch,
   Sparkles,
   WandSparkles,
-  X,
 } from "lucide-react";
 
 import {
@@ -24,12 +23,7 @@ import {
   saveGeneratedReframeThought,
 } from "@/api/reframing";
 
-type Distortion =
-  | "Catastrophizing"
-  | "Mind reading"
-  | "All-or-nothing"
-  | "Should statements"
-  | "Overgeneralization";
+type Distortion = string;
 
 type ReframeKind = "logical" | "compassionate" | "direct";
 
@@ -79,40 +73,30 @@ type ApiSaveThought = {
   created_at: string;
 };
 
-type DectedPatterns = {
+type DetectedPattern = {
   type: string;
   title: string;
   share: number;
   count: number;
   severity: string | null;
   window: string | null;
-  keywords: string[] | null;
+  keywords: string[] | string | null;
 };
 
-type DistortionBreakdowns = Record<string, number>;
-
-const baselineBreakdown = [
-  { label: "Catastrophizing", value: 70, color: "bg-violet-500" },
-  { label: "Mind reading", value: 40, color: "bg-sky-500" },
-  { label: "All-or-nothing", value: 25, color: "bg-pink-500" },
-  { label: "Overgeneralizing", value: 15, color: "bg-orange-500" },
-] as const;
+type DistortionBreakdown = Record<string, number>;
 
 export default function MoodTrendsPage() {
   const [thoughts, setThougts] = useState<Thought[]>([]);
   const defaultUserId = "7e9793a6-c652-4b3a-8bed-780c221ee33a";
 
-  const [detectedPatterns, setDetectedPatterns] = useState<DectedPatterns[]>(
+  const [detectedPatterns, setDetectedPatterns] = useState<DetectedPattern[]>(
     [],
   );
 
-  const [distortionBreakdowns, setDistortionBreakdown] = useState<
-    DistortionBreakdowns[]
-  >([]);
+  const [distortionBreakdowns, setDistortionBreakdown] =
+    useState<DistortionBreakdown>({});
 
-  const [selectedThoughtId, setSelectedThoughtId] = useState<string>(
-    thoughts[0]?.thought_Id ?? "",
-  );
+  const [selectedThoughtId, setSelectedThoughtId] = useState<string>("");
   const [generatedThoughtId, setGeneratedThoughtId] = useState<string | null>(
     null,
   );
@@ -127,57 +111,27 @@ export default function MoodTrendsPage() {
   const hasGeneratedSelection =
     generatedThoughtId === selectedThoughtId && generatedReframes.length > 0;
 
-  const stats = useMemo(() => {
+  const headerMetrics = useMemo(() => {
     const uniqueThoughts = new Set(savedReframes.map((item) => item.thoughtId))
       .size;
+    const completedToday = savedReframes.filter((item) =>
+      isTodayLabel(item.savedAt),
+    ).length;
+    const dominantDistortion = getDominantDistortion(distortionBreakdowns);
+    const insightWindow =
+      detectedPatterns.find((pattern) => pattern.window?.trim())?.window ??
+      "live";
+
     return {
-      completed: savedReframes.length + 22,
-      uniqueThoughts: uniqueThoughts + 16,
-      fired: Math.max(3, Math.min(9, savedReframes.length + 1)),
+      completed: savedReframes.length,
+      uniqueThoughts,
+      completedToday,
+      dominantDistortion,
+      fired: detectedPatterns.length,
+      insightWindow,
+      insightTypes: getInsightTypesLabel(detectedPatterns),
     };
-  }, [savedReframes]);
-
-  const distortionBreakdown = useMemo(() => {
-    const counts = {
-      Catastrophizing: baselineBreakdown[0].value,
-      "Mind reading": baselineBreakdown[1].value,
-      "All-or-nothing": baselineBreakdown[2].value,
-      Overgeneralizing: baselineBreakdown[3].value,
-    };
-
-    for (const saved of savedReframes) {
-      if (saved.distortion === "Catastrophizing") counts.Catastrophizing += 2;
-      if (saved.distortion === "Mind reading") counts["Mind reading"] += 2;
-      if (saved.distortion === "All-or-nothing") counts["All-or-nothing"] += 2;
-      if (saved.distortion === "Overgeneralization")
-        counts.Overgeneralizing += 2;
-      if (saved.distortion === "Should statements")
-        counts.Overgeneralizing += 1;
-    }
-
-    return [
-      {
-        label: "Catastrophizing",
-        value: Math.min(counts.Catastrophizing, 95),
-        color: "bg-violet-500",
-      },
-      {
-        label: "Mind reading",
-        value: Math.min(counts["Mind reading"], 95),
-        color: "bg-sky-500",
-      },
-      {
-        label: "All-or-nothing",
-        value: Math.min(counts["All-or-nothing"], 95),
-        color: "bg-pink-500",
-      },
-      {
-        label: "Overgeneralizing",
-        value: Math.min(counts.Overgeneralizing, 95),
-        color: "bg-orange-500",
-      },
-    ];
-  }, [savedReframes]);
+  }, [detectedPatterns, distortionBreakdowns, savedReframes]);
 
   async function fetchDistortionBreakdown(user_id: string) {
     try {
@@ -221,12 +175,19 @@ export default function MoodTrendsPage() {
   async function fetchThoughts() {
     try {
       const res = await fetchThoughtsByUsers(defaultUserId);
-      if (res == null) if (res == null) console.log("cant process request");
+      if (!res) {
+        console.log("cant process request");
+        setThougts([]);
+        return;
+      }
       console.log("thoughts:", res);
 
       const items: ApiThought[] = Array.isArray(res) ? res : [res];
       const mappedThoughts = items.map(mapApiThoughtToUi);
       setThougts(mappedThoughts);
+      setSelectedThoughtId(
+        (current) => current || mappedThoughts[0]?.thought_Id || "",
+      );
     } catch (error) {
       console.log(error);
     }
@@ -234,13 +195,13 @@ export default function MoodTrendsPage() {
   async function generateThoughts(thought_id: number, text: string) {
     try {
       const res = await generateReframes({ thought_id, text });
+      const generatedItems = Array.isArray(res) ? res : [];
       console.log("generated reframes", res);
-
-      setGeneratedReframes(res);
-
-      return res;
+      setGeneratedReframes(generatedItems);
+      return generatedItems;
     } catch (error) {
       console.log("failed to fetch");
+      return [];
     }
   }
 
@@ -248,7 +209,7 @@ export default function MoodTrendsPage() {
     fetchThoughts();
   }, []);
 
-  function handleThoughtSelect(thoughtId: string, text: string) {
+  function handleThoughtSelect(thoughtId: string) {
     setSelectedThoughtId(thoughtId);
     setGeneratedThoughtId(null);
     setGeneratedReframes([]);
@@ -313,6 +274,11 @@ export default function MoodTrendsPage() {
       console.log("failed to fetch");
     } else {
       console.log("saved reframe:", responseData);
+      await Promise.all([
+        getSaveReframes(defaultUserId),
+        fetchDetectedPatterns(defaultUserId),
+        fetchDistortionBreakdown(defaultUserId),
+      ]);
     }
   }
 
@@ -331,6 +297,10 @@ export default function MoodTrendsPage() {
   async function getSaveReframes(user_id: string) {
     try {
       const res = await getSaveReframe(user_id);
+      if (!res) {
+        setSavedReframes([]);
+        return;
+      }
       console.log("save", res);
 
       const items: ApiSaveThought[] = Array.isArray(res) ? res : [res];
@@ -386,20 +356,28 @@ export default function MoodTrendsPage() {
           <div className="grid border-t border-slate-200 sm:grid-cols-3">
             <TopMetric
               label="Reframes Completed"
-              value={String(stats.completed)}
-              detail={`Across ${stats.uniqueThoughts} unique thoughts`}
-              chip="+3 today"
+              value={String(headerMetrics.completed)}
+              detail={
+                headerMetrics.completed > 0
+                  ? `Across ${headerMetrics.uniqueThoughts} unique thoughts`
+                  : "No saved reframes yet"
+              }
+              chip={`+${headerMetrics.completedToday} today`}
             />
             <TopMetric
               label="Dominant Distortion"
-              value="Catastrophizing"
-              detail="Present in 70% of entries"
+              value={headerMetrics.dominantDistortion?.label ?? "No data yet"}
+              detail={
+                headerMetrics.dominantDistortion
+                  ? `Present in ${formatPercent(headerMetrics.dominantDistortion.value)} of entries`
+                  : "Waiting for distortion data"
+              }
             />
             <TopMetric
               label="Pattern Insights Fired"
-              value={String(stats.fired)}
-              detail="Time, topic, distortion signals"
-              chip="this week"
+              value={String(headerMetrics.fired)}
+              detail={headerMetrics.insightTypes}
+              chip={titleCase(headerMetrics.insightWindow)}
             />
           </div>
         </header>
@@ -420,9 +398,7 @@ export default function MoodTrendsPage() {
                   key={thought.thought_Id}
                   thought={thought}
                   selected={thought.thought_Id === selectedThoughtId}
-                  onSelect={() =>
-                    handleThoughtSelect(thought.thought_Id, thought.text)
-                  }
+                  onSelect={() => handleThoughtSelect(thought.thought_Id)}
                 />
               ))}
             </div>
@@ -718,13 +694,13 @@ function InsightsDrawer({
 }: {
   open: boolean;
   savedReframes: SavedReframe[];
-  detectedPattern: DectedPatterns[];
-  distortionBreakdowns: DistortionBreakdowns;
+  detectedPattern: DetectedPattern[];
+  distortionBreakdowns: DistortionBreakdown;
   onClose: () => void;
 }) {
   const items = Object.entries(distortionBreakdowns)
     .map(([label, value]) => ({ label, value }))
-    .sort((a, b) => b.value - a.value);
+    .sort((a, b) => normalizePercent(b.value) - normalizePercent(a.value));
   return (
     <>
       <div
@@ -824,12 +800,15 @@ function DistortionRow({ label, value }: { label: string; value: number }) {
       <div className="flex items-center justify-between ">
         <p className="text-sm font-medium text-slate-900">{label}</p>
         <span className="text-sm font-semibold text-slate-500">
-          {value.toFixed(1)}%
+          {formatPercent(value)}
         </span>
       </div>
 
       <div className="mt-1 h-1.5 w-full bg-slate-100">
-        <div className={`h-full ${barClass}`} style={{ width: `${value}%` }} />
+        <div
+          className={`h-full ${barClass}`}
+          style={{ width: `${normalizePercent(value)}%` }}
+        />
       </div>
     </div>
   );
@@ -857,8 +836,8 @@ function SavedFeedItem({ item }: { item: SavedReframe }) {
   );
 }
 
-function PatternCard({ pattern }: { pattern: DectedPatterns }) {
-  const percent = Math.round((pattern.share ?? 0) * 100);
+function PatternCard({ pattern }: { pattern: DetectedPattern }) {
+  const percent = Math.round(normalizePercent(pattern.share ?? 0));
 
   const Icon =
     pattern.type === "time"
@@ -883,9 +862,9 @@ function PatternCard({ pattern }: { pattern: DectedPatterns }) {
 
   const subtitle =
     pattern.type === "time"
-      ? `Time signal - ${pattern.count} of ${pattern.count} entries at night${pattern.window ? ` • ${pattern.window}` : ""}`
+      ? `Time signal - ${pattern.count} entries detected${pattern.window ? ` • ${pattern.window}` : ""}`
       : pattern.type === "topic"
-        ? `Topic signal - keywords: ${pattern.keywords?.length ? pattern.keywords.join(", ") : "None"}`
+        ? `Topic signal - keywords: ${formatKeywords(pattern.keywords)}`
         : `${pattern.severity ? `${capitalize(pattern.severity)} pattern` : "Pattern"} - ${pattern.count} entries analyzed`;
 
   return (
@@ -1024,3 +1003,64 @@ function trimText(value: string, max: number) {
 function titleCase(value: string) {
   return value?.charAt(0)?.toUpperCase() + value?.slice(1);
 }
+
+function normalizePercent(value: number) {
+  if (!Number.isFinite(value)) return 0;
+  return value <= 1 ? value * 100 : value;
+}
+
+function formatPercent(value: number) {
+  return `${Math.round(normalizePercent(value))}%`;
+}
+
+function isTodayLabel(value: string) {
+  if (!value) return false;
+  const normalizedValue = value.toLowerCase();
+  if (normalizedValue.includes("today") || normalizedValue.includes("just now")) {
+    return true;
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return false;
+
+  const now = new Date();
+  return (
+    date.getFullYear() === now.getFullYear() &&
+    date.getMonth() === now.getMonth() &&
+    date.getDate() === now.getDate()
+  );
+}
+
+function getDominantDistortion(distortionBreakdowns: DistortionBreakdown) {
+  const items = Object.entries(distortionBreakdowns)
+    .filter(([, value]) => Number.isFinite(value))
+    .sort((a, b) => normalizePercent(b[1]) - normalizePercent(a[1]));
+
+  if (!items.length) return null;
+
+  const [label, value] = items[0];
+  return { label, value };
+}
+
+function getInsightTypesLabel(patterns: DetectedPattern[]) {
+  const types = Array.from(
+    new Set(
+      patterns
+        .map((pattern) => pattern.type?.trim().toLowerCase())
+        .filter(Boolean),
+    ),
+  );
+
+  return types.length
+    ? `${types.join(", ")} signals`
+    : "No time, topic, or distortion signals yet";
+}
+
+function formatKeywords(keywords: DetectedPattern["keywords"]) {
+  if (Array.isArray(keywords)) {
+    return keywords.length ? keywords.join(", ") : "None";
+  }
+
+  return keywords?.trim() || "None";
+}
+
