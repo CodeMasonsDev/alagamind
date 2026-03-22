@@ -37,6 +37,7 @@ type Protocol = {
   focus: string;
   duration: number;
   icon: LucideIcon;
+  href?: string;
 };
 
 type FocusFilter = "All Focus" | "CBT" | "DBT" | "Mindfulness";
@@ -72,7 +73,7 @@ const featuredProtocols: FeaturedProtocol[] = [
     duration: "5 MINUTES",
     badge: "Acute Relief",
     icon: Crosshair,
-    href: "/exercises/cognitive-reframing",
+    href: "/exercises/grounding",
   },
 ];
 
@@ -86,6 +87,7 @@ const protocols: Protocol[] = [
     focus: "Mood & Energy",
     duration: 15,
     icon: Activity,
+    href: "/exercises/behavioral-activation",
   },
   {
     id: 2,
@@ -516,8 +518,8 @@ function LibraryGrid({
 function ProtocolCard({ protocol }: { protocol: Protocol }) {
   const Icon = protocol.icon;
 
-  return (
-    <article className="flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-colors hover:border-teal-100">
+  const content = (
+    <>
       <div className="mb-4 flex items-start justify-between gap-3">
         <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
           <Icon size={17} />
@@ -549,8 +551,21 @@ function ProtocolCard({ protocol }: { protocol: Protocol }) {
           {protocol.duration}M
         </span>
       </div>
-    </article>
+    </>
   );
+
+  const cardClasses =
+    "flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-colors hover:border-teal-100";
+
+  if (protocol.href) {
+    return (
+      <Link href={protocol.href} className={cardClasses}>
+        {content}
+      </Link>
+    );
+  }
+
+  return <article className={cardClasses}>{content}</article>;
 }
 
 function BrowseLibraryCard() {

@@ -2,13 +2,16 @@
 
 import {
   AlertCircle,
+  ArrowLeft,
   Bot,
+  BrainCircuit,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
   CircleDashed,
   Save,
 } from "lucide-react";
+import Link from "next/link";
 import CbtChatAssistantPanel from "./cbt-chat-assistant-panel";
 import { DISTORTIONS } from "@/components/features/cognitive-reframing/constants";
 import { useGuidedCbtWorkflow } from "@/components/features/cognitive-reframing/use-guided-cbt-workflow";
@@ -80,30 +83,52 @@ export default function GuidedCbtWorkflow() {
       className={`relative transition-all duration-300 ${assistantEnabled ? "lg:pr-[370px]" : ""}`}
     >
       <section className="rounded-b-3xl border border-slate-200 bg-white shadow-sm">
-        <header className="border-b border-slate-200 bg-gradient-to-r from-[#0f172a] via-[#1e293b] to-[#0b1120] px-5 py-7 text-white sm:px-7">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-teal-300">
-                Guided CBT Workflow
-              </p>
-              <h1 className="mt-1 text-2xl font-bold tracking-tight">
+        <header className="border-b border-slate-200 bg-white px-5 py-6 sm:px-7 sm:py-8">
+          {/* Top nav row */}
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <Link
+              href="/exercises"
+              className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400 transition-colors hover:text-slate-700"
+            >
+              <ArrowLeft size={12} />
+              Exercises
+            </Link>
+
+            <div className="flex items-center gap-2">
+              <span className="rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                CBT
+              </span>
+              <span className="rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                6 Min
+              </span>
+              <div className="rounded-md border border-slate-200 bg-slate-50 px-2.5 py-0.5">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                  Step{" "}
+                </span>
+                <span className="text-xs font-bold text-slate-900">
+                  {currentStepIndex + 1}
+                </span>
+                <span className="text-xs text-slate-400">
+                  /{steps.length}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Main content row */}
+          <div className="mt-6 flex flex-wrap items-start gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-900">
+              <BrainCircuit size={22} className="text-white" />
+            </div>
+
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold tracking-tight text-slate-900">
                 Cognitive Reframing Session
               </h1>
-              <p className="mt-2 max-w-2xl text-sm text-slate-300">
+              <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-slate-500">
                 Step-by-step worksheet with optional AI copilot chat on the
                 right. Your input leads each step before moving forward.
               </p>
-            </div>
-
-            <div className="text-right">
-              <div className="rounded-xl border border-white/20 bg-white/10 px-4 py-3">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-200">
-                  Step
-                </p>
-                <p className="mt-1 text-2xl font-bold tracking-tight">
-                  {currentStepIndex + 1} / {steps.length}
-                </p>
-              </div>
             </div>
           </div>
         </header>

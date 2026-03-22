@@ -1,30 +1,35 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import {
-  Activity,
-  ChevronRight,
-  HeartPulse,
+  ArrowLeft,
+  Pause,
+  Play,
+  RotateCcw,
   Volume1,
   Volume2,
-  Waves,
+  Wind,
+  Timer,
+  Repeat,
+  Activity,
 } from "lucide-react";
-import CognitiveReframingPanel from "@/components/exercises/cognitive-reframing-panel";
 
-type BreathingPhase = "Inhale..." | "Hold" | "Exhale..." | "Hold";
+/* ─────────────────────── constants ─────────────────────── */
 
-const phases: BreathingPhase[] = ["Inhale...", "Hold", "Exhale...", "Hold"];
-const breathingSteps = [
-  { id: "in", stepNumber: 1, label: "In" },
-  { id: "hold-a", stepNumber: 2, label: "Hold" },
-  { id: "out", stepNumber: 3, label: "Out" },
-  { id: "hold-b", stepNumber: 4, label: "Hold" },
-] as const;
-const soundscapes = [
-  { key: "rain", label: "RAIN" },
-  { key: "lofi", label: "LO-FI" },
-  { key: "ocean", label: "OCEAN" },
-] as const;
+type Phase = "Inhale" | "Hold" | "Exhale" | "Rest";
+
+const PHASES: { id: string; label: Phase; cue: string }[] = [
+  { id: "in", label: "Inhale", cue: "Breathe in slowly through your nose" },
+  { id: "hold-a", label: "Hold", cue: "Hold gently — no tension" },
+  { id: "out", label: "Exhale", cue: "Release slowly through your mouth" },
+  { id: "hold-b", label: "Rest", cue: "Pause — stay relaxed" },
+];
+
+const PHASE_DURATION_MS = 4000;
+const PHASE_DURATION_S = PHASE_DURATION_MS / 1000;
+const SESSION_DURATION_S = 240; // 4 minutes
+const PROGRESS_TICK_MS = 50;
 
 const SOUND_MAP = {
   rain: "/sounds/rain.mp3",
@@ -33,31 +38,88 @@ const SOUND_MAP = {
 } as const;
 
 type SoundKey = keyof typeof SOUND_MAP;
-const INITIAL_VOLUME = 0.5;
+
+const soundscapes: { key: SoundKey; label: string }[] = [
+  { key: "rain", label: "Rain" },
+  { key: "lofi", label: "Lo-Fi" },
+  { key: "ocean", label: "Ocean" },
+];
+
+/* ─────────────────────── component ─────────────────────── */
 
 export default function BoxBreathingSessionPage() {
   const [phaseIndex, setPhaseIndex] = useState(0);
+  const [phaseProgress, setPhaseProgress] = useState(0); // 0-100
+  const [remainingSeconds, setRemainingSeconds] = useState(SESSION_DURATION_S);
+  const [isActive, setIsActive] = useState(true);
+  const [isPaused, setIsPaused] = useState(false);
+  const [cycles, setCycles] = useState(0);
+  const [totalBreaths, setTotalBreaths] = useState(0);
+
+  // audio
   const [selectedSound, setSelectedSound] = useState<SoundKey>("rain");
-  const [volume, setVolume] = useState(INITIAL_VOLUME);
+  const [volume, setVolume] = useState(0.5);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [remainingSeconds, setRemainingSeconds] = useState(240);
-  const [isSessionActive, setIsSessionActive] = useState(true);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  const isRunning = isActive && !isPaused;
+
+  /* ── phase cycling ── */
   useEffect(() => {
-    if (!isSessionActive) return;
+    if (!isRunning) return;
 
     const phaseTimer = window.setInterval(() => {
-      setPhaseIndex((prev) => (prev + 1) % phases.length);
-    }, 4000);
+      setPhaseIndex((prev) => {
+        const next = (prev + 1) % PHASES.length;
+        if (next === 0) setCycles((c) => c + 1);
+        // count inhale & exhale as breaths
+        if (PHASES[next].label === "Inhale" || PHASES[next].label === "Exhale") {
+          setTotalBreaths((b) => b + 1);
+        }
+        return next;
+      });
+      setPhaseProgress(0);
+    }, PHASE_DURATION_MS);
 
     return () => window.clearInterval(phaseTimer);
-  }, [isSessionActive]);
+  }, [isRunning]);
 
+  /* ── phase progress animation ── */
+  useEffect(() => {
+    if (!isRunning) return;
+
+    const tick = window.setInterval(() => {
+      setPhaseProgress((prev) => {
+        const next = prev + (PROGRESS_TICK_MS / PHASE_DURATION_MS) * 100;
+        return Math.min(next, 100);
+      });
+    }, PROGRESS_TICK_MS);
+
+    return () => window.clearInterval(tick);
+  }, [isRunning]);
+
+  /* ── session countdown ── */
+  useEffect(() => {
+    if (!isRunning) return;
+
+    const countdown = window.setInterval(() => {
+      setRemainingSeconds((prev) => {
+        if (prev <= 1) {
+          setIsActive(false);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => window.clearInterval(countdown);
+  }, [isRunning]);
+
+  /* ── audio setup ── */
   useEffect(() => {
     const audio = new Audio();
     audio.loop = true;
-    audio.volume = INITIAL_VOLUME;
+    audio.volume = 0.5;
     audioRef.current = audio;
 
     return () => {
@@ -69,298 +131,387 @@ export default function BoxBreathingSessionPage() {
   }, []);
 
   useEffect(() => {
-    if (!audioRef.current) return;
-    audioRef.current.volume = volume;
+    if (audioRef.current) audioRef.current.volume = volume;
   }, [volume]);
 
-  const handleSoundSelect = async (sound: SoundKey) => {
-    setSelectedSound(sound);
+  const handleSoundSelect = useCallback(
+    async (sound: SoundKey) => {
+      setSelectedSound(sound);
+      if (!audioRef.current) return;
 
-    if (!audioRef.current) return;
+      const audio = audioRef.current;
+      try {
+        audio.pause();
+        audio.currentTime = 0;
+        audio.src = SOUND_MAP[sound];
+        audio.load();
+        audio.loop = true;
+        audio.volume = volume;
+        await audio.play();
+        setIsPlaying(true);
+      } catch {
+        setIsPlaying(false);
+      }
+    },
+    [volume],
+  );
 
-    const audio = audioRef.current;
-    const nextSource = SOUND_MAP[sound];
+  /* ── controls ── */
+  const handlePauseResume = () => {
+    if (!isActive) return;
+    setIsPaused((prev) => {
+      const willPause = !prev;
+      // pause/resume audio
+      if (audioRef.current && isPlaying) {
+        if (willPause) audioRef.current.pause();
+        else void audioRef.current.play();
+      }
+      return willPause;
+    });
+  };
 
-    try {
-      audio.pause();
-      audio.currentTime = 0;
-      audio.src = nextSource;
-      audio.load();
-      audio.loop = true;
-      audio.volume = volume;
-      await audio.play();
-      setIsPlaying(true);
-    } catch {
-      setIsPlaying(false);
+  const handleRestart = () => {
+    setPhaseIndex(0);
+    setPhaseProgress(0);
+    setRemainingSeconds(SESSION_DURATION_S);
+    setIsActive(true);
+    setIsPaused(false);
+    setCycles(0);
+    setTotalBreaths(0);
+  };
+
+  const handleEnd = () => {
+    setIsActive(false);
+    setIsPaused(false);
+    if (audioRef.current) {
+      audioRef.current.pause();
     }
   };
 
-  useEffect(() => {
-    if (!isSessionActive) return;
-
-    const countdownTimer = window.setInterval(() => {
-      setRemainingSeconds((prev) => (prev > 0 ? prev - 1 : 0));
-    }, 1000);
-
-    return () => window.clearInterval(countdownTimer);
-  }, [isSessionActive]);
-
-  const timeRemaining = useMemo(() => {
-    const minutes = Math.floor(remainingSeconds / 60);
-    const seconds = remainingSeconds % 60;
-    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  /* ── derived ── */
+  const timeDisplay = useMemo(() => {
+    const m = Math.floor(remainingSeconds / 60);
+    const s = remainingSeconds % 60;
+    return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
   }, [remainingSeconds]);
 
-  const isInhale = phases[phaseIndex] === "Inhale...";
-  const phaseLabel = isSessionActive ? phases[phaseIndex] : "Session Ended";
+  const elapsed = SESSION_DURATION_S - remainingSeconds;
+  const elapsedDisplay = useMemo(() => {
+    const m = Math.floor(elapsed / 60);
+    const s = elapsed % 60;
+    return `${m}:${String(s).padStart(2, "0")}`;
+  }, [elapsed]);
+
+  const currentPhase = PHASES[phaseIndex];
+  const isInhale = currentPhase.label === "Inhale";
+  const phaseSecondsLeft = Math.ceil(
+    (PHASE_DURATION_S * (100 - phaseProgress)) / 100,
+  );
+
+  const statusLabel = !isActive
+    ? "Session Complete"
+    : isPaused
+      ? "Paused"
+      : currentPhase.label;
 
   return (
-    <div className="flex min-h-full w-full flex-col bg-[#f2f7f6]">
-      <header className="border-b border-slate-200 bg-white px-4 py-4 sm:px-6 lg:px-8">
-        <div className="mx-auto flex w-full max-w-7xl items-start justify-between gap-4">
-          <div>
+    <div className="flex min-h-full w-full flex-col bg-slate-50/60">
+      {/* ── Header ── */}
+      <header className="border-b border-slate-200 bg-white px-4 py-6 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-7xl">
+          {/* Top nav row */}
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <Link
+              href="/exercises"
+              className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400 transition-colors hover:text-slate-700"
+            >
+              <ArrowLeft size={12} />
+              Exercises
+            </Link>
+
             <div className="flex items-center gap-2">
-              <p className="text-[11px] font-bold uppercase tracking-widest text-teal-600">
-                Protocol: Box Breathing
-              </p>
-              <span className="rounded-md border border-red-200 bg-red-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-red-600">
-                Live Session
+              <span className="rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                Regulation
               </span>
+              <span className="rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                4 Min
+              </span>
+              {isActive && (
+                <span
+                  className={`rounded-md border px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest ${
+                    isPaused
+                      ? "border-amber-200 bg-amber-50 text-amber-600"
+                      : "border-emerald-200 bg-emerald-50 text-emerald-600"
+                  }`}
+                >
+                  {isPaused ? "Paused" : "Live"}
+                </span>
+              )}
             </div>
-            <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900">
-              Active Neural Regulation
-            </h1>
           </div>
 
-          <div className="flex items-center gap-5">
-            <div className="text-right">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                Time Remaining
-              </p>
-              <p className="mt-1 text-3xl font-black tracking-tight text-slate-900">
-                {timeRemaining}
-              </p>
+          {/* Main content row */}
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-start gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-900">
+                <Wind size={22} className="text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+                  Box Breathing
+                </h1>
+                <p className="mt-1 max-w-md text-sm text-slate-500">
+                  4-second inhale, hold, exhale, rest cycle for nervous system regulation.
+                </p>
+              </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setIsSessionActive(false)}
-              className="rounded-xl bg-slate-900 px-4 py-2 text-[11px] font-bold uppercase tracking-widest text-white transition-colors hover:bg-slate-800"
-            >
-              End Session
-            </button>
+
+            <div className="flex items-center gap-2">
+              {isActive && (
+                <button
+                  type="button"
+                  onClick={handlePauseResume}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-slate-600 transition-colors hover:bg-slate-50"
+                >
+                  {isPaused ? (
+                    <>
+                      <Play size={14} />
+                      Resume
+                    </>
+                  ) : (
+                    <>
+                      <Pause size={14} />
+                      Pause
+                    </>
+                  )}
+                </button>
+              )}
+              {isActive ? (
+                <button
+                  type="button"
+                  onClick={handleEnd}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-white transition-colors hover:bg-slate-800"
+                >
+                  End Session
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleRestart}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-white transition-colors hover:bg-slate-800"
+                >
+                  <RotateCcw size={14} />
+                  Start Over
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="mx-auto grid w-full max-w-7xl flex-1 grid-cols-1 gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,1fr)_330px] lg:px-8">
-        <section className="rounded-2xl border border-slate-200 bg-gradient-to-b from-[#f4fbfa] to-[#eef6f5] p-6 shadow-sm sm:p-8">
-          <div className="flex h-full min-h-[520px] flex-col items-center justify-center">
+      {/* ── Main ── */}
+      <main className="mx-auto grid w-full max-w-7xl flex-1 grid-cols-1 gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:px-8">
+        {/* Breathing circle */}
+        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+          <div className="flex h-full min-h-[480px] flex-col items-center justify-center">
+            {/* Circle */}
             <div className="relative grid h-72 w-72 place-items-center rounded-full sm:h-80 sm:w-80">
-              <div className="absolute h-[115%] w-[115%] rounded-full border border-teal-200/70" />
-              <div className="absolute h-[92%] w-[92%] rounded-full border border-teal-100/80" />
+              <div className="absolute h-[115%] w-[115%] rounded-full border border-slate-200/70" />
+              <div className="absolute h-[92%] w-[92%] rounded-full border border-slate-100" />
               <div
                 className={`absolute h-56 w-56 rounded-full bg-teal-300/20 blur-2xl transition-all duration-700 ${
-                  isInhale ? "scale-110" : "scale-95"
+                  isRunning && isInhale ? "scale-110" : "scale-95"
                 }`}
               />
               <div
-                className={`relative grid h-52 w-52 place-items-center rounded-full bg-radial-[at_40%_35%] from-white via-teal-50 to-teal-100/80 ring-1 ring-teal-200/70 transition-all duration-700 sm:h-60 sm:w-60 ${
-                  isInhale ? "scale-105" : "scale-95"
+                className={`relative grid h-52 w-52 place-items-center rounded-full bg-gradient-to-br from-white via-slate-50 to-slate-100 ring-1 ring-slate-200 transition-all duration-700 sm:h-60 sm:w-60 ${
+                  isRunning && isInhale ? "scale-105" : "scale-95"
                 }`}
               >
                 <div className="text-center">
-                  <p className="text-4xl font-bold tracking-tight text-slate-900">
-                    {phaseLabel}
+                  <p className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+                    {statusLabel}
                   </p>
-                  <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-teal-700">
-                    Nose Entry
-                  </p>
+                  {isRunning && (
+                    <p className="mt-2 text-xs text-slate-500">
+                      {currentPhase.cue}
+                    </p>
+                  )}
+                  {isRunning && (
+                    <p className="mt-3 text-2xl font-bold tabular-nums text-teal-600">
+                      {phaseSecondsLeft}s
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
 
-            <div className="mt-12 w-full max-w-lg">
+            {/* Phase progress bars */}
+            <div className="mt-10 w-full max-w-lg">
               <div className="grid grid-cols-4 gap-2">
-                {breathingSteps.map((step, index) => (
-                  <div key={step.id} className="text-center">
-                    <p
-                      className={`text-[10px] font-bold uppercase tracking-widest ${
-                        isSessionActive && index === phaseIndex
-                          ? "text-teal-700"
-                          : "text-slate-400"
-                      }`}
-                    >
-                      Step {step.stepNumber}
-                    </p>
-                    <p
-                      className={`mt-1 text-xs font-semibold uppercase tracking-wider ${
-                        isSessionActive && index === phaseIndex
-                          ? "text-slate-900"
-                          : "text-slate-500"
-                      }`}
-                    >
-                      {step.label}
-                    </p>
-                    <div className="mt-2 h-1.5 rounded-full bg-slate-200">
-                      <div
-                        className={`h-full rounded-full transition-all ${
-                          isSessionActive && index === phaseIndex
-                            ? "w-full bg-teal-500"
-                            : "w-0"
+                {PHASES.map((phase, index) => {
+                  const isDone =
+                    isRunning && index < phaseIndex;
+                  const isCurrent = isRunning && index === phaseIndex;
+                  const wasDone = !isActive && true;
+
+                  return (
+                    <div key={phase.id} className="text-center">
+                      <p
+                        className={`text-[10px] font-bold uppercase tracking-widest ${
+                          isCurrent
+                            ? "text-slate-900"
+                            : "text-slate-400"
                         }`}
-                      />
+                      >
+                        {phase.label}
+                      </p>
+                      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-200">
+                        <div
+                          className="h-full rounded-full bg-teal-500 transition-all"
+                          style={{
+                            width: isCurrent
+                              ? `${phaseProgress}%`
+                              : isDone || wasDone
+                                ? "100%"
+                                : "0%",
+                            transitionDuration: isCurrent ? "50ms" : "300ms",
+                          }}
+                        />
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
         </section>
+
+        {/* Sidebar — session stats */}
         <aside className="space-y-4">
+          {/* Timer */}
           <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="mb-4 flex items-center justify-between">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
-                Physiological Sync
-              </p>
-              <Waves size={15} className="text-teal-600" />
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+              Time Remaining
+            </p>
+            <p className="mt-2 text-4xl font-black tabular-nums tracking-tight text-slate-900">
+              {timeDisplay}
+            </p>
+            <div className="mt-3 h-1.5 rounded-full bg-slate-200">
+              <div
+                className="h-full rounded-full bg-teal-500 transition-all"
+                style={{
+                  width: `${((SESSION_DURATION_S - remainingSeconds) / SESSION_DURATION_S) * 100}%`,
+                }}
+              />
             </div>
+          </section>
 
-            <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                Calm Index
-              </p>
-              <p className="mt-2 text-3xl font-black text-teal-600">88%</p>
-
-              <div className="mt-4 rounded-lg border border-slate-200 bg-white p-3">
-                <svg
-                  viewBox="0 0 220 70"
-                  className="h-14 w-full"
-                  aria-hidden="true"
-                >
-                  <line
-                    x1="0"
-                    y1="42"
-                    x2="220"
-                    y2="42"
-                    stroke="#cbd5e1"
-                    strokeDasharray="4 6"
-                    strokeWidth="1.5"
-                  />
-                  <path
-                    d="M0 48 C22 44, 36 33, 58 35 C76 36, 90 44, 114 40 C136 36, 145 26, 166 29 C182 31, 198 36, 220 22"
-                    fill="none"
-                    stroke="#14b8a6"
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                  />
-                </svg>
+          {/* Stats */}
+          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+              Session Stats
+            </p>
+            <div className="mt-3 space-y-3">
+              <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5">
+                <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+                  <Repeat size={13} />
+                  Cycles
+                </div>
+                <p className="text-lg font-bold text-slate-900">{cycles}</p>
+              </div>
+              <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5">
+                <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+                  <Wind size={13} />
+                  Breaths
+                </div>
+                <p className="text-lg font-bold text-slate-900">
+                  {totalBreaths}
+                </p>
+              </div>
+              <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5">
+                <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+                  <Timer size={13} />
+                  Elapsed
+                </div>
+                <p className="text-lg font-bold text-slate-900">
+                  {elapsedDisplay}
+                </p>
+              </div>
+              <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5">
+                <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+                  <Activity size={13} />
+                  Phase Timer
+                </div>
+                <p className="text-lg font-bold tabular-nums text-teal-600">
+                  {isRunning ? `${phaseSecondsLeft}s` : "—"}
+                </p>
               </div>
             </div>
           </section>
 
+          {/* Session note */}
           <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="space-y-3">
-              <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                  Heart Rate (BPM)
-                </p>
-                <div className="mt-1 flex items-end justify-between">
-                  <p className="text-2xl font-black text-slate-900">64</p>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">
-                    -4%
-                  </p>
-                </div>
-              </div>
-
-              <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                  HRV Stability
-                </p>
-                <div className="mt-1 flex items-center justify-between">
-                  <p className="text-lg font-bold text-teal-700">Optimal</p>
-                  <HeartPulse size={16} className="text-teal-600" />
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
-              Session Note
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+              Guidance
             </p>
             <p className="mt-3 text-sm leading-relaxed text-slate-600">
-              Alpha wave activity is increasing. Maintain consistent intervals
-              for maximum neuro-regulation.
+              {!isActive
+                ? "Great session. Consistent box breathing activates the parasympathetic nervous system, lowering cortisol and heart rate over time."
+                : isPaused
+                  ? "Take your time. Resume when you are ready to continue the breathing pattern."
+                  : "Focus on keeping each phase equal in length. Let the timer guide you — no need to count on your own."}
             </p>
           </section>
         </aside>
       </main>
 
+      {/* ── Footer — soundscape controls ── */}
       <footer className="border-t border-slate-200 bg-white px-4 py-4 sm:px-6 lg:px-8">
-        <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+        <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
               Background Soundscape
             </p>
             <div className="mt-2 flex flex-wrap gap-2">
-              {soundscapes.map((soundscape) => (
+              {soundscapes.map((s) => (
                 <button
-                  key={soundscape.key}
+                  key={s.key}
                   type="button"
-                  onClick={() => {
-                    void handleSoundSelect(soundscape.key);
-                  }}
+                  onClick={() => void handleSoundSelect(s.key)}
                   className={`rounded-lg border px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest transition-colors ${
-                    selectedSound === soundscape.key
+                    selectedSound === s.key
                       ? "border-teal-200 bg-teal-50 text-teal-700"
                       : "border-slate-200 bg-white text-slate-500 hover:border-slate-300"
                   }`}
                 >
-                  {soundscape.label}
+                  {s.label}
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="w-full max-w-md">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+          <div className="w-full max-w-xs">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
               Volume
             </p>
             <div className="mt-2 flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2">
-              <Volume1 size={16} className="text-slate-500" />
+              <Volume1 size={16} className="shrink-0 text-slate-400" />
               <input
                 type="range"
                 min={0}
                 max={1}
                 step={0.01}
                 value={volume}
-                onChange={(event) => setVolume(Number(event.target.value))}
+                onChange={(e) => setVolume(Number(e.target.value))}
                 className="h-1.5 w-full cursor-pointer appearance-none rounded-lg bg-slate-200 accent-teal-600"
               />
-              <Volume2 size={16} className="text-slate-500" />
+              <Volume2 size={16} className="shrink-0 text-slate-400" />
             </div>
             <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">
               {isPlaying ? "Audio Active" : "Tap a soundscape to start"}
             </p>
           </div>
-
-          <button
-            type="button"
-            className="inline-flex items-center gap-3 self-start rounded-full border border-slate-200 bg-white px-4 py-2 shadow-sm transition-colors hover:bg-slate-50 xl:self-auto"
-          >
-            <span className="grid h-11 w-11 place-items-center rounded-full bg-slate-900 text-white">
-              <Activity size={18} />
-            </span>
-            <span className="text-left">
-              <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                Next Phase
-              </span>
-              <span className="block text-sm font-bold text-slate-900">
-                Post-Session Journal
-              </span>
-            </span>
-            <ChevronRight size={17} className="text-slate-400" />
-          </button>
         </div>
       </footer>
     </div>
