@@ -6,8 +6,10 @@ import Composer from "@/components/ai-companion/composer";
 import TopBar from "@/components/ai-companion/top-bar";
 import ConversationArea from "@/components/ai-companion/conversation-area";
 import SessionSidebar from "@/components/ai-companion/session-sidebar";
+import { useDashboardMetrics } from "@/components/providers/dashboard-metrics-provider";
 import { GetChats, sendChat, createNewSession, removeSession } from "@/services/chat";
 import { ChatRequest, SessionListItem } from "@/types/ai-companion";
+import { DEFAULT_USER_ID } from "@/lib/current-user";
 
 export type Suggestion = {
   title: string;
@@ -53,6 +55,7 @@ function saveActiveSessionId(id: string) {
 }
 
 export default function AiCompanionPage() {
+  const { refreshFocusMomentum } = useDashboardMetrics();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -198,6 +201,7 @@ export default function AiCompanionPage() {
         kind: "text",
         text: res.response,
       });
+      void refreshFocusMomentum(DEFAULT_USER_ID);
     } catch (error) {
       console.error("Failed to get assistant response:", error);
       appendMessage({

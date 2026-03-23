@@ -3,11 +3,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import "quill/dist/quill.snow.css";
 import { MakeJournal, updateJournal } from "@/services/journals";
+import { useDashboardMetrics } from "@/components/providers/dashboard-metrics-provider";
 import { useReflections } from "@/components/providers/reflections-provider";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { GetUserJournal } from "@/api/journal";
 import { AnalyzeJournal } from "@/api/reframing";
+import { DEFAULT_USER_ID, resolveUserId } from "@/lib/current-user";
 
 type QuillEditor = import("quill").default;
 
@@ -24,11 +26,11 @@ export default function ReflectionEditor() {
   const [baselineTitle, setBaselineTitle] = useState("");
   const [baselineEditorHtml, setBaselineEditorHtml] = useState("");
   const searchParams = useSearchParams();
+  const { refreshFocusMomentum } = useDashboardMetrics();
 
-  const defaultUserId = "7e9793a6-c652-4b3a-8bed-780c221ee33a";
   const requestedUserId = searchParams.get("userId")?.trim();
   const requestedJournalId = searchParams.get("journalId")?.trim();
-  const userId = requestedUserId || defaultUserId;
+  const userId = resolveUserId(requestedUserId ?? DEFAULT_USER_ID);
   const isUpdateMode = Boolean(requestedJournalId || journalId);
   const hasPendingChanges =
     !isUpdateMode ||
@@ -177,6 +179,7 @@ export default function ReflectionEditor() {
 
         const updateRes = await updateJournal(payload);
         if (!updateRes) throw new Error("Update failed: Empty response");
+        void refreshFocusMomentum(userId);
 
         const savedHtml = quillRef.current.root.innerHTML;
         setEditorHtml(savedHtml);
@@ -195,6 +198,7 @@ export default function ReflectionEditor() {
 
         const data = await MakeJournal(payload);
         if (!data) throw new Error("Create failed: Empty response");
+        void refreshFocusMomentum(userId);
 
         const newId = data.id;
         if (newId) {

@@ -22,6 +22,8 @@ import {
   getSaveReframe,
   saveGeneratedReframeThought,
 } from "@/api/reframing";
+import { useDashboardMetrics } from "@/components/providers/dashboard-metrics-provider";
+import { DEFAULT_USER_ID } from "@/lib/current-user";
 
 type Distortion = string;
 
@@ -87,7 +89,8 @@ type DistortionBreakdown = Record<string, number>;
 
 export default function MoodTrendsPage() {
   const [thoughts, setThougts] = useState<Thought[]>([]);
-  const defaultUserId = "7e9793a6-c652-4b3a-8bed-780c221ee33a";
+  const defaultUserId = DEFAULT_USER_ID;
+  const { refreshFocusMomentum } = useDashboardMetrics();
 
   const [detectedPatterns, setDetectedPatterns] = useState<DetectedPattern[]>(
     [],
@@ -278,6 +281,7 @@ export default function MoodTrendsPage() {
         getSaveReframes(defaultUserId),
         fetchDetectedPatterns(defaultUserId),
         fetchDistortionBreakdown(defaultUserId),
+        refreshFocusMomentum(defaultUserId),
       ]);
     }
   }
