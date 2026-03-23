@@ -13,7 +13,6 @@ import {
   Meh,
   Smile,
   X,
-  Target,
   Bot,
   BookOpen,
   Dumbbell,
@@ -23,7 +22,18 @@ import {
   PenLine,
 } from "lucide-react";
 import { CheckInModal } from "@/components/dashboard/check-in-modal";
+import { FocusMomentumCard } from "@/components/dashboard/focus-momentum-card";
+import { useDashboardMetrics } from "@/components/providers/dashboard-metrics-provider";
 import { GetCurrentState } from "@/api/check-in";
+import {
+  calculateRQ,
+  formatResilienceUpdate,
+  getResilienceProgressPercent,
+  getResilienceTier,
+  getQuotientResilienceScore,
+  type ResilienceQuotientResponse,
+} from "@/api/resilience-quitient";
+import { DEFAULT_USER_ID } from "@/lib/current-user";
 
 // ----------------------------------------------------------------------
 // MAIN DASHBOARD COMPONENT
@@ -83,7 +93,14 @@ function WellnessIntelligence() {
     { label: "Calm", icon: Smile, intensity: 6.4 },
     { label: "Energized", icon: Zap, intensity: 8.6 },
   ];
-  const userId = "7e9793a6-c652-4b3a-8bed-780c221ee33a";
+  const userId = DEFAULT_USER_ID;
+  const {
+    focusMomentum,
+    isFocusMomentumLoading,
+    isFocusMomentumRefreshing,
+    focusMomentumError,
+    refreshFocusMomentum,
+  } = useDashboardMetrics();
 
   const [selectedEmotion, setSelectedEmotion] = useState("");
   const [showToast, setShowToast] = useState(false);
@@ -92,6 +109,8 @@ function WellnessIntelligence() {
   const [lastLoggedIntensity, setLastLoggedIntensity] = useState<number | null>(
     null,
   );
+  const [resilienceData, setResilienceData] =
+    useState<ResilienceQuotientResponse | null>(null);
 
   const GetUserState = async (userId: string) => {
     const res = await GetCurrentState(userId);
@@ -101,19 +120,53 @@ function WellnessIntelligence() {
     const emotionLabels = ["Stressed", "Tired", "Focused", "Calm", "Energized"];
     setSelectedEmotion(emotionLabels[res.state]);
     setLastLoggedIntensity(res.intensity);
-    console.log(res.state);
+    console.log("state", res.state);
     setToastKey(res.intensity);
   };
 
+  const CalculateRQ = async (userId: string) => {
+    const rq = await calculateRQ({ userId, trigger_source: "checkin" });
+    if (!rq) return;
+    setResilienceData(rq);
+  };
+
+  const FetchRQScore = async (userId: string, refresh: boolean) => {
+    const res = await getQuotientResilienceScore({ userId, refresh });
+    if (!res) return null;
+
+    console.log("QR score:", res.score);
+
+    setResilienceData(res);
+  };
+
   useEffect(() => {
-    GetUserState(userId);
-  }, [selectedEmotion]);
+    const run = async () => {
+      await Promise.all([
+        GetUserState(userId),
+        FetchRQScore(userId, false),
+        refreshFocusMomentum(userId),
+      ]);
+    };
+
+    if (userId) {
+      void run();
+    }
+  }, [refreshFocusMomentum, userId]);
 
   const activeEmotion =
     emotions.find((emotion) => emotion.label === selectedEmotion) ??
     emotions[2];
   const displayIntensity = lastLoggedIntensity ?? activeEmotion.intensity;
   const intensityProgress = `${displayIntensity * 10}%`;
+  const resilienceScore = resilienceData?.score ?? 0;
+  const resilienceStrokeValue = Math.max(0, Math.min(100, resilienceScore));
+  const resilienceProgress = getResilienceProgressPercent(resilienceData);
+  const resilienceTier = getResilienceTier(resilienceScore);
+  const resilienceUpdatedLabel = formatResilienceUpdate(
+    resilienceData?.calculated_at,
+  );
+  const hasDeferredExercises =
+    resilienceData?.deferred_components?.includes("exercises") ?? false;
 
   const handleCheckInSuccess = (state: number, intensity: number) => {
     const emotionLabels = ["Stressed", "Tired", "Focused", "Calm", "Energized"];
@@ -121,6 +174,10 @@ function WellnessIntelligence() {
     setLastLoggedIntensity(intensity);
     setShowToast(true);
     setToastKey((prev) => prev + 1);
+    void Promise.allSettled([
+      CalculateRQ(userId),
+      refreshFocusMomentum(userId),
+    ]);
   };
 
   useEffect(() => {
@@ -141,7 +198,7 @@ function WellnessIntelligence() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6  ">
           {/* Card 1: Quick Check-In */}
           <div
             role="button"
@@ -200,19 +257,24 @@ function WellnessIntelligence() {
           </div>
 
           {/* Card 2: Resilience Quotient */}
-          <div className="p-6 bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col">
+          <div
+            className={`p-6 border rounded-2xl shadow-sm flex flex-col  ${resilienceTier.surface}`}
+          >
             <div className="flex justify-between items-center mb-2">
               <h3 className="text-xs font-bold tracking-widest text-slate-900 uppercase">
                 Resilience Quotient
               </h3>
-              <Shield size={16} className="text-slate-300" />
+              <Shield size={16} className={resilienceTier.icon} />
             </div>
 
-            <div className="flex-1 flex flex-col items-center justify-center relative my-4">
+            <div className="flex-1 flex flex-col items-center justify-center relative my-4 min-h-[22px]">
+              <div
+                className={`absolute inset-8 rounded-full blur-3xl opacity-60 ${resilienceTier.glow}`}
+              />
               {/* SVG Circular Progress */}
               <svg
                 viewBox="0 0 36 36"
-                className="w-32 h-32 transform -rotate-90"
+                className="w-32 h-32 transform -rotate-90 relative"
               >
                 <path
                   className="text-slate-100"
@@ -222,8 +284,8 @@ function WellnessIntelligence() {
                   d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                 />
                 <path
-                  className="text-teal-400"
-                  strokeDasharray="82, 100"
+                  className={resilienceTier.ring}
+                  strokeDasharray={`${resilienceStrokeValue}, 100`}
                   strokeWidth="3"
                   strokeLinecap="round"
                   stroke="currentColor"
@@ -233,85 +295,56 @@ function WellnessIntelligence() {
               </svg>
               <div className="absolute flex flex-col items-center justify-center">
                 <span className="text-4xl font-black text-slate-900 tracking-tight">
-                  82
+                  {resilienceScore}
                 </span>
                 <span className="text-[10px] font-bold tracking-widest text-slate-400 uppercase mt-1">
                   Score
                 </span>
+                <span
+                  className={`mt-3 inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase ${resilienceTier.soft}`}
+                >
+                  {resilienceTier.label}
+                </span>
               </div>
             </div>
 
-            <div>
+            <div className="space-y-3">
               <div className="flex justify-between items-end mb-2">
                 <span className="text-xs font-semibold text-slate-400">
-                  Activity Completion
+                  Adaptive Capacity
                 </span>
-                <span className="text-xs font-bold text-slate-900">94%</span>
+                <span className="text-xs font-bold text-slate-900">
+                  {resilienceProgress}%
+                </span>
               </div>
               <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-teal-400 rounded-full"
-                  style={{ width: "94%" }}
+                  className={`h-full rounded-full ${resilienceTier.accent}`}
+                  style={{ width: `${resilienceProgress}%` }}
                 ></div>
               </div>
-            </div>
-          </div>
-
-          {/* Card 3: Focus Momentum */}
-          <div className="p-6 bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xs font-bold tracking-widest text-slate-900 uppercase">
-                Focus Momentum
-              </h3>
-              <Target size={16} className="text-slate-300" />
-            </div>
-
-            <div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-black text-slate-900 tracking-tight">
-                  12
-                </span>
-                <span className="text-xs font-bold tracking-widest text-slate-400 uppercase">
-                  Day Streak
-                </span>
+              <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-400">
+                <span>{resilienceUpdatedLabel}</span>
+                {hasDeferredExercises ? (
+                  <span>Exercises coming soon</span>
+                ) : null}
               </div>
-              <p className="flex items-center gap-1 text-[10px] font-bold tracking-wider text-teal-600 uppercase mt-1">
-                <Zap size={10} /> Top 5% Enterprise Wide
-              </p>
-            </div>
-
-            <div className="flex-1 flex items-end justify-between gap-2 mt-8">
-              {/* Simple Bar Chart */}
-              {[40, 60, 50, 70, 60, 20, 30].map((height, i) => {
-                const isCurrent = i === 4; // Friday in this example
-                const labels = ["M", "T", "W", "T", "F", "S", "S"];
-                return (
-                  <div
-                    key={i}
-                    className="flex flex-col items-center gap-2 flex-1"
-                  >
-                    <div className="w-full h-24 bg-slate-50 rounded-sm relative flex items-end">
-                      <div
-                        className={`w-full rounded-sm ${isCurrent ? "bg-teal-500" : "bg-teal-200 opacity-60"}`}
-                        style={{ height: `${height}%` }}
-                      ></div>
-                    </div>
-                    <span
-                      className={`text-[10px] font-bold ${isCurrent ? "text-teal-600" : "text-slate-400"}`}
-                    >
-                      {labels[i]}
-                    </span>
-                  </div>
-                );
-              })}
             </div>
           </div>
+
+          <FocusMomentumCard
+            data={focusMomentum}
+            isLoading={isFocusMomentumLoading}
+            isRefreshing={isFocusMomentumRefreshing}
+            error={focusMomentumError}
+          />
         </div>
       </section>
 
       <CheckInModal
         isOpen={showCheckInModal}
         onClose={() => setShowCheckInModal(false)}
+        userId={userId}
         onSuccess={handleCheckInSuccess}
       />
 
@@ -331,8 +364,8 @@ function WellnessIntelligence() {
             <div className="flex-1">
               <p className="text-sm font-bold text-teal-800">Success</p>
               <p className="text-sm text-slate-600 mt-0.5">
-                Mood log saved successfully. Your Resilience Quotient has been
-                updated.
+                Mood log saved successfully. Your dashboard metrics are
+                refreshing.
               </p>
             </div>
             <button

@@ -12,17 +12,17 @@ const EMOTIONS: { label: string; icon: LucideIcon; state: number }[] = [
   { label: "Energized", icon: Zap, state: 4 },
 ];
 
-const TEST_USER_ID = "7e9793a6-c652-4b3a-8bed-780c221ee33a";
-
 type CheckInModalProps = {
   isOpen: boolean;
   onClose: () => void;
+  userId: string;
   onSuccess: (state: number, intensity: number) => void;
 };
 
 export function CheckInModal({
   isOpen,
   onClose,
+  userId,
   onSuccess,
 }: CheckInModalProps) {
   const [state, setState] = useState(2); // Default: Focused
@@ -35,7 +35,7 @@ export function CheckInModal({
     setError(null);
     setIsSubmitting(true);
 
-    const res = await submitCheckIn(TEST_USER_ID, state, intensity);
+    const res = await submitCheckIn(userId, state, intensity);
 
     if (!res) {
       setError("You can check in once per hour only. Please try again later.");
