@@ -9,9 +9,20 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { GetUserJournal } from "@/api/journal";
 import { AnalyzeJournal } from "@/api/reframing";
-import { DEFAULT_USER_ID, resolveUserId } from "@/lib/current-user";
+import { getMe, SessionUser } from "@/api/auth/auth";
+import {
+  formatJournalCalendarDate,
+  formatJournalClockTime,
+  parseJournalTimestamp,
+} from "@/lib/journal-datetime";
 
 type QuillEditor = import("quill").default;
+type JournalTimestampRecord = {
+  createdAt?: unknown;
+  created_at?: unknown;
+  updatedAt?: unknown;
+  updated_at?: unknown;
+};
 
 export default function ReflectionEditor() {
   const editorRef = useRef<HTMLDivElement>(null);
@@ -23,14 +34,13 @@ export default function ReflectionEditor() {
   const [isEditorReady, setIsEditorReady] = useState(false);
   const [isHydratingUpdate, setIsHydratingUpdate] = useState(false);
   const [editorHtml, setEditorHtml] = useState("");
+  const [displayTimestampMs, setDisplayTimestampMs] = useState(() => Date.now());
   const [baselineTitle, setBaselineTitle] = useState("");
   const [baselineEditorHtml, setBaselineEditorHtml] = useState("");
   const searchParams = useSearchParams();
   const { refreshFocusMomentum } = useDashboardMetrics();
 
-  const requestedUserId = searchParams.get("userId")?.trim();
   const requestedJournalId = searchParams.get("journalId")?.trim();
-  const userId = resolveUserId(requestedUserId ?? DEFAULT_USER_ID);
   const isUpdateMode = Boolean(requestedJournalId || journalId);
   const hasPendingChanges =
     !isUpdateMode ||
@@ -42,6 +52,29 @@ export default function ReflectionEditor() {
     isSaving || isHydratingUpdate || (isUpdateMode && !hasPendingChanges);
 
   const { refreshEntries, addEntry } = useReflections();
+
+  const [profile, setProfile] = useState<SessionUser | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    void (async () => {
+      try {
+        const currentUser = await getMe();
+        console.log("from dashboard", currentUser);
+
+        if (isMounted) setProfile(currentUser);
+      } catch {
+        if (isMounted) setProfile(null);
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const userId = profile?.id;
 
   useEffect(() => {
     if (
@@ -87,7 +120,7 @@ export default function ReflectionEditor() {
       return;
     }
 
-    if (!requestedJournalId) {
+    if (!requestedJournalId || !userId) {
       setIsHydratingUpdate(false);
       return;
     }
@@ -120,6 +153,7 @@ export default function ReflectionEditor() {
         setEditorHtml(hydratedHtml);
         setBaselineEditorHtml(hydratedHtml);
         setBaselineTitle(resolvedTitle);
+        setDisplayTimestampMs(resolveJournalTimestamp(journal) ?? Date.now());
       } catch (error) {
         console.error("Failed to load journal for update:", error);
       } finally {
@@ -149,11 +183,12 @@ export default function ReflectionEditor() {
     setEditorHtml(resetHtml);
     setBaselineEditorHtml("");
     setBaselineTitle("");
+    setDisplayTimestampMs(Date.now());
     setIsHydratingUpdate(false);
   }, [isEditorReady, requestedJournalId]);
 
   const handleSaveReflection = async () => {
-    if (!quillRef.current) return;
+    if (!quillRef.current || !userId) return;
 
     setIsSaving(true);
 
@@ -161,6 +196,8 @@ export default function ReflectionEditor() {
       const htmlContent = quillRef.current.root.innerHTML;
       const plainContent = stripHtml(htmlContent);
       const resolvedTitle = title.trim() || "Untitled Reflection";
+      const submittedAtMs = Date.now();
+      const analyzedAt = new Date(submittedAtMs);
 
       if (journalId) {
         const payload = {
@@ -171,15 +208,17 @@ export default function ReflectionEditor() {
         };
 
         const payload2 = {
-          userId: userId,
-          journalId: journalId,
+          userId,
+          journalId,
           content: htmlContent,
-          dateTime: new Date(),
+          dateTime: analyzedAt,
         };
 
         const updateRes = await updateJournal(payload);
         if (!updateRes) throw new Error("Update failed: Empty response");
+        setDisplayTimestampMs(resolveJournalTimestamp(updateRes) ?? submittedAtMs);
         void refreshFocusMomentum(userId);
+        void refreshEntries();
 
         const savedHtml = quillRef.current.root.innerHTML;
         setEditorHtml(savedHtml);
@@ -198,7 +237,9 @@ export default function ReflectionEditor() {
 
         const data = await MakeJournal(payload);
         if (!data) throw new Error("Create failed: Empty response");
+        setDisplayTimestampMs(resolveJournalTimestamp(data) ?? submittedAtMs);
         void refreshFocusMomentum(userId);
+        void refreshEntries();
 
         const newId = data.id;
         if (newId) {
@@ -206,10 +247,10 @@ export default function ReflectionEditor() {
         }
 
         const payload2 = {
-          userId: userId,
+          userId,
           journalId: data.id,
           content: htmlContent,
-          dateTime: new Date(),
+          dateTime: analyzedAt,
         };
 
         AnalyzeJournal(payload2)
@@ -223,7 +264,7 @@ export default function ReflectionEditor() {
 
         addEntry({
           id: newId ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`,
-          timestamp: formatTimestamp(Date.now()),
+          timestamp: formatJournalCalendarDate(submittedAtMs),
           mood: "Neutral",
           title: resolvedTitle,
           preview:
@@ -354,11 +395,27 @@ export default function ReflectionEditor() {
               Date
             </div>
             <div className="font-medium text-gray-700">
-              {new Date().toLocaleDateString("en-US", {
-                month: "long",
-                day: "numeric",
-                year: "numeric",
-              })}
+              {formatJournalCalendarDate(displayTimestampMs)}
+            </div>
+
+            <div className="flex items-center text-gray-400">
+              <svg
+                className="w-4 h-4 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              Time
+            </div>
+            <div className="font-medium text-gray-700">
+              {formatJournalClockTime(displayTimestampMs)}
             </div>
 
             <div className="flex items-center text-gray-400">
@@ -482,10 +539,11 @@ function normalizeHtmlForCompare(content: string) {
   return content.replace(/>\s+</g, "><").replace(/\s+/g, " ").trim();
 }
 
-function formatTimestamp(createdAt: number) {
-  return new Date(createdAt).toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
+function resolveJournalTimestamp(journal: JournalTimestampRecord) {
+  return (
+    parseJournalTimestamp(journal.updatedAt) ??
+    parseJournalTimestamp(journal.updated_at) ??
+    parseJournalTimestamp(journal.createdAt) ??
+    parseJournalTimestamp(journal.created_at)
+  );
 }

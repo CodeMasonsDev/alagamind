@@ -23,7 +23,7 @@ import {
   saveGeneratedReframeThought,
 } from "@/api/reframing";
 import { useDashboardMetrics } from "@/components/providers/dashboard-metrics-provider";
-import { DEFAULT_USER_ID } from "@/lib/current-user";
+import { getMe, SessionUser } from "@/api/auth/auth";
 
 type Distortion = string;
 
@@ -87,9 +87,83 @@ type DetectedPattern = {
 
 type DistortionBreakdown = Record<string, number>;
 
+const DATE_TIME_FORMATTER = new Intl.DateTimeFormat("en-PH", {
+  year: "numeric",
+  month: "short",
+  day: "2-digit",
+  hour: "numeric",
+  minute: "2-digit",
+  second: "2-digit",
+  hour12: true,
+});
+
 export default function MoodTrendsPage() {
   const [thoughts, setThougts] = useState<Thought[]>([]);
-  const defaultUserId = DEFAULT_USER_ID;
+
+  const [profile, setProfile] = useState<SessionUser | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    void (async () => {
+      try {
+        const currentUser = await getMe();
+        console.log("from reframing", currentUser.id);
+
+        if (isMounted) setProfile(currentUser);
+      } catch {
+        if (isMounted) setProfile(null);
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const defaultUserId = profile?.id;
+
+  useEffect(() => {
+    if (!defaultUserId) return;
+
+    void (async () => {
+      await Promise.all([
+        fetchDetectedPatterns(defaultUserId),
+        fetchDistortionBreakdown(defaultUserId),
+      ]);
+
+      try {
+        const thoughtResponse = await fetchThoughtsByUsers(defaultUserId);
+        const thoughtItems: ApiThought[] = Array.isArray(thoughtResponse)
+          ? thoughtResponse
+          : thoughtResponse
+            ? [thoughtResponse]
+            : [];
+        const mappedThoughts = thoughtItems.map(mapApiThoughtToUi);
+        setThougts(mappedThoughts);
+        setSelectedThoughtId(
+          (current) => current || mappedThoughts[0]?.thought_Id || "",
+        );
+      } catch (error) {
+        console.log(error);
+        setThougts([]);
+      }
+
+      try {
+        const savedResponse = await getSaveReframe(defaultUserId);
+        const savedItems: ApiSaveThought[] = Array.isArray(savedResponse)
+          ? savedResponse
+          : savedResponse
+            ? [savedResponse]
+            : [];
+        setSavedReframes(savedItems.map(mapApiSaveThoughtToUi));
+      } catch (error) {
+        console.log(error);
+        setSavedReframes([]);
+      }
+    })();
+  }, [defaultUserId]);
+
   const { refreshFocusMomentum } = useDashboardMetrics();
 
   const [detectedPatterns, setDetectedPatterns] = useState<DetectedPattern[]>(
@@ -118,7 +192,7 @@ export default function MoodTrendsPage() {
     const uniqueThoughts = new Set(savedReframes.map((item) => item.thoughtId))
       .size;
     const completedToday = savedReframes.filter((item) =>
-      isTodayLabel(item.savedAt),
+      isTodayTimestamp(item.savedAt),
     ).length;
     const dominantDistortion = getDominantDistortion(distortionBreakdowns);
     const insightWindow =
@@ -160,41 +234,16 @@ export default function MoodTrendsPage() {
     }
   }
 
-  useEffect(() => {
-    fetchDetectedPatterns(defaultUserId);
-    fetchDistortionBreakdown(defaultUserId);
-  }, []);
-
   function mapApiThoughtToUi(item: ApiThought): Thought {
     return {
       thought_Id: String(item.thought_id),
       text: item.text,
       source: item.context_note || "Journal thought",
-      time: item.created_at || "Unknown time",
+      time: item.created_at,
       distortion: item.distortion || "Unknown",
     };
   }
 
-  async function fetchThoughts() {
-    try {
-      const res = await fetchThoughtsByUsers(defaultUserId);
-      if (!res) {
-        console.log("cant process request");
-        setThougts([]);
-        return;
-      }
-      console.log("thoughts:", res);
-
-      const items: ApiThought[] = Array.isArray(res) ? res : [res];
-      const mappedThoughts = items.map(mapApiThoughtToUi);
-      setThougts(mappedThoughts);
-      setSelectedThoughtId(
-        (current) => current || mappedThoughts[0]?.thought_Id || "",
-      );
-    } catch (error) {
-      console.log(error);
-    }
-  }
   async function generateThoughts(thought_id: number, text: string) {
     try {
       const res = await generateReframes({ thought_id, text });
@@ -202,15 +251,11 @@ export default function MoodTrendsPage() {
       console.log("generated reframes", res);
       setGeneratedReframes(generatedItems);
       return generatedItems;
-    } catch (error) {
+    } catch {
       console.log("failed to fetch");
       return [];
     }
   }
-
-  useEffect(() => {
-    fetchThoughts();
-  }, []);
 
   function handleThoughtSelect(thoughtId: string) {
     setSelectedThoughtId(thoughtId);
@@ -245,7 +290,7 @@ export default function MoodTrendsPage() {
     }
   }
   async function handleSave(reframe: Reframe) {
-    if (!selectedThought || !hasGeneratedSelection) return;
+    if (!selectedThought || !hasGeneratedSelection || !defaultUserId) return;
     const id = `${selectedThought.thought_Id}-${reframe.id}`;
 
     setSavedReframes((current) => {
@@ -258,7 +303,7 @@ export default function MoodTrendsPage() {
           distortion: selectedThought.distortion,
           reframeType: reframe.id,
           reframeText: reframe.text,
-          savedAt: "Just now",
+          savedAt: new Date().toISOString(),
         },
         ...current,
       ];
@@ -315,10 +360,6 @@ export default function MoodTrendsPage() {
       console.log(error);
     }
   }
-
-  useEffect(() => {
-    getSaveReframes(defaultUserId);
-  }, []);
 
   function isSaved(type: ReframeKind) {
     return savedReframes.some(
@@ -397,14 +438,20 @@ export default function MoodTrendsPage() {
             </div>
 
             <div className="space-y-3 px-5 py-5 sm:px-6 overflow-auto h-[300px]">
-              {thoughts.map((thought) => (
-                <ThoughtCard
-                  key={thought.thought_Id}
-                  thought={thought}
-                  selected={thought.thought_Id === selectedThoughtId}
-                  onSelect={() => handleThoughtSelect(thought.thought_Id)}
-                />
-              ))}
+              {thoughts.length > 0 ? (
+                thoughts.map((thought) => (
+                  <ThoughtCard
+                    key={thought.thought_Id}
+                    thought={thought}
+                    selected={thought.thought_Id === selectedThoughtId}
+                    onSelect={() => handleThoughtSelect(thought.thought_Id)}
+                  />
+                ))
+              ) : (
+                <div className="flex justify-center items-center h-full">
+                  <p className="text-gray-600">No Entries</p>
+                </div>
+              )}
             </div>
 
             <div className="border-t border-slate-200 px-5 py-5 sm:px-6">
@@ -487,7 +534,9 @@ export default function MoodTrendsPage() {
                     </p>
                     <div className="mt-4 flex flex-wrap gap-2">
                       <InfoPill>{selectedThought.source}</InfoPill>
-                      <InfoPill>{selectedThought.time}</InfoPill>
+                      <InfoPill>
+                        {formatExactDateTime(selectedThought.time)}
+                      </InfoPill>
                       <DistortionBadge label={selectedThought.distortion} />
                     </div>
                   </div>
@@ -601,7 +650,7 @@ function ThoughtCard({
         <DistortionBadge label={thought.distortion} />
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-slate-500">
-        <span>{thought.time}</span>
+        <span>{formatExactDateTime(thought.time)}</span>
         <span>{thought.source}</span>
       </div>
     </button>
@@ -797,7 +846,11 @@ function DistortionRow({ label, value }: { label: string; value: number }) {
     "bg-indigo-500",
   ];
 
-  const barClass = barColors[Math.floor(Math.random() * barColors.length)];
+  const barClass =
+    barColors[
+      Array.from(label).reduce((total, char) => total + char.charCodeAt(0), 0) %
+        barColors.length
+    ];
 
   return (
     <div>
@@ -834,7 +887,7 @@ function SavedFeedItem({ item }: { item: SavedReframe }) {
         {'" - '}
         <span className={badge}>{titleCase(item.reframeType)} reframe</span>
         {" - "}
-        {item.savedAt}
+        {formatExactDateTime(item.savedAt)}
       </p>
     </div>
   );
@@ -908,28 +961,6 @@ function PatternCard({ pattern }: { pattern: DetectedPattern }) {
 
 function capitalize(value: string) {
   return value.charAt(0).toUpperCase() + value.slice(1);
-}
-
-function DistortionBar({
-  label,
-  value,
-  color,
-}: {
-  label: string;
-  value: number;
-  color: string;
-}) {
-  return (
-    <div>
-      <div className="mb-1.5 flex items-center justify-between gap-3 text-sm">
-        <span className="text-slate-700">{label}</span>
-        <span className="text-slate-500">{value}%</span>
-      </div>
-      <div className="h-2 bg-slate-100">
-        <div className={`h-full ${color}`} style={{ width: `${value}%` }} />
-      </div>
-    </div>
-  );
 }
 
 function EmptyState({ text }: { text: string }) {
@@ -1017,15 +1048,26 @@ function formatPercent(value: number) {
   return `${Math.round(normalizePercent(value))}%`;
 }
 
-function isTodayLabel(value: string) {
-  if (!value) return false;
-  const normalizedValue = value.toLowerCase();
-  if (normalizedValue.includes("today") || normalizedValue.includes("just now")) {
-    return true;
-  }
+function parseApiDate(value?: string | null) {
+  if (!value) return null;
 
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return false;
+  const normalized = /(?:Z|[+-]\d{2}:\d{2})$/.test(value)
+    ? value
+    : `${value}Z`;
+
+  const date = new Date(normalized);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function formatExactDateTime(value?: string | null) {
+  const date = parseApiDate(value);
+  if (!date) return "Unknown time";
+  return DATE_TIME_FORMATTER.format(date);
+}
+
+function isTodayTimestamp(value?: string | null) {
+  const date = parseApiDate(value);
+  if (!date) return false;
 
   const now = new Date();
   return (
@@ -1067,4 +1109,3 @@ function formatKeywords(keywords: DetectedPattern["keywords"]) {
 
   return keywords?.trim() || "None";
 }
-

@@ -5,11 +5,15 @@ export default function Composer({
   onInputChange,
   onSend,
   isTyping,
+  isDisabled = false,
+  placeholder = "Type a message or use / command...",
 }: {
   input: string;
   onInputChange: (value: string) => void;
   onSend: (text: string) => void;
   isTyping: boolean;
+  isDisabled?: boolean;
+  placeholder?: string;
 }) {
   return (
     <section className="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/90">
@@ -20,24 +24,26 @@ export default function Composer({
             type="text"
             value={input}
             onChange={(event) => onInputChange(event.target.value)}
+            disabled={isDisabled}
             onKeyDown={(event) => {
-              if (event.key === "Enter") {
+              if (event.key === "Enter" && !isDisabled) {
                 event.preventDefault();
                 onSend(input);
               }
             }}
-            placeholder="Type a message or use / command..."
-            className="h-10 w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
+            placeholder={placeholder}
+            className="h-10 w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed disabled:text-slate-400"
           />
           <button
             type="button"
+            disabled={isDisabled}
             className="text-slate-400 transition-colors hover:text-slate-600"
           >
             <Mic size={18} />
           </button>
           <button
             type="button"
-            disabled={isTyping}
+            disabled={isTyping || isDisabled}
             onClick={() => onSend(input)}
             className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-slate-900 px-4 py-2 text-xs font-bold uppercase tracking-wider text-white transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
           >

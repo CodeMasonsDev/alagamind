@@ -1,22 +1,26 @@
 "use client";
-import React from "react";
+
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import {
-  LayoutDashboard,
-  MessageSquare,
-  BookOpen,
   Activity,
-  Dumbbell,
   BarChart3,
-  History,
-  Settings,
-  ShieldCheck,
-  HelpCircle,
+  BookOpen,
   ChevronsUpDown,
   Command,
+  Dumbbell,
+  HelpCircle,
+  History,
+  LayoutDashboard,
+  LoaderCircle,
+  LogOut,
+  MessageSquare,
+  Settings,
+  ShieldCheck,
 } from "lucide-react";
+import { getMe, logout, type SessionUser } from "@/api/auth/auth";
 import NavItem from "./nav-item";
 
-// --- Types ---
 export type NavItems = {
   label: string;
   icon: React.ElementType;
@@ -29,7 +33,6 @@ type NavGroup = {
   items: NavItems[];
 };
 
-// --- Navigation Configuration ---
 const NAVIGATION_DATA: NavGroup[] = [
   {
     title: "Wellness Intelligence",
@@ -38,31 +41,26 @@ const NAVIGATION_DATA: NavGroup[] = [
         label: "Dashboard",
         icon: LayoutDashboard,
         href: "/dashboard",
-        isActive: true,
       },
       {
         label: "AI Companion",
         icon: MessageSquare,
         href: "/ai-companion",
-        isActive: false,
       },
       {
         label: "Journal & Reflections",
         icon: BookOpen,
         href: "/journals-reflections/archive",
-        isActive: false,
       },
       {
         label: "Reframing & Insights",
         icon: Activity,
         href: "/reframing-insights",
-        isActive: false,
       },
       {
         label: "Exercises & Protocols",
         icon: Dumbbell,
         href: "/exercises",
-        isActive: false,
       },
     ],
   },
@@ -84,24 +82,99 @@ const NAVIGATION_DATA: NavGroup[] = [
 ];
 
 export default function Sidebar() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const footerRef = useRef<HTMLDivElement | null>(null);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [profile, setProfile] = useState<SessionUser | null>(null);
+  const [isProfileLoading, setIsProfileLoading] = useState(true);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    void (async () => {
+      try {
+        const currentUser = await getMe();
+        if (isMounted) {
+          setProfile(currentUser);
+        }
+      } catch {
+        if (isMounted) {
+          setProfile(null);
+        }
+      } finally {
+        if (isMounted) {
+          setIsProfileLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!profileMenuOpen) return;
+
+    const handlePointerDown = (event: MouseEvent) => {
+      if (!footerRef.current?.contains(event.target as Node)) {
+        setProfileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener("mousedown", handlePointerDown);
+    return () => window.removeEventListener("mousedown", handlePointerDown);
+  }, [profileMenuOpen]);
+
+  const navigation = useMemo(
+    () =>
+      NAVIGATION_DATA.map((group) => ({
+        ...group,
+        items: group.items.map((item) => ({
+          ...item,
+          isActive:
+            item.href !== "#" &&
+            (pathname === item.href || pathname.startsWith(`${item.href}/`)),
+        })),
+      })),
+    [pathname],
+  );
+
+  const profileName = profile
+    ? `${profile.firstname} ${profile.lastname}`.trim()
+    : "Session";
+  const profileSubtitle = profile?.email ?? "Authenticated user";
+  const initials = getInitials(profile);
+
+  async function handleLogout() {
+    try {
+      setIsLoggingOut(true);
+      await logout();
+    } finally {
+      setProfileMenuOpen(false);
+      router.replace("/login");
+      router.refresh();
+    }
+  }
+
   return (
-    <aside className="flex flex-col w-60 h-screen bg-slate-50 border-r border-slate-200">
-      {/* Header & Status */}
+    <aside className="flex h-screen w-60 flex-col border-r border-slate-200 bg-slate-50">
       <div className="p-6 pb-4">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-slate-900 text-teal-400">
+        <div className="mb-6 flex items-center gap-3">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-teal-400">
             <Command size={20} />
           </div>
-          <span className="text-xl font-bold text-slate-900 tracking-tight">
+          <span className="text-xl font-bold tracking-tight text-slate-900">
             AlagaMind
           </span>
         </div>
 
-        {/* Neural Engine Badge */}
-        <div className="flex items-center gap-2 px-3 py-2 bg-teal-50/80 border border-teal-100 rounded-full w-max">
+        <div className="flex w-max items-center gap-2 rounded-full border border-teal-100 bg-teal-50/80 px-3 py-2">
           <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-500"></span>
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-teal-400 opacity-75" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-teal-500" />
           </span>
           <span className="text-[10px] font-bold uppercase tracking-wider text-teal-700">
             Neural Engine Active
@@ -109,11 +182,11 @@ export default function Sidebar() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-2 custom-scrollbar">
+      <div className="custom-scrollbar flex-1 overflow-x-hidden overflow-y-auto px-4 py-2">
         <nav className="flex flex-col gap-8">
-          {NAVIGATION_DATA.map((group, index) => (
-            <div key={index}>
-              <h3 className="px-3 mb-3 text-xs font-bold tracking-widest text-slate-400 uppercase">
+          {navigation.map((group) => (
+            <div key={group.title}>
+              <h3 className="mb-3 px-3 text-xs font-bold uppercase tracking-widest text-slate-400">
                 {group.title}
               </h3>
               <ul className="flex flex-col gap-1">
@@ -126,26 +199,76 @@ export default function Sidebar() {
         </nav>
       </div>
 
-      <div className="p-4 mt-auto border-t border-slate-200 bg-white">
-        <button className="flex items-center justify-between w-full p-2 rounded-xl hover:bg-slate-50 transition-colors">
+      <div
+        ref={footerRef}
+        className="relative mt-auto border-t border-slate-200 bg-white p-4"
+      >
+        {profileMenuOpen ? (
+          <div className="absolute bottom-full left-4 right-4 mb-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl shadow-slate-200/70">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
+              Active Session
+            </p>
+            <div className="mt-3 rounded-xl bg-slate-50 px-3 py-2.5">
+              <p className="text-sm font-semibold text-slate-900">
+                {profileName}
+              </p>
+              <p className="mt-1 text-xs text-slate-500">{profileSubtitle}</p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => void handleLogout()}
+              disabled={isLoggingOut}
+              className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-rose-100 bg-rose-50 px-3 py-2.5 text-sm font-semibold text-rose-700 transition-colors hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              {isLoggingOut ? (
+                <>
+                  <LoaderCircle className="h-4 w-4 animate-spin" />
+                  Signing out
+                </>
+              ) : (
+                <>
+                  <LogOut className="h-4 w-4" />
+                  Sign Out
+                </>
+              )}
+            </button>
+          </div>
+        ) : null}
+
+        <button
+          type="button"
+          onClick={() => setProfileMenuOpen((current) => !current)}
+          className="flex w-full items-center justify-between rounded-xl p-2 transition-colors hover:bg-slate-50"
+        >
           <div className="flex items-center gap-3">
-            <img
-              src="https://i.pravatar.cc/150?u=maya"
-              alt="Maya Anderson"
-              className="w-10 h-10 rounded-full border border-slate-200 object-cover"
-            />
+            <div className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-slate-900 text-sm font-semibold text-white">
+              {isProfileLoading ? (
+                <LoaderCircle className="h-4 w-4 animate-spin text-slate-300" />
+              ) : (
+                initials
+              )}
+            </div>
             <div className="flex flex-col items-start">
               <span className="text-sm font-semibold text-slate-900">
-                Maya Anderson
+                {isProfileLoading ? "Loading profile..." : profileName}
               </span>
-              <span className="text-xs text-slate-500 font-medium">
-                Senior Analyst
+              <span className="max-w-[120px] truncate text-xs font-medium text-slate-500">
+                {isProfileLoading ? "Checking session" : profileSubtitle}
               </span>
             </div>
           </div>
-          <ChevronsUpDown className="w-4 h-4 text-slate-400" />
+          <ChevronsUpDown className="h-4 w-4 text-slate-400" />
         </button>
       </div>
     </aside>
   );
+}
+
+function getInitials(profile: SessionUser | null) {
+  const first = profile?.firstname?.trim().charAt(0) ?? "";
+  const last = profile?.lastname?.trim().charAt(0) ?? "";
+  const combined = `${first}${last}`.trim();
+
+  return combined || "AM";
 }

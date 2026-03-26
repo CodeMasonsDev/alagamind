@@ -1,11 +1,13 @@
 export type ChatRequest = {
   user_message: string;
-  session_id: string;
+  session_id?: string;
+  user_id?: string;
 };
 
 export type ChatResponse = {
   response: string;
   session_id: string;
+  user_id?: string;
 };
 
 export type Chat_history = {
@@ -27,4 +29,26 @@ export type SessionListItem = {
   id: string;
   label: string;
   createdAt: string;
+};
+
+export type SessionTurn = {
+  user: string;
+  ai: string;
+  emotion?: string | null;
+  problem?: string | null;
+  timestamp: string;
+};
+
+export type UserSession = {
+  session_id: string;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+  turn_count: number;
+  history: SessionTurn[];
+};
+
+export type UserSessionsResponse = {
+  user_id: string;
+  sessions: UserSession[];
 };

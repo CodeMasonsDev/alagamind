@@ -1,29 +1,46 @@
 "use client";
 
+import { login } from "@/api/auth/auth";
+import { useRouter, useSearchParams } from "next/navigation";
 import React, { useState } from "react";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const wasJustRegistered = searchParams.get("registered") === "1";
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Auth logic would go here
+
+    setError(null);
+    setIsSubmitting(true);
+
+    try {
+      await login({ email, password });
+      router.replace("/dashboard");
+      router.refresh();
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Unable to login right now.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <main className="min-h-screen w-full relative overflow-hidden bg-linear-to-br from-white via-teal-50 to-blue-50 flex items-center justify-center p-4 font-sans">
-      {/* Soft Radial Highlight behind the card */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-teal-200/20 rounded-full blur-[120px] pointer-events-none" />
+    <main className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-linear-to-br from-white via-teal-50 to-blue-50 p-4 font-sans">
+      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-teal-200/20 blur-[120px]" />
 
-      {/* Layout Container */}
-      <div className="w-full max-w-7xl flex justify-center lg:justify-end lg:pr-[10%] relative z-10">
+      <div className="relative z-10 flex w-full max-w-7xl justify-center lg:justify-end lg:pr-[10%]">
         <section className="w-full max-w-[460px]">
-          {/* Main Auth Card */}
-          <div className="bg-white/90 backdrop-blur-xs rounded-[32px] border border-slate-200/60 shadow-2xl shadow-slate-200/40 p-8 md:p-10 transition-all duration-500">
-            {/* Brand Row */}
-            <div className="flex items-center gap-2 mb-8">
-              <div className="w-8 h-8 text-teal-500">
+          <div className="rounded-[32px] border border-slate-200/60 bg-white/90 p-8 shadow-2xl shadow-slate-200/40 backdrop-blur-xs transition-all duration-500 md:p-10">
+            <div className="mb-8 flex items-center gap-2">
+              <div className="h-8 w-8 text-teal-500">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
@@ -44,21 +61,18 @@ export default function LoginPage() {
               </span>
             </div>
 
-            {/* Heading */}
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-1">
+              <h1 className="mb-1 text-3xl font-bold tracking-tight text-slate-900">
                 Welcome Back
               </h1>
-              <p className="text-slate-500 text-sm font-medium">
+              <p className="text-sm font-medium text-slate-500">
                 Elevate your practice with intelligence.
               </p>
             </div>
 
-            {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Email Field */}
               <div className="space-y-2">
-                <label className="block text-[11px] font-bold tracking-[0.2em] text-slate-400 uppercase">
+                <label className="block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">
                   Email
                 </label>
                 <input
@@ -66,20 +80,19 @@ export default function LoginPage() {
                   placeholder="name@gmail.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3.5 rounded-xl border border-slate-200 bg-white/50 text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 transition-all duration-200"
+                  className="w-full rounded-xl border border-slate-200 bg-white/50 px-4 py-3.5 text-slate-900 placeholder:text-slate-400 transition-all duration-200 focus:border-teal-500 focus:outline-hidden focus:ring-4 focus:ring-teal-500/10"
                   required
                 />
               </div>
 
-              {/* Password Field */}
               <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <label className="block text-[11px] font-bold tracking-[0.2em] text-slate-400 uppercase">
+                <div className="flex items-center justify-between">
+                  <label className="block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">
                     Password
                   </label>
                   <a
                     href="#"
-                    className="text-[11px] font-semibold text-teal-600 hover:text-teal-700 transition-colors"
+                    className="text-[11px] font-semibold text-teal-600 transition-colors hover:text-teal-700"
                   >
                     Recovery access?
                   </a>
@@ -89,38 +102,49 @@ export default function LoginPage() {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3.5 rounded-xl border border-slate-200 bg-white/50 text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 transition-all duration-200"
+                  className="w-full rounded-xl border border-slate-200 bg-white/50 px-4 py-3.5 text-slate-900 placeholder:text-slate-400 transition-all duration-200 focus:border-teal-500 focus:outline-hidden focus:ring-4 focus:ring-teal-500/10"
                   required
                 />
               </div>
 
-              {/* Submit Button */}
+              {wasJustRegistered ? (
+                <p className="text-sm font-medium text-teal-600">
+                  Account created successfully. Sign in to continue.
+                </p>
+              ) : null}
+
+              {error ? (
+                <p className="text-sm font-medium text-rose-600">{error}</p>
+              ) : null}
+
               <button
                 type="submit"
-                className="w-full bg-linear-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 active:scale-[0.98] text-white font-semibold py-4 rounded-xl shadow-xl shadow-teal-500/25 transition-all duration-200 flex items-center justify-center gap-2 group"
+                disabled={isSubmitting}
+                className="group flex w-full items-center justify-center gap-2 rounded-xl bg-linear-to-r from-teal-500 to-teal-600 py-4 font-semibold text-white shadow-xl shadow-teal-500/25 transition-all duration-200 hover:from-teal-600 hover:to-teal-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
               >
-                Login
-                <span className="group-hover:translate-x-1 transition-transform">
+                {isSubmitting ? "Signing in..." : "Login"}
+                <span className="transition-transform group-hover:translate-x-1">
                   →
                 </span>
               </button>
             </form>
 
-            {/* Divider */}
             <div className="relative my-10">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-slate-100"></span>
+                <span className="w-full border-t border-slate-100" />
               </div>
               <div className="relative flex justify-center text-[10px] uppercase tracking-[0.2em]">
-                <span className="bg-white/0 px-4 text-slate-400 font-bold backdrop-blur-xs">
+                <span className="bg-white/0 px-4 font-bold text-slate-400 backdrop-blur-xs">
                   Federated Identity
                 </span>
               </div>
             </div>
 
-            {/* SSO Button */}
-            <button className="w-full flex items-center justify-center gap-3 px-4 py-3.5 border border-slate-200 rounded-xl bg-white/50 hover:bg-slate-50 active:bg-slate-100 transition-all duration-200 text-slate-700 font-bold text-sm tracking-tight">
-              <svg className="w-5 h-5" viewBox="0 0 24 24">
+            <button
+              type="button"
+              className="flex w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white/50 px-4 py-3.5 text-sm font-bold tracking-tight text-slate-700 transition-all duration-200 hover:bg-slate-50 active:bg-slate-100"
+            >
+              <svg className="h-5 w-5" viewBox="0 0 24 24">
                 <path
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                   fill="#4285F4"
@@ -141,23 +165,21 @@ export default function LoginPage() {
               Sign in with Google
             </button>
 
-            {/* Footer Navigation */}
             <div className="mt-8 text-center text-sm font-medium">
               <span className="text-slate-400">No account yet? </span>
               <a
                 href="/signup"
-                className="text-teal-600 hover:text-teal-700 font-bold transition-colors"
+                className="font-bold text-teal-600 transition-colors hover:text-teal-700"
               >
                 Create Account
               </a>
             </div>
           </div>
 
-          {/* Compliance Footer */}
-          <div className="mt-10 flex items-center justify-between px-4 text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase">
+          <div className="mt-10 flex items-center justify-between px-4 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
             <div className="flex items-center gap-1.5">
               <svg
-                className="w-3 h-3"
+                className="h-3 w-3"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -169,7 +191,7 @@ export default function LoginPage() {
             </div>
             <div className="flex items-center gap-1.5">
               <svg
-                className="w-3 h-3"
+                className="h-3 w-3"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -180,7 +202,7 @@ export default function LoginPage() {
               </svg>
               AES-256
             </div>
-            <div>© 2024 ALGMND</div>
+            <div>© 2026 ALGMND</div>
           </div>
         </section>
       </div>
