@@ -1,33 +1,59 @@
 "use client";
 
+import { login, register } from "@/api/auth/auth";
+import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 
 export default function SignupPage() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
-    fullName: "",
+    firstName: "",
+    lastName: "",
     email: "",
     password: "",
   });
   const [agreed, setAgreed] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Signup logic would go here
+
+    setError(null);
+    setIsSubmitting(true);
+
+    try {
+      await register(formData);
+
+      try {
+        await login({
+          email: formData.email,
+          password: formData.password,
+        });
+
+        router.replace("/dashboard");
+        router.refresh();
+      } catch {
+        router.replace("/login?registered=1");
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Unable to create your account.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <main className="min-h-screen w-full relative overflow-hidden bg-linear-to-br from-white via-teal-50 to-blue-50 flex items-center justify-center p-4 font-sans">
-      {/* Soft Radial Highlight behind the card */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-teal-200/20 rounded-full blur-[120px] pointer-events-none" />
+    <main className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-linear-to-br from-white via-teal-50 to-blue-50 p-4 font-sans">
+      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-teal-200/20 blur-[120px]" />
 
-      {/* Layout Container */}
-      <div className="w-full max-w-7xl flex justify-center lg:justify-end lg:pr-[10%] relative z-10">
-        <section className="w-full max-w-[460px]">
-          {/* Auth Card */}
-          <div className="bg-white/90 backdrop-blur-xs rounded-[32px] border border-slate-200/60 shadow-2xl shadow-slate-200/40 p-8 md:p-10 transition-all duration-500">
-            {/* Brand Row */}
-            <div className="flex items-center gap-2 mb-8">
-              <div className="w-8 h-8 text-teal-500">
+      <div className="relative z-10 flex w-full max-w-7xl justify-center lg:justify-end lg:pr-[10%]">
+        <section className="w-full max-w-[480px]">
+          <div className="rounded-[32px] border border-slate-200/60 bg-white/90 p-8 shadow-2xl shadow-slate-200/40 backdrop-blur-xs transition-all duration-500 md:p-10">
+            <div className="mb-8 flex items-center gap-2">
+              <div className="h-8 w-8 text-teal-500">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
@@ -48,38 +74,58 @@ export default function SignupPage() {
               </span>
             </div>
 
-            {/* Heading */}
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-1">
+              <h1 className="mb-1 text-3xl font-bold tracking-tight text-slate-900">
                 Begin Your Journey
               </h1>
-              <p className="text-slate-500 text-sm font-medium">
-                Step into a space of clarity and resilience.
+              <p className="text-sm font-medium text-slate-500">
+                Create your account, then continue directly into the workspace.
               </p>
             </div>
 
-            {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Full Name */}
-              <div className="space-y-2">
-                <label className="block text-[11px] font-bold tracking-[0.2em] text-slate-400 uppercase">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  placeholder="Jordan Henderson"
-                  value={formData.fullName}
-                  onChange={(e) =>
-                    setFormData({ ...formData, fullName: e.target.value })
-                  }
-                  className="w-full px-4 py-3.5 rounded-xl border border-slate-200 bg-white/50 text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 transition-all duration-200"
-                  required
-                />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">
+                    First Name
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Jordan"
+                    value={formData.firstName}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        firstName: e.target.value,
+                      })
+                    }
+                    className="w-full rounded-xl border border-slate-200 bg-white/50 px-4 py-3.5 text-slate-900 placeholder:text-slate-400 transition-all duration-200 focus:border-teal-500 focus:outline-hidden focus:ring-4 focus:ring-teal-500/10"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">
+                    Last Name
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Henderson"
+                    value={formData.lastName}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        lastName: e.target.value,
+                      })
+                    }
+                    className="w-full rounded-xl border border-slate-200 bg-white/50 px-4 py-3.5 text-slate-900 placeholder:text-slate-400 transition-all duration-200 focus:border-teal-500 focus:outline-hidden focus:ring-4 focus:ring-teal-500/10"
+                    required
+                  />
+                </div>
               </div>
 
-              {/* Email Address */}
               <div className="space-y-2">
-                <label className="block text-[11px] font-bold tracking-[0.2em] text-slate-400 uppercase">
+                <label className="block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">
                   Email Address
                 </label>
                 <input
@@ -89,14 +135,13 @@ export default function SignupPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, email: e.target.value })
                   }
-                  className="w-full px-4 py-3.5 rounded-xl border border-slate-200 bg-white/50 text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 transition-all duration-200"
+                  className="w-full rounded-xl border border-slate-200 bg-white/50 px-4 py-3.5 text-slate-900 placeholder:text-slate-400 transition-all duration-200 focus:border-teal-500 focus:outline-hidden focus:ring-4 focus:ring-teal-500/10"
                   required
                 />
               </div>
 
-              {/* Password */}
               <div className="space-y-2">
-                <label className="block text-[11px] font-bold tracking-[0.2em] text-slate-400 uppercase">
+                <label className="block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">
                   Password
                 </label>
                 <input
@@ -106,66 +151,68 @@ export default function SignupPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, password: e.target.value })
                   }
-                  className="w-full px-4 py-3.5 rounded-xl border border-slate-200 bg-white/50 text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 transition-all duration-200"
+                  className="w-full rounded-xl border border-slate-200 bg-white/50 px-4 py-3.5 text-slate-900 placeholder:text-slate-400 transition-all duration-200 focus:border-teal-500 focus:outline-hidden focus:ring-4 focus:ring-teal-500/10"
+                  minLength={6}
                   required
                 />
               </div>
 
-              {/* Agreement */}
               <div className="flex items-start gap-3 py-2">
-                <div className="relative flex items-center h-5">
+                <div className="relative flex h-5 items-center">
                   <input
                     id="terms"
                     type="checkbox"
                     checked={agreed}
                     onChange={(e) => setAgreed(e.target.checked)}
-                    className="w-5 h-5 rounded-md border-slate-200 text-teal-500 focus:ring-teal-500/20 cursor-pointer accent-teal-500"
+                    className="h-5 w-5 cursor-pointer rounded-md border-slate-200 accent-teal-500 focus:ring-teal-500/20"
                     required
                   />
                 </div>
                 <label
                   htmlFor="terms"
-                  className="text-sm text-slate-500 leading-tight cursor-pointer select-none"
+                  className="cursor-pointer select-none text-sm leading-tight text-slate-500"
                 >
                   I acknowledge the{" "}
                   <a
                     href="#"
-                    className="text-teal-600 font-bold hover:underline"
+                    className="font-bold text-teal-600 hover:underline"
                   >
                     Terms of Resilience
-                  </a>{" "}
+                  </a>
                 </label>
               </div>
 
-              {/* Primary CTA */}
+              {error ? (
+                <p className="text-sm font-medium text-rose-600">{error}</p>
+              ) : null}
+
               <button
                 type="submit"
-                className="w-full bg-linear-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 active:scale-[0.98] text-white font-semibold py-4 rounded-xl shadow-xl shadow-teal-500/25 transition-all duration-200 flex items-center justify-center gap-2 group"
+                disabled={isSubmitting}
+                className="group flex w-full items-center justify-center gap-2 rounded-xl bg-linear-to-r from-teal-500 to-teal-600 py-4 font-semibold text-white shadow-xl shadow-teal-500/25 transition-all duration-200 hover:from-teal-600 hover:to-teal-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
               >
-                Create Account
-                <span className="group-hover:translate-x-1 transition-transform">
+                {isSubmitting ? "Creating account..." : "Create Account"}
+                <span className="transition-transform group-hover:translate-x-1">
                   →
                 </span>
               </button>
             </form>
 
-            {/* Footer Navigation */}
             <div className="mt-8 text-center text-sm font-medium">
               <span className="text-slate-400">Already have an account? </span>
               <a
                 href="/login"
-                className="text-teal-600 hover:text-teal-700 font-bold transition-colors"
+                className="font-bold text-teal-600 transition-colors hover:text-teal-700"
               >
                 Sign In
               </a>
             </div>
           </div>
 
-          {/* Compliance Footer */}
-          <div className="mt-10 flex items-center justify-between px-4 text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase">
+          <div className="mt-10 flex items-center justify-between px-4 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
             <div className="flex items-center gap-1.5">
               <svg
-                className="w-3 h-3"
+                className="h-3 w-3"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -177,7 +224,7 @@ export default function SignupPage() {
             </div>
             <div className="flex items-center gap-1.5">
               <svg
-                className="w-3 h-3"
+                className="h-3 w-3"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -188,7 +235,7 @@ export default function SignupPage() {
               </svg>
               AES-256
             </div>
-            <div>© 2024 ALGMND</div>
+            <div>© 2026 ALGMND</div>
           </div>
         </section>
       </div>

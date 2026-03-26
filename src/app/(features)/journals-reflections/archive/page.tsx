@@ -7,6 +7,11 @@ import { ChevronDown, Grid2x2, List, Plus, Search, Shield } from "lucide-react";
 import LongMenu from "@/components/ui/long-menu";
 import { GetUserJournals } from "@/api/journal";
 import { DeleteJournalId } from "@/services/journals";
+import { getMe, SessionUser } from "@/api/auth/auth";
+import {
+  formatJournalDateTime,
+  parseJournalTimestamp,
+} from "@/lib/journal-datetime";
 
 type RawJournal = {
   id?: string;
@@ -66,9 +71,35 @@ export default function JournalsArchivePage() {
   const [journals, setJournals] = useState<JournalEntri[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const userId = "7e9793a6-c652-4b3a-8bed-780c221ee33a";
+  // const userId = "7e9793a6-c652-4b3a-8bed-780c221ee33a";
+  const [profile, setProfile] = useState<SessionUser | null>(null);
 
   useEffect(() => {
+    let isMounted = true;
+
+    void (async () => {
+      try {
+        const currentUser = await getMe();
+        if (isMounted) setProfile(currentUser);
+      } catch {
+        if (isMounted) setProfile(null);
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const userId = profile?.id;
+
+  useEffect(() => {
+    if (!userId) {
+      setJournals([]);
+      setIsLoading(false);
+      return;
+    }
+
     const fetchJournals = async () => {
       try {
         setIsLoading(true);
@@ -738,55 +769,7 @@ function parseJournalDate(entry: RawJournal): number | null {
 }
 
 function parseDateValue(value?: number | string): number | null {
-  if (value === undefined || value === null) return null;
-
-  if (typeof value === "number") {
-    if (!Number.isFinite(value) || value <= 0) return null;
-
-    // unix seconds
-    if (value < 1_000_000_000_000) {
-      const secondsToMs = value * 1000;
-      return isValidTimestamp(secondsToMs) ? secondsToMs : null;
-    }
-
-    return isValidTimestamp(value) ? value : null;
-  }
-
-  const trimmed = String(value).trim();
-  if (!trimmed) return null;
-
-  if (
-    trimmed === "0001-01-01T00:00:00" ||
-    trimmed === "0001-01-01T00:00:00Z" ||
-    trimmed === "0001-01-01"
-  ) {
-    return null;
-  }
-
-  // numeric string
-  if (/^\d+$/.test(trimmed)) {
-    const numeric = Number(trimmed);
-    if (!Number.isFinite(numeric) || numeric <= 0) return null;
-
-    if (trimmed.length <= 10) {
-      const secondsToMs = numeric * 1000;
-      return isValidTimestamp(secondsToMs) ? secondsToMs : null;
-    }
-
-    return isValidTimestamp(numeric) ? numeric : null;
-  }
-
-  const parsed = new Date(trimmed).getTime();
-  if (!Number.isNaN(parsed) && isValidTimestamp(parsed)) {
-    return parsed;
-  }
-
-  return null;
-}
-
-function isValidTimestamp(timestampMs: number) {
-  const year = new Date(timestampMs).getFullYear();
-  return year >= 2000 && year <= 2100;
+  return parseJournalTimestamp(value);
 }
 
 function normalizeMood(mood?: string) {
@@ -872,27 +855,11 @@ function getEstimatedReadTime(content: string) {
 }
 
 function formatReadableDate(timestampMs: number | null) {
-  if (!timestampMs) return "Unknown date";
-
-  return new Date(timestampMs).toLocaleString("en-PH", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
+  return formatJournalDateTime(timestampMs);
 }
 
 function formatCardDate(timestampMs: number | null) {
-  if (!timestampMs) return "Unknown date";
-
-  return new Date(timestampMs).toLocaleString("en-PH", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "numeric",
-    minute: "2-digit",
-  });
+  return formatJournalDateTime(timestampMs);
 }
 
 function formatFilterLabel(value: string) {

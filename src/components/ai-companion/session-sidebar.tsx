@@ -1,7 +1,7 @@
 "use client";
 
-import { Plus, X, MessageSquareText } from "lucide-react";
-import { SessionListItem } from "@/types/ai-companion";
+import { Plus, X, MessageSquareText, RefreshCw } from "lucide-react";
+import { UserSession } from "@/types/ai-companion";
 import SessionItem from "./session-item";
 
 export default function SessionSidebar({
@@ -9,19 +9,25 @@ export default function SessionSidebar({
   activeSessionId,
   isOpen,
   isCreating,
+  isLoading,
+  error,
   onSelectSession,
   onNewSession,
   onDeleteSession,
   onClose,
+  onRetry,
 }: {
-  sessions: SessionListItem[];
+  sessions: UserSession[];
   activeSessionId: string;
   isOpen: boolean;
   isCreating: boolean;
+  isLoading: boolean;
+  error: string | null;
   onSelectSession: (id: string) => void;
   onNewSession: () => void;
   onDeleteSession: (id: string) => void;
   onClose: () => void;
+  onRetry: () => void;
 }) {
   return (
     <>
@@ -62,7 +68,33 @@ export default function SessionSidebar({
 
         {/* Session List */}
         <div className="flex-1 overflow-y-auto px-3 py-3">
-          {sessions.length === 0 ? (
+          {isLoading ? (
+            /* Loading skeleton */
+            <div className="flex flex-col gap-2">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="animate-pulse rounded-xl bg-slate-100 px-3 py-4"
+                >
+                  <div className="mb-2 h-3 w-3/4 rounded bg-slate-200" />
+                  <div className="h-2 w-1/2 rounded bg-slate-200" />
+                </div>
+              ))}
+            </div>
+          ) : error ? (
+            /* Error state */
+            <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
+              <p className="text-xs font-medium text-red-400">{error}</p>
+              <button
+                type="button"
+                onClick={onRetry}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white transition-colors hover:bg-slate-800"
+              >
+                <RefreshCw size={12} />
+                Retry
+              </button>
+            </div>
+          ) : sessions.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-2 py-12 text-center">
               <MessageSquareText size={28} className="text-slate-300" />
               <p className="text-xs font-medium text-slate-400">
@@ -73,9 +105,9 @@ export default function SessionSidebar({
             <ul className="flex flex-col gap-1">
               {sessions.map((session) => (
                 <SessionItem
-                  key={session.id}
+                  key={session.session_id}
                   session={session}
-                  isActive={session.id === activeSessionId}
+                  isActive={session.session_id === activeSessionId}
                   onSelect={onSelectSession}
                   onDelete={onDeleteSession}
                 />

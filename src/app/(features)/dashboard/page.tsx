@@ -34,6 +34,7 @@ import {
   type ResilienceQuotientResponse,
 } from "@/api/resilience-quitient";
 import { DEFAULT_USER_ID } from "@/lib/current-user";
+import { getMe, SessionUser } from "@/api/auth/auth";
 
 // ----------------------------------------------------------------------
 // MAIN DASHBOARD COMPONENT
@@ -93,7 +94,29 @@ function WellnessIntelligence() {
     { label: "Calm", icon: Smile, intensity: 6.4 },
     { label: "Energized", icon: Zap, intensity: 8.6 },
   ];
-  const userId = DEFAULT_USER_ID;
+
+  const [profile, setProfile] = useState<SessionUser | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    void (async () => {
+      try {
+        const currentUser = await getMe();
+        console.log("from dashboard", currentUser);
+
+        if (isMounted) setProfile(currentUser);
+      } catch (error) {
+        if (isMounted) setProfile(null);
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const userId = profile?.id;
   const {
     focusMomentum,
     isFocusMomentumLoading,

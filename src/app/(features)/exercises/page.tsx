@@ -89,66 +89,66 @@ const protocols: Protocol[] = [
     icon: Activity,
     href: "/exercises/behavioral-activation",
   },
-  {
-    id: 2,
-    title: "TIPP Skills",
-    description:
-      "Rapid distress tolerance sequence for immediate nervous system downshifting under high emotional load.",
-    category: "DBT",
-    focus: "Crisis Regulation",
-    duration: 5,
-    icon: Flame,
-  },
-  {
-    id: 3,
-    title: "Self-Compassion Letter",
-    description:
-      "Guided reflective writing protocol to reduce self-criticism and strengthen internal emotional safety.",
-    category: "Mindfulness",
-    focus: "Emotional Resilience",
-    duration: 12,
-    icon: HeartPulse,
-  },
-  {
-    id: 4,
-    title: "Anxiety De-escalation",
-    description:
-      "Somatic and breath pacing sequence designed to lower arousal and stabilize attention in real time.",
-    category: "Regulation",
-    focus: "Calm",
-    duration: 8,
-    icon: Waves,
-  },
-  {
-    id: 5,
-    title: "Mindful Worry Observation",
-    description:
-      "Observe repetitive thought patterns without fusion, then redirect to present-state sensory anchors.",
-    category: "Mindfulness",
-    focus: "Overthinking",
-    duration: 10,
-    icon: Sparkles,
-  },
-  {
-    id: 6,
-    title: "Positive Data Logging",
-    description:
-      "Evidence-based cognitive journaling to balance bias toward threat and reinforce adaptive interpretations.",
-    category: "CBT",
-    focus: "Perspective Shift",
-    duration: 9,
-    icon: BrainCircuit,
-  },
-  {
-    id: 7,
-    title: "Values-Aligned Micro Action",
-    description:
-      "Select one small committed action linked to personal values to build confidence and direction.",
-    category: "DBT",
-    focus: "Behavioral Clarity",
-    duration: 7,
-    icon: Crosshair,
-  },
+  // {
+  //   id: 2,
+  //   title: "TIPP Skills",
+  //   description:
+  //     "Rapid distress tolerance sequence for immediate nervous system downshifting under high emotional load.",
+  //   category: "DBT",
+  //   focus: "Crisis Regulation",
+  //   duration: 5,
+  //   icon: Flame,
+  // },
+  // {
+  //   id: 3,
+  //   title: "Self-Compassion Letter",
+  //   description:
+  //     "Guided reflective writing protocol to reduce self-criticism and strengthen internal emotional safety.",
+  //   category: "Mindfulness",
+  //   focus: "Emotional Resilience",
+  //   duration: 12,
+  //   icon: HeartPulse,
+  // },
+  // {
+  //   id: 4,
+  //   title: "Anxiety De-escalation",
+  //   description:
+  //     "Somatic and breath pacing sequence designed to lower arousal and stabilize attention in real time.",
+  //   category: "Regulation",
+  //   focus: "Calm",
+  //   duration: 8,
+  //   icon: Waves,
+  // },
+  // {
+  //   id: 5,
+  //   title: "Mindful Worry Observation",
+  //   description:
+  //     "Observe repetitive thought patterns without fusion, then redirect to present-state sensory anchors.",
+  //   category: "Mindfulness",
+  //   focus: "Overthinking",
+  //   duration: 10,
+  //   icon: Sparkles,
+  // },
+  // {
+  //   id: 6,
+  //   title: "Positive Data Logging",
+  //   description:
+  //     "Evidence-based cognitive journaling to balance bias toward threat and reinforce adaptive interpretations.",
+  //   category: "CBT",
+  //   focus: "Perspective Shift",
+  //   duration: 9,
+  //   icon: BrainCircuit,
+  // },
+  // {
+  //   id: 7,
+  //   title: "Values-Aligned Micro Action",
+  //   description:
+  //     "Select one small committed action linked to personal values to build confidence and direction.",
+  //   category: "DBT",
+  //   focus: "Behavioral Clarity",
+  //   duration: 7,
+  //   icon: Crosshair,
+  // },
 ];
 
 const focusFilters: FocusFilter[] = ["All Focus", "CBT", "DBT", "Mindfulness"];

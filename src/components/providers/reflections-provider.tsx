@@ -1,6 +1,10 @@
 "use client";
 
 import { GetUserJournals } from "@/api/journal";
+import {
+  formatJournalCalendarDate,
+  parseJournalTimestamp,
+} from "@/lib/journal-datetime";
 import React, {
   createContext,
   useContext,
@@ -24,6 +28,23 @@ export type ReflectionEntry = {
   moodClass: string;
   dotClass: string;
   isPendingSync?: boolean;
+};
+
+type RawReflectionJournal = {
+  id?: string;
+  journalId?: string;
+  userId?: string;
+  user_id?: string;
+  createdAt?: unknown;
+  created_at?: unknown;
+  updatedAt?: unknown;
+  updated_at?: unknown;
+  content?: string;
+  title?: string;
+  emotionTag?: string;
+  mood?: string;
+  wordCount?: number | string;
+  journalTags?: string[];
 };
 
 type ReflectionStore = {
@@ -51,7 +72,7 @@ export function ReflectionsProvider({
     try {
       const data = await GetUserJournals(userId);
       const safeData = Array.isArray(data) ? data : [];
-      const mappedEntries: ReflectionEntry[] = safeData.map((item: any) =>
+      const mappedEntries: ReflectionEntry[] = safeData.map((item) =>
         mapJournalToReflectionEntry(item, userId),
       );
 
@@ -113,12 +134,16 @@ export function useReflections() {
   return context;
 }
 
-function mapJournalToReflectionEntry(item: any, fallbackUserId: string) {
-  const createdAtValue = item.createdAt ?? item.created_at ?? Date.now();
-  const createdAtDate = new Date(createdAtValue);
-  const createdAt = Number.isNaN(createdAtDate.getTime())
-    ? Date.now()
-    : createdAtDate.getTime();
+function mapJournalToReflectionEntry(
+  item: RawReflectionJournal,
+  fallbackUserId: string,
+) {
+  const createdAt =
+    parseJournalTimestamp(item.updatedAt) ??
+    parseJournalTimestamp(item.updated_at) ??
+    parseJournalTimestamp(item.createdAt) ??
+    parseJournalTimestamp(item.created_at) ??
+    Date.now();
   const plainContent = stripHtml(item.content);
   const preview =
     plainContent.length > 120
@@ -169,9 +194,5 @@ function stripHtml(content?: string) {
 }
 
 function formatEntryTimestamp(createdAt: number) {
-  return new Date(createdAt).toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
+  return formatJournalCalendarDate(createdAt);
 }
