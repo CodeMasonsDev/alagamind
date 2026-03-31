@@ -8,7 +8,7 @@ import { useReflections } from "@/components/providers/reflections-provider";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { GetUserJournal } from "@/api/journal";
-import { AnalyzeJournal } from "@/api/reframing";
+import { analyzeJournalSentiment } from "@/api/journal-sentiment";
 import { getMe, SessionUser } from "@/api/auth/auth";
 import {
   formatJournalCalendarDate,
@@ -207,13 +207,6 @@ export default function ReflectionEditor() {
           content: htmlContent,
         };
 
-        const payload2 = {
-          userId,
-          journalId,
-          content: htmlContent,
-          dateTime: analyzedAt,
-        };
-
         const updateRes = await updateJournal(payload);
         if (!updateRes) throw new Error("Update failed: Empty response");
         setDisplayTimestampMs(resolveJournalTimestamp(updateRes) ?? submittedAtMs);
@@ -225,9 +218,12 @@ export default function ReflectionEditor() {
         setBaselineEditorHtml(savedHtml);
         setBaselineTitle(resolvedTitle);
 
-        AnalyzeJournal(payload2)
-          .then((res) => console.log("udpate analyze_journal", res))
-          .catch((err) => console.error(err));
+        void syncJournalSentiment({
+          userId,
+          journalId,
+          content: htmlContent,
+          analyzedAt,
+        });
       } else {
         const payload = {
           userId,
@@ -246,16 +242,14 @@ export default function ReflectionEditor() {
           setJournalId(newId);
         }
 
-        const payload2 = {
-          userId,
-          journalId: data.id,
-          content: htmlContent,
-          dateTime: analyzedAt,
-        };
-
-        AnalyzeJournal(payload2)
-          .then((res) => console.log("create analyze_journal", res))
-          .catch((err) => console.error(err));
+        if (newId) {
+          void syncJournalSentiment({
+            userId,
+            journalId: newId,
+            content: htmlContent,
+            analyzedAt,
+          });
+        }
 
         const savedHtml = quillRef.current.root.innerHTML;
         setEditorHtml(savedHtml);
@@ -546,4 +540,27 @@ function resolveJournalTimestamp(journal: JournalTimestampRecord) {
     parseJournalTimestamp(journal.createdAt) ??
     parseJournalTimestamp(journal.created_at)
   );
+}
+
+async function syncJournalSentiment({
+  userId,
+  journalId,
+  content,
+  analyzedAt,
+}: {
+  userId: string;
+  journalId: string;
+  content: string;
+  analyzedAt: Date;
+}) {
+  try {
+    await analyzeJournalSentiment({
+      user_id: userId,
+      journal_id: journalId,
+      content,
+      created_at: analyzedAt.toISOString(),
+    });
+  } catch (error) {
+    console.error("Failed to analyze journal sentiment:", error);
+  }
 }

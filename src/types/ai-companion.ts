@@ -8,11 +8,17 @@ export type ChatResponse = {
   response: string;
   session_id: string;
   user_id?: string;
+  language?: string;
+  emotion?: string | null;
+  problem?: string | null;
 };
 
 export type Chat_history = {
   user: string;
   ai: string;
+  emotion?: string | null;
+  problem?: string | null;
+  language?: string | null;
 };
 
 export type ChatHistoryResponse = {
@@ -36,6 +42,7 @@ export type SessionTurn = {
   ai: string;
   emotion?: string | null;
   problem?: string | null;
+  language?: string | null;
   timestamp: string;
 };
 
@@ -51,4 +58,9 @@ export type UserSession = {
 export type UserSessionsResponse = {
   user_id: string;
   sessions: UserSession[];
+};
+
+export type VoicePlaybackRequest = {
+  text: string;
+  language?: string | null;
 };
