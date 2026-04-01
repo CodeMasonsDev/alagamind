@@ -11,8 +11,9 @@ import { getMe, SessionUser } from "@/api/auth/auth";
 import {
   createNewSession,
   fetchUserSessions,
+  generateAssistantVoice,
   removeSession,
-  sendChat,
+  sendChatStream,
 } from "@/services/chat";
 import { ChatRequest, SessionTurn, UserSession } from "@/types/ai-companion";
 
@@ -30,6 +31,7 @@ type ChatMessageBase = {
   timestamp?: string;
   emotion?: string | null;
   problem?: string | null;
+  language?: string | null;
 };
 
 export type ChatMessage =
@@ -43,6 +45,13 @@ export type ChatMessage =
   | (ChatMessageBase & { role: "assistant"; kind: "insight" });
 
 type AppendableChatMessage = Omit<ChatMessage, "id">;
+
+type AudioPlaybackStatus = "idle" | "generating" | "ready" | "error";
+
+type MessageAudioState = {
+  status: AudioPlaybackStatus;
+  error: string | null;
+};
 
 export const SUGGESTIONS: Suggestion[] = [];
 
@@ -73,6 +82,7 @@ function buildMessagesFromHistory(
       timestamp: turn.timestamp,
       emotion: turn.emotion,
       problem: turn.problem,
+      language: turn.language,
     },
     {
       role: "assistant" as const,
@@ -81,6 +91,7 @@ function buildMessagesFromHistory(
       timestamp: turn.timestamp,
       emotion: turn.emotion,
       problem: turn.problem,
+      language: turn.language,
     },
   ]);
 }
@@ -112,13 +123,26 @@ export default function AiCompanionPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [messageAudio, setMessageAudio] = useState<
+    Record<number, MessageAudioState>
+  >({});
+  const [currentlyPlayingId, setCurrentlyPlayingId] = useState<number | null>(
+    null,
+  );
 
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isCreatingSession, setIsCreatingSession] = useState(false);
 
   const nextIdRef = useRef(1);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const selectedSessionIdRef = useRef("");
+  const messageAudioRef = useRef<Record<number, MessageAudioState>>({});
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
+  const decodedAudioRef = useRef<Record<number, AudioBuffer>>({});
+  const audioRequestRef = useRef<Record<number, Promise<AudioBuffer | null>>>(
+    {},
+  );
 
   const selectedSession = useMemo(
     () =>
@@ -127,7 +151,22 @@ export default function AiCompanionPage() {
     [selectedSessionId, sessions],
   );
 
-  const hasNoSessions = !isLoadingProfile && !isLoadingSessions && !sessionsError && sessions.length === 0;
+  const hasNoSessions =
+    !isLoadingProfile &&
+    !isLoadingSessions &&
+    !sessionsError &&
+    sessions.length === 0;
+
+  const stopCurrentAudio = useCallback(() => {
+    if (audioSourceRef.current) {
+      audioSourceRef.current.onended = null;
+      audioSourceRef.current.stop();
+      audioSourceRef.current.disconnect();
+      audioSourceRef.current = null;
+    }
+
+    setCurrentlyPlayingId(null);
+  }, []);
 
   const setMessagesFromSession = useCallback(
     (session: UserSession | null | undefined) => {
@@ -139,8 +178,14 @@ export default function AiCompanionPage() {
           id: nextIdRef.current++,
         })),
       );
+      setMessageAudio({});
+      messageAudioRef.current = {};
+      stopCurrentAudio();
+      decodedAudioRef.current = {};
+      audioRequestRef.current = {};
+      setCurrentlyPlayingId(null);
     },
-    [],
+    [stopCurrentAudio],
   );
 
   const syncSessionSelection = useCallback(
@@ -285,11 +330,222 @@ export default function AiCompanionPage() {
   }, [isTyping, messages]);
 
   const appendMessage = useCallback((message: AppendableChatMessage) => {
-    setMessages((current) => [
-      ...current,
-      { ...message, id: nextIdRef.current++ },
-    ]);
+    const nextId = nextIdRef.current++;
+
+    setMessages((current) => [...current, { ...message, id: nextId }]);
+
+    return nextId;
   }, []);
+
+  const updateMessageById = useCallback(
+    (messageId: number, updater: (message: ChatMessage) => ChatMessage) => {
+      setMessages((current) =>
+        current.map((message) =>
+          message.id === messageId ? updater(message) : message,
+        ),
+      );
+    },
+    [],
+  );
+
+  useEffect(() => {
+    messageAudioRef.current = messageAudio;
+  }, [messageAudio]);
+
+  useEffect(() => {
+    return () => {
+      if (audioSourceRef.current) {
+        audioSourceRef.current.stop();
+        audioSourceRef.current.disconnect();
+      }
+
+      if (audioContextRef.current) {
+        void audioContextRef.current.close();
+      }
+    };
+  }, []);
+
+  const updateMessageAudioState = useCallback(
+    (
+      messageId: number,
+      updater: (current?: MessageAudioState) => MessageAudioState,
+    ) => {
+      setMessageAudio((current) => {
+        const nextState = updater(current[messageId]);
+        const nextCollection = {
+          ...current,
+          [messageId]: nextState,
+        };
+
+        messageAudioRef.current = nextCollection;
+
+        return nextCollection;
+      });
+    },
+    [],
+  );
+
+  const ensureAudioContext = useCallback(async () => {
+    if (typeof window === "undefined") {
+      return null;
+    }
+
+    const AudioContextCtor =
+      window.AudioContext ||
+      (
+        window as typeof window & {
+          webkitAudioContext?: typeof AudioContext;
+        }
+      ).webkitAudioContext;
+
+    if (!AudioContextCtor) {
+      return null;
+    }
+
+    if (!audioContextRef.current) {
+      audioContextRef.current = new AudioContextCtor();
+    }
+
+    if (audioContextRef.current.state === "suspended") {
+      await audioContextRef.current.resume();
+    }
+
+    return audioContextRef.current;
+  }, []);
+
+  const loadMessageAudio = useCallback(
+    async (
+      message: Extract<ChatMessage, { role: "assistant"; kind: "text" }>,
+    ) => {
+      const existingBuffer = decodedAudioRef.current[message.id] ?? null;
+      if (existingBuffer) {
+        return existingBuffer;
+      }
+
+      const inFlightRequest = audioRequestRef.current[message.id];
+      if (inFlightRequest) {
+        return inFlightRequest;
+      }
+
+      updateMessageAudioState(message.id, () => ({
+        status: "generating",
+        error: null,
+      }));
+
+      const request = (async () => {
+        try {
+          const [audioContext, audioBytes] = await Promise.all([
+            ensureAudioContext(),
+            generateAssistantVoice({
+              text: message.text,
+              language: message.language,
+            }),
+          ]);
+
+          if (!audioContext) {
+            throw new Error("AudioContext is unavailable");
+          }
+
+          const decodedBuffer = await audioContext.decodeAudioData(
+            audioBytes.slice(0),
+          );
+          decodedAudioRef.current[message.id] = decodedBuffer;
+
+          updateMessageAudioState(message.id, () => ({
+            status: "ready",
+            error: null,
+          }));
+
+          return decodedBuffer;
+        } catch (error) {
+          console.error("Failed to generate assistant audio:", error);
+
+          updateMessageAudioState(message.id, () => ({
+            status: "error",
+            error: "Voice playback unavailable",
+          }));
+
+          return null;
+        } finally {
+          delete audioRequestRef.current[message.id];
+        }
+      })();
+
+      audioRequestRef.current[message.id] = request;
+
+      return request;
+    },
+    [ensureAudioContext, updateMessageAudioState],
+  );
+
+  const playMessageAudio = useCallback(
+    async (
+      message: Extract<ChatMessage, { role: "assistant"; kind: "text" }>,
+    ) => {
+      let resolvedBuffer = decodedAudioRef.current[message.id] ?? null;
+
+      if (currentlyPlayingId === message.id && audioSourceRef.current) {
+        stopCurrentAudio();
+        return;
+      }
+
+      if (!resolvedBuffer) {
+        resolvedBuffer = await loadMessageAudio(message);
+      }
+
+      if (!resolvedBuffer) {
+        return;
+      }
+
+      const audioContext = await ensureAudioContext();
+      if (!audioContext) {
+        updateMessageAudioState(message.id, () => ({
+          status: "error",
+          error: "Voice playback unavailable",
+        }));
+        return;
+      }
+
+      stopCurrentAudio();
+
+      const source = audioContext.createBufferSource();
+      source.buffer = resolvedBuffer;
+      source.connect(audioContext.destination);
+      audioSourceRef.current = source;
+      setCurrentlyPlayingId(message.id);
+
+      source.onended = () => {
+        if (audioSourceRef.current === source) {
+          audioSourceRef.current.disconnect();
+          audioSourceRef.current = null;
+        }
+        setCurrentlyPlayingId(null);
+      };
+
+      try {
+        source.start(0);
+      } catch (error) {
+        console.error("Failed to play assistant audio:", error);
+        if (audioSourceRef.current === source) {
+          audioSourceRef.current.disconnect();
+          audioSourceRef.current = null;
+        }
+        setCurrentlyPlayingId(null);
+
+        updateMessageAudioState(message.id, () => ({
+          status: decodedAudioRef.current[message.id] ? "ready" : "error",
+          error: decodedAudioRef.current[message.id] ? null : "Playback failed",
+        }));
+      }
+    },
+    [
+      currentlyPlayingId,
+      ensureAudioContext,
+      loadMessageAudio,
+      stopCurrentAudio,
+      updateMessageAudioState,
+    ],
+  );
 
   async function sendMessage(text: string) {
     const trimmed = text.trim();
@@ -306,8 +562,26 @@ export default function AiCompanionPage() {
       text: trimmed,
       timestamp: optimisticTimestamp,
     });
+    let assistantMessageId: number | null = null;
+
+    const ensureAssistantMessage = (initialText = "") => {
+      if (assistantMessageId !== null) {
+        return assistantMessageId;
+      }
+
+      assistantMessageId = appendMessage({
+        role: "assistant",
+        kind: "text",
+        text: initialText,
+        timestamp: optimisticTimestamp,
+      });
+
+      return assistantMessageId;
+    };
+
     setInput("");
     setIsTyping(true);
+    await ensureAudioContext();
 
     try {
       const chatRequest: ChatRequest = {
@@ -316,27 +590,90 @@ export default function AiCompanionPage() {
         user_id: profile?.id,
       };
 
-      const response = await sendChat(chatRequest);
+      await sendChatStream(chatRequest, {
+        onDelta: ({ text: delta }) => {
+          if (delta) {
+            const messageId = ensureAssistantMessage();
+            setIsTyping(false);
 
-      appendMessage({
-        role: "assistant",
-        kind: "text",
-        text: response.response,
-        timestamp: optimisticTimestamp,
+            updateMessageById(messageId, (message) => {
+              if (message.role !== "assistant" || message.kind !== "text") {
+                return message;
+              }
+
+              return {
+                ...message,
+                text: `${message.text}${delta}`,
+                timestamp: optimisticTimestamp,
+              };
+            });
+          }
+        },
+        onReplace: ({ text: replacement }) => {
+          const messageId = ensureAssistantMessage(replacement);
+          setIsTyping(false);
+          updateMessageById(messageId, (message) => {
+            if (message.role !== "assistant" || message.kind !== "text") {
+              return message;
+            }
+
+            return {
+              ...message,
+              text: replacement,
+              timestamp: optimisticTimestamp,
+            };
+          });
+        },
+        onDone: async (response) => {
+          setIsTyping(false);
+          const messageId = ensureAssistantMessage(response.response);
+          updateMessageById(messageId, (message) => {
+            if (message.role !== "assistant" || message.kind !== "text") {
+              return message;
+            }
+
+            return {
+              ...message,
+              text: response.response,
+              timestamp: optimisticTimestamp,
+              emotion: response.emotion,
+              problem: response.problem,
+              language: response.language,
+            };
+          });
+
+          if (profile?.id) {
+            void refreshFocusMomentum(profile.id);
+          }
+
+          await refetchSessions(activeSessionId, false);
+        },
       });
-
-      if (profile?.id) {
-        void refreshFocusMomentum(profile.id);
-      }
-
-      await refetchSessions(activeSessionId, false);
     } catch (error) {
       console.error("Failed to get assistant response:", error);
-      appendMessage({
-        role: "assistant",
-        kind: "text",
-        text: "I'm sorry, I had trouble responding. Please try again.",
-        timestamp: optimisticTimestamp,
+      const fallbackText =
+        "I'm sorry, I had trouble responding. Please try again.";
+
+      if (assistantMessageId === null) {
+        appendMessage({
+          role: "assistant",
+          kind: "text",
+          text: fallbackText,
+          timestamp: optimisticTimestamp,
+        });
+        return;
+      }
+
+      updateMessageById(assistantMessageId, (message) => {
+        if (message.role !== "assistant" || message.kind !== "text") {
+          return message;
+        }
+
+        return {
+          ...message,
+          text: message.text.trim() || fallbackText,
+          timestamp: optimisticTimestamp,
+        };
       });
     } finally {
       setIsTyping(false);
@@ -362,7 +699,9 @@ export default function AiCompanionPage() {
       setIsSidebarOpen(true);
     } catch (error) {
       console.error("Failed to create session:", error);
-      setSessionsError("Unable to create a new conversation. Please try again.");
+      setSessionsError(
+        "Unable to create a new conversation. Please try again.",
+      );
     } finally {
       setIsCreatingSession(false);
     }
@@ -392,7 +731,9 @@ export default function AiCompanionPage() {
       return;
     }
 
-    const remainingSessions = sessions.filter((session) => session.session_id !== id);
+    const remainingSessions = sessions.filter(
+      (session) => session.session_id !== id,
+    );
     const nextPreferredId =
       id === selectedSessionIdRef.current
         ? remainingSessions[0]?.session_id
@@ -479,7 +820,31 @@ export default function AiCompanionPage() {
               </p>
             </div>
           ) : (
-            <ConversationArea messages={messages} isTyping={isTyping} />
+            <ConversationArea
+              messages={messages}
+              isTyping={isTyping}
+              messageAudio={messageAudio}
+              currentlyPlayingId={currentlyPlayingId}
+              onPlayMessage={(messageId) => {
+                const targetMessage = messages.find(
+                  (
+                    message,
+                  ): message is Extract<
+                    ChatMessage,
+                    { role: "assistant"; kind: "text" }
+                  > =>
+                    message.id === messageId &&
+                    message.role === "assistant" &&
+                    message.kind === "text",
+                );
+
+                if (!targetMessage) {
+                  return;
+                }
+
+                void playMessageAudio(targetMessage);
+              }}
+            />
           )}
         </main>
 
@@ -491,7 +856,7 @@ export default function AiCompanionPage() {
           isDisabled={!selectedSessionId || isCreatingSession || !profile}
           placeholder={
             selectedSessionId
-              ? "Type a message or use / command..."
+              ? "Share what's on your mind, or record a voice note..."
               : "Create a new conversation to start chatting..."
           }
         />

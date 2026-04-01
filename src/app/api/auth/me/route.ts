@@ -43,7 +43,7 @@ export async function GET() {
     // 🔥 IMPORTANT: Normalize response
     // backend: { value: {...}, isSuccess: true }
     // frontend should receive ONLY the user
-    const user = data?.value;
+    const user = data;
 
     if (!user) {
       return NextResponse.json(

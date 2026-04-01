@@ -1,9 +1,11 @@
 import {
   chat,
+  chatStream,
   createSession,
   deleteSession,
   GetChat,
   getSessionsByUser,
+  synthesizeAssistantVoice,
 } from "@/api/chat-companion";
 import {
   Chat_history,
@@ -11,6 +13,7 @@ import {
   ChatResponse,
   NewSessionResponse,
   UserSessionsResponse,
+  VoicePlaybackRequest,
 } from "@/types/ai-companion";
 
 type HttpError = {
@@ -31,6 +34,23 @@ export async function sendChat(body: ChatRequest): Promise<ChatResponse> {
   } catch (error) {
     console.log("Submit answer failed to send data", error);
     throw new Error("Unable to submit your message. Please try again");
+  }
+}
+
+export async function sendChatStream(
+  body: ChatRequest,
+  handlers: {
+    onStage?: (payload: { stage: string }) => void;
+    onDelta?: (payload: { text: string }) => void;
+    onReplace?: (payload: { text: string }) => void;
+    onDone?: (payload: ChatResponse) => void;
+  },
+): Promise<void> {
+  try {
+    await chatStream(body, handlers);
+  } catch (error) {
+    console.log("Streaming answer failed", error);
+    throw new Error("Unable to stream your message. Please try again");
   }
 }
 
@@ -95,5 +115,16 @@ export async function fetchUserSessions(
   } catch (error) {
     console.log("Failed to fetch user sessions", error);
     throw new Error("Unable to load sessions. Please try again");
+  }
+}
+
+export async function generateAssistantVoice(
+  body: VoicePlaybackRequest,
+): Promise<ArrayBuffer> {
+  try {
+    return await synthesizeAssistantVoice(body);
+  } catch (error) {
+    console.log("Failed to synthesize assistant voice", error);
+    throw new Error("Unable to generate voice playback. Please try again");
   }
 }
