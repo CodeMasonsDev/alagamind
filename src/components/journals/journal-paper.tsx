@@ -1,6 +1,10 @@
 import { useMemo } from "react";
 import type { JournalSentimentSegment } from "@/api/journal-sentiment";
 
+type JournalSentimentSegmentLike = JournalSentimentSegment & {
+  sentence?: string | null;
+};
+
 export type JournalPaperEntry = {
   title?: string;
   content?: string;
@@ -86,7 +90,7 @@ function buildHighlightedJournalHtml(
         .filter(
           (segment) => normalizeSentiment(segment.sentiment) === selectedSentiment,
         )
-        .map((segment) => normalizeWhitespace(segment.text))
+        .map((segment) => normalizeWhitespace(resolveSegmentText(segment)))
         .filter(Boolean),
     ),
   );
@@ -156,7 +160,8 @@ function highlightTextInDocument(
   targetText: string,
   sentiment: HighlightableSentiment,
 ) {
-  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  const ownerDocument = root.ownerDocument ?? document;
+  const walker = ownerDocument.createTreeWalker(root, NodeFilter.SHOW_TEXT);
   const textNodes: Text[] = [];
 
   while (walker.nextNode()) {
@@ -166,7 +171,7 @@ function highlightTextInDocument(
       continue;
     }
 
-    if (current.parentElement.closest("[data-sentiment-highlight='true']")) {
+    if (current.parentElement.closest("[data-sentiment-highlight]")) {
       continue;
     }
 
@@ -175,8 +180,8 @@ function highlightTextInDocument(
 
   for (const textNode of textNodes) {
     const nodeValue = textNode.nodeValue ?? "";
-    const normalizedNodeValue = normalizeWhitespace(nodeValue);
-    const normalizedTarget = normalizeWhitespace(targetText);
+    const normalizedNodeValue = normalizeComparableText(nodeValue);
+    const normalizedTarget = normalizeComparableText(targetText);
 
     if (!normalizedNodeValue || !normalizedTarget) {
       continue;
@@ -185,6 +190,17 @@ function highlightTextInDocument(
     const directIndex = nodeValue.indexOf(targetText);
     if (directIndex >= 0) {
       wrapTextRange(textNode, directIndex, targetText.length, sentiment);
+      return;
+    }
+
+    const normalizedRange = findNormalizedSubstringRange(nodeValue, targetText);
+    if (normalizedRange) {
+      wrapTextRange(
+        textNode,
+        normalizedRange.start,
+        normalizedRange.length,
+        sentiment,
+      );
       return;
     }
 
@@ -201,11 +217,12 @@ function wrapTextRange(
   length: number,
   sentiment: HighlightableSentiment,
 ) {
-  const range = document.createRange();
+  const ownerDocument = textNode.ownerDocument ?? document;
+  const range = ownerDocument.createRange();
   range.setStart(textNode, start);
   range.setEnd(textNode, start + length);
 
-  const marker = document.createElement("mark");
+  const marker = ownerDocument.createElement("mark");
   marker.setAttribute("data-sentiment-highlight", sentiment);
   marker.className = "not-italic";
 
@@ -220,6 +237,90 @@ function normalizeSentiment(value: string) {
   return "negative";
 }
 
-function normalizeWhitespace(value: string) {
+function normalizeWhitespace(value: string | null | undefined) {
+  if (!value) {
+    return "";
+  }
+
   return value.replace(/\s+/g, " ").trim();
+}
+
+function normalizeComparableText(value: string | null | undefined) {
+  return normalizeWhitespace(value)
+    .replace(/[’‘]/g, "'")
+    .replace(/[“”]/g, '"')
+    .replace(/[–—]/g, "-")
+    .toLowerCase();
+}
+
+function findNormalizedSubstringRange(source: string, target: string) {
+  const normalizedSource = buildNormalizedIndexMap(source);
+  const normalizedTarget = normalizeComparableText(target);
+
+  if (!normalizedSource.normalized || !normalizedTarget) {
+    return null;
+  }
+
+  const matchIndex = normalizedSource.normalized.indexOf(normalizedTarget);
+  if (matchIndex < 0) {
+    return null;
+  }
+
+  const sourceStart = normalizedSource.sourceIndexes[matchIndex];
+  const sourceEnd =
+    normalizedSource.sourceIndexes[matchIndex + normalizedTarget.length - 1];
+
+  if (sourceStart == null || sourceEnd == null || sourceEnd < sourceStart) {
+    return null;
+  }
+
+  return {
+    start: sourceStart,
+    length: sourceEnd - sourceStart + 1,
+  };
+}
+
+function buildNormalizedIndexMap(value: string) {
+  let normalized = "";
+  const sourceIndexes: number[] = [];
+
+  for (let index = 0; index < value.length; index += 1) {
+    const currentCharacter = value[index];
+    const isWhitespace = /\s/.test(currentCharacter);
+
+    if (isWhitespace) {
+      if (!normalized || normalized.endsWith(" ")) {
+        continue;
+      }
+
+      normalized += " ";
+      sourceIndexes.push(index);
+      continue;
+    }
+
+    normalized += normalizeComparableCharacter(currentCharacter);
+    sourceIndexes.push(index);
+  }
+
+  if (normalized.endsWith(" ")) {
+    normalized = normalized.slice(0, -1);
+    sourceIndexes.pop();
+  }
+
+  return {
+    normalized,
+    sourceIndexes,
+  };
+}
+
+function normalizeComparableCharacter(value: string) {
+  if (value === "’" || value === "‘") return "'";
+  if (value === "“" || value === "”") return '"';
+  if (value === "–" || value === "—") return "-";
+
+  return value.toLowerCase();
+}
+
+function resolveSegmentText(segment: JournalSentimentSegmentLike) {
+  return segment.text ?? segment.sentence ?? "";
 }

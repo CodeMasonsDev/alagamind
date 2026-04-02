@@ -15,7 +15,12 @@ import {
   removeSession,
   sendChatStream,
 } from "@/services/chat";
-import { ChatRequest, SessionTurn, UserSession } from "@/types/ai-companion";
+import {
+  ChatRequest,
+  LanguagePreference,
+  SessionTurn,
+  UserSession,
+} from "@/types/ai-companion";
 
 export type Suggestion = {
   title: string;
@@ -54,6 +59,29 @@ type MessageAudioState = {
 };
 
 export const SUGGESTIONS: Suggestion[] = [];
+const LANGUAGE_PREFERENCE_STORAGE_KEY =
+  "ai-companion.language-preference";
+
+function isLanguagePreference(value: unknown): value is LanguagePreference {
+  return (
+    value === "auto" ||
+    value === "english" ||
+    value === "bisaya" ||
+    value === "tagalog"
+  );
+}
+
+function readStoredLanguagePreference() {
+  if (typeof window === "undefined") {
+    return "auto" as const;
+  }
+
+  const storedValue = window.localStorage.getItem(
+    LANGUAGE_PREFERENCE_STORAGE_KEY,
+  );
+
+  return isLanguagePreference(storedValue) ? storedValue : "auto";
+}
 
 function sortSessionsByUpdatedAt(nextSessions: UserSession[]) {
   return [...nextSessions].sort((left, right) => {
@@ -122,6 +150,8 @@ export default function AiCompanionPage() {
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
+  const [languagePreference, setLanguagePreference] =
+    useState<LanguagePreference>(readStoredLanguagePreference);
   const [isTyping, setIsTyping] = useState(false);
   const [messageAudio, setMessageAudio] = useState<
     Record<number, MessageAudioState>
@@ -310,6 +340,17 @@ export default function AiCompanionPage() {
 
     void refetchSessions();
   }, [isLoadingProfile, profile?.id, refetchSessions]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    window.localStorage.setItem(
+      LANGUAGE_PREFERENCE_STORAGE_KEY,
+      languagePreference,
+    );
+  }, [languagePreference]);
 
   useEffect(() => {
     selectedSessionIdRef.current = selectedSessionId;
@@ -588,6 +629,7 @@ export default function AiCompanionPage() {
         user_message: trimmed,
         session_id: activeSessionId,
         user_id: profile?.id,
+        language_preference: languagePreference,
       };
 
       await sendChatStream(chatRequest, {
@@ -626,6 +668,9 @@ export default function AiCompanionPage() {
         },
         onDone: async (response) => {
           setIsTyping(false);
+          if (response.language_preference) {
+            setLanguagePreference(response.language_preference);
+          }
           const messageId = ensureAssistantMessage(response.response);
           updateMessageById(messageId, (message) => {
             if (message.role !== "assistant" || message.kind !== "text") {
@@ -851,6 +896,8 @@ export default function AiCompanionPage() {
         <Composer
           input={input}
           onInputChange={setInput}
+          languagePreference={languagePreference}
+          onLanguagePreferenceChange={setLanguagePreference}
           onSend={sendMessage}
           isTyping={isTyping || isLoadingProfile || isLoadingSessions}
           isDisabled={!selectedSessionId || isCreatingSession || !profile}

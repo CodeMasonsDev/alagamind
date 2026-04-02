@@ -35,6 +35,10 @@ function sanitizeStreamTextFragment(text: string): string {
     return "";
   }
 
+  if (/^"?response"?\s*:?\s*$/i.test(trimmed)) {
+    return "";
+  }
+
   if (/^[{}\[\]",:]+$/.test(trimmed)) {
     return "";
   }
@@ -50,7 +54,11 @@ function sanitizeStreamTextFragment(text: string): string {
     }
   }
 
-  return text.replace(/^\s*[{[]+\s*/, "").replace(/\s*[}\]]+\s*$/, "");
+  return text
+    .replace(/^\s*[{[]+\s*/, "")
+    .replace(/\s*[}\]]+\s*$/, "")
+    .replace(/^\s*"(?:response|text|content|delta|message)"\s*:\s*/i, "")
+    .replace(/^\s*(?:response|text|content|delta|message)\s*:\s*/i, "");
 }
 
 function extractStreamText(value: unknown): string {
@@ -130,6 +138,13 @@ function normalizeDonePayload(payload: unknown): ChatResponse {
     session_id:
       typeof payload.session_id === "string" ? payload.session_id : "",
     user_id: typeof payload.user_id === "string" ? payload.user_id : undefined,
+    language_preference:
+      payload.language_preference === "auto" ||
+      payload.language_preference === "english" ||
+      payload.language_preference === "bisaya" ||
+      payload.language_preference === "tagalog"
+        ? payload.language_preference
+        : undefined,
     language:
       typeof payload.language === "string" ? payload.language : undefined,
     emotion:
@@ -211,12 +226,18 @@ function findSseEventBoundary(buffer: string) {
   return Math.min(windowsBoundaryIndex, unixBoundaryIndex);
 }
 
-export async function chat({ user_message, session_id, user_id }: ChatRequest) {
+export async function chat({
+  user_message,
+  session_id,
+  user_id,
+  language_preference = "auto",
+}: ChatRequest) {
   try {
     const response = await axiosInstance.post<ChatResponse>("api/chat/", {
       user_message,
       session_id,
       user_id,
+      language_preference,
     });
 
     if (!response.data) {
@@ -230,7 +251,12 @@ export async function chat({ user_message, session_id, user_id }: ChatRequest) {
 }
 
 export async function chatStream(
-  { user_message, session_id, user_id }: ChatRequest,
+  {
+    user_message,
+    session_id,
+    user_id,
+    language_preference = "auto",
+  }: ChatRequest,
   handlers: ChatStreamHandlers,
 ) {
   const response = await fetch(`${BASEURL}api/chat/stream`, {
@@ -242,6 +268,7 @@ export async function chatStream(
       user_message,
       session_id,
       user_id,
+      language_preference,
     }),
   });
 
