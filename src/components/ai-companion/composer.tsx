@@ -6,6 +6,7 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
+import { LanguagePreference } from "@/types/ai-companion";
 
 type RecordingPhase = "idle" | "recording" | "finalizing";
 
@@ -15,6 +16,8 @@ const EMPTY_WAVEFORM_BARS = createEmptyWaveform(WAVEFORM_BAR_COUNT);
 export default function Composer({
   input,
   onInputChange,
+  languagePreference,
+  onLanguagePreferenceChange,
   onSend,
   isTyping,
   isDisabled = false,
@@ -22,6 +25,8 @@ export default function Composer({
 }: {
   input: string;
   onInputChange: (value: string) => void;
+  languagePreference: LanguagePreference;
+  onLanguagePreferenceChange: (value: LanguagePreference) => void;
   onSend: (text: string) => void;
   isTyping: boolean;
   isDisabled?: boolean;
@@ -439,6 +444,26 @@ export default function Composer({
                 {statusLabel}
               </p>
             </div>
+
+            <label className="flex shrink-0 items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+              <span>Language</span>
+              <select
+                value={languagePreference}
+                onChange={(event) =>
+                  onLanguagePreferenceChange(
+                    event.target.value as LanguagePreference,
+                  )
+                }
+                disabled={isDisabled || isTyping || isBusy}
+                className="min-w-[96px] bg-transparent text-[12px] font-semibold normal-case tracking-normal text-slate-700 outline-none disabled:cursor-not-allowed disabled:text-slate-300"
+                aria-label="Language"
+              >
+                <option value="auto">Auto</option>
+                <option value="english">English</option>
+                <option value="bisaya">Bisaya</option>
+                <option value="tagalog">Tagalog</option>
+              </select>
+            </label>
 
             <button
               type="button"

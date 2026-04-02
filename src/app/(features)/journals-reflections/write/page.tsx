@@ -3,13 +3,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import "quill/dist/quill.snow.css";
 import { MakeJournal, updateJournal } from "@/services/journals";
-import { useDashboardMetrics } from "@/components/providers/dashboard-metrics-provider";
 import { useReflections } from "@/components/providers/reflections-provider";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { GetUserJournal } from "@/api/journal";
-import { analyzeJournalSentiment } from "@/api/journal-sentiment";
 import { getMe, SessionUser } from "@/api/auth/auth";
+import { generateJournalSegments } from "@/api/journal-segments";
+import { analyzeJournalSentiment } from "@/api/journal-sentiment";
 import {
   formatJournalCalendarDate,
   formatJournalClockTime,
@@ -24,9 +24,18 @@ type JournalTimestampRecord = {
   updated_at?: unknown;
 };
 
+type JournalSaveRecord = JournalTimestampRecord & {
+  id?: unknown;
+  journalId?: unknown;
+};
+
+const JOURNAL_DETAIL_SESSION_CACHE_PREFIX = "journal-detail";
+const JOURNAL_INSIGHTS_SESSION_CACHE_PREFIX = "journal-insights";
+
 export default function ReflectionEditor() {
   const editorRef = useRef<HTMLDivElement>(null);
   const quillRef = useRef<QuillEditor | null>(null);
+  const router = useRouter();
 
   const [title, setTitle] = useState("Daily Equilibrium Check-in");
   const [isSaving, setIsSaving] = useState(false);
@@ -34,12 +43,12 @@ export default function ReflectionEditor() {
   const [isEditorReady, setIsEditorReady] = useState(false);
   const [isHydratingUpdate, setIsHydratingUpdate] = useState(false);
   const [editorHtml, setEditorHtml] = useState("");
-  const [displayTimestampMs, setDisplayTimestampMs] = useState(() => Date.now());
+  const [displayTimestampMs, setDisplayTimestampMs] = useState(() =>
+    Date.now(),
+  );
   const [baselineTitle, setBaselineTitle] = useState("");
   const [baselineEditorHtml, setBaselineEditorHtml] = useState("");
   const searchParams = useSearchParams();
-  const { refreshFocusMomentum } = useDashboardMetrics();
-
   const requestedJournalId = searchParams.get("journalId")?.trim();
   const isUpdateMode = Boolean(requestedJournalId || journalId);
   const hasPendingChanges =
@@ -197,7 +206,6 @@ export default function ReflectionEditor() {
       const plainContent = stripHtml(htmlContent);
       const resolvedTitle = title.trim() || "Untitled Reflection";
       const submittedAtMs = Date.now();
-      const analyzedAt = new Date(submittedAtMs);
 
       if (journalId) {
         const payload = {
@@ -209,21 +217,29 @@ export default function ReflectionEditor() {
 
         const updateRes = await updateJournal(payload);
         if (!updateRes) throw new Error("Update failed: Empty response");
-        setDisplayTimestampMs(resolveJournalTimestamp(updateRes) ?? submittedAtMs);
-        void refreshFocusMomentum(userId);
+        const updatedJournalId = resolveSavedJournalId(updateRes, journalId);
+        setDisplayTimestampMs(
+          resolveJournalTimestamp(updateRes) ?? submittedAtMs,
+        );
+        await syncJournalAnalysis({
+          journalId: updatedJournalId,
+          plainContent,
+        });
+        clearJournalSessionCache(userId, updatedJournalId);
         void refreshEntries();
+
+        if (updatedJournalId) {
+          router.push(
+            `/journals-reflections/my-journal/${userId}/${updatedJournalId}?refresh=true`,
+          );
+          return;
+        }
 
         const savedHtml = quillRef.current.root.innerHTML;
         setEditorHtml(savedHtml);
         setBaselineEditorHtml(savedHtml);
         setBaselineTitle(resolvedTitle);
 
-        void syncJournalSentiment({
-          userId,
-          journalId,
-          content: htmlContent,
-          analyzedAt,
-        });
       } else {
         const payload = {
           userId,
@@ -234,21 +250,16 @@ export default function ReflectionEditor() {
         const data = await MakeJournal(payload);
         if (!data) throw new Error("Create failed: Empty response");
         setDisplayTimestampMs(resolveJournalTimestamp(data) ?? submittedAtMs);
-        void refreshFocusMomentum(userId);
+        const newId = resolveSavedJournalId(data);
+        await syncJournalAnalysis({
+          journalId: newId,
+          plainContent,
+        });
+        clearJournalSessionCache(userId, newId);
         void refreshEntries();
 
-        const newId = data.id;
         if (newId) {
           setJournalId(newId);
-        }
-
-        if (newId) {
-          void syncJournalSentiment({
-            userId,
-            journalId: newId,
-            content: htmlContent,
-            analyzedAt,
-          });
         }
 
         const savedHtml = quillRef.current.root.innerHTML;
@@ -542,25 +553,57 @@ function resolveJournalTimestamp(journal: JournalTimestampRecord) {
   );
 }
 
-async function syncJournalSentiment({
-  userId,
+function resolveSavedJournalId(
+  journal: JournalSaveRecord | null | undefined,
+  fallbackJournalId?: string | null,
+) {
+  const candidate =
+    journal?.id ?? journal?.journalId ?? fallbackJournalId ?? null;
+
+  if (candidate == null) {
+    return null;
+  }
+
+  const normalizedJournalId = String(candidate).trim();
+  return normalizedJournalId || null;
+}
+
+async function syncJournalAnalysis({
   journalId,
-  content,
-  analyzedAt,
+  plainContent,
 }: {
-  userId: string;
-  journalId: string;
-  content: string;
-  analyzedAt: Date;
+  journalId: string | null;
+  plainContent: string;
 }) {
+  if (!journalId || !plainContent.trim()) {
+    return;
+  }
+
   try {
-    await analyzeJournalSentiment({
-      user_id: userId,
-      journal_id: journalId,
-      content,
-      created_at: analyzedAt.toISOString(),
+    await generateJournalSegments({
+      journalEntryId: journalId,
+      content: plainContent,
     });
+    await analyzeJournalSentiment({ journal_id: journalId });
   } catch (error) {
-    console.error("Failed to analyze journal sentiment:", error);
+    console.error("Failed to sync journal segments and sentiment:", error);
   }
 }
+
+function clearJournalSessionCache(userId: string, journalId: string | null) {
+  if (!userId || !journalId || typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    window.sessionStorage.removeItem(
+      `${JOURNAL_DETAIL_SESSION_CACHE_PREFIX}:${userId}:${journalId}`,
+    );
+    window.sessionStorage.removeItem(
+      `${JOURNAL_INSIGHTS_SESSION_CACHE_PREFIX}:${userId}:${journalId}`,
+    );
+  } catch (error) {
+    console.warn("Failed to clear journal session cache:", error);
+  }
+}
+

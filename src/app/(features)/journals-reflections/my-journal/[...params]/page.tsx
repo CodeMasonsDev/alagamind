@@ -2,7 +2,6 @@
 
 import { GetUserJournal } from "@/api/journal";
 import {
-  analyzeJournalSentiment,
   getJournalSentiment,
   getJournalSentimentPercentages,
   type JournalRecommendedProtocol,
@@ -30,7 +29,7 @@ import {
   Wind,
 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { use, useEffect, useState } from "react";
 
 type MyJournalProps = {
@@ -70,9 +69,7 @@ type InsightsState = {
   errorMessage: string | null;
 };
 
-type InsightsCacheRecord = InsightsState & {
-  cachedAt: number;
-};
+type InsightsCacheRecord = InsightsState;
 
 const EMPTY_INSIGHTS_STATE: InsightsState = {
   status: "idle",
@@ -81,27 +78,62 @@ const EMPTY_INSIGHTS_STATE: InsightsState = {
   errorMessage: null,
 };
 
-const INSIGHTS_CACHE_TTL_MS = 5 * 60 * 1000;
+const JOURNAL_DETAIL_SESSION_CACHE_PREFIX = "journal-detail";
+const JOURNAL_INSIGHTS_SESSION_CACHE_PREFIX = "journal-insights";
 
 export default function MyJournal({ params }: MyJournalProps) {
   const resolved = use(params);
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const user_id = resolved.params[0] ?? "";
+  const journal_id = resolved.params[1] ?? "";
+  const shouldForceRefreshInsights = searchParams.get("refresh") === "true";
+  const journalCacheKey = getJournalDetailCacheKey(user_id, journal_id);
+  const insightsCacheKey = getJournalInsightsCacheKey(user_id, journal_id);
 
   const [isInsightsOpen, setIsInsightsOpen] = useState(false);
   const [journal, setJournal] = useState<JournalDetail | null>(null);
-  const [isJournalLoading, setIsJournalLoading] = useState(true);
+  const [isJournalLoading, setIsJournalLoading] = useState(
+    Boolean(user_id && journal_id),
+  );
   const [selectedSentiment, setSelectedSentiment] =
     useState<HighlightableSentiment | null>(null);
   const [insightsCache, setInsightsCache] = useState<
     Record<string, InsightsCacheRecord>
   >({});
+  const [isSessionCacheHydrated, setIsSessionCacheHydrated] = useState(false);
 
-  const user_id = resolved.params[0] ?? "";
-  const journal_id = resolved.params[1] ?? "";
+  useEffect(() => {
+    setIsSessionCacheHydrated(false);
+
+    const cachedJournal = readSessionCache<JournalDetail>(journalCacheKey);
+    const cachedInsights = readSessionCache<InsightsCacheRecord>(
+      insightsCacheKey,
+    );
+
+    setJournal(cachedJournal);
+    setIsJournalLoading(Boolean(user_id && journal_id && !cachedJournal));
+    setInsightsCache(
+      cachedInsights && journal_id
+        ? {
+            [journal_id]: cachedInsights,
+          }
+        : {},
+    );
+    setIsSessionCacheHydrated(true);
+  }, [insightsCacheKey, journalCacheKey, journal_id, user_id]);
 
   useEffect(() => {
     if (!user_id || !journal_id) {
       setJournal(null);
+      setIsJournalLoading(false);
+      return;
+    }
+
+    const cachedJournal = readSessionCache<JournalDetail>(journalCacheKey);
+    if (cachedJournal) {
+      setJournal(cachedJournal);
       setIsJournalLoading(false);
       return;
     }
@@ -133,11 +165,56 @@ export default function MyJournal({ params }: MyJournalProps) {
     return () => {
       isCancelled = true;
     };
-  }, [journal_id, user_id]);
+  }, [journalCacheKey, journal_id, user_id]);
 
   useEffect(() => {
     setSelectedSentiment(null);
   }, [journal_id]);
+
+  useEffect(() => {
+    if (!shouldForceRefreshInsights || !journal_id) {
+      return;
+    }
+
+    if (insightsCache[journal_id]?.status !== "success") {
+      return;
+    }
+
+    router.replace(pathname, { scroll: false });
+  }, [
+    insightsCache,
+    journal_id,
+    pathname,
+    router,
+    shouldForceRefreshInsights,
+  ]);
+
+  useEffect(() => {
+    if (!isSessionCacheHydrated || !journalCacheKey) {
+      return;
+    }
+
+    if (!journal) {
+      clearSessionCache(journalCacheKey);
+      return;
+    }
+
+    writeSessionCache(journalCacheKey, journal);
+  }, [isSessionCacheHydrated, journal, journalCacheKey]);
+
+  useEffect(() => {
+    if (!isSessionCacheHydrated || !insightsCacheKey) {
+      return;
+    }
+
+    const cacheEntry = journal_id ? insightsCache[journal_id] : undefined;
+    if (cacheEntry?.status === "success") {
+      writeSessionCache(insightsCacheKey, cacheEntry);
+      return;
+    }
+
+    clearSessionCache(insightsCacheKey);
+  }, [insightsCache, insightsCacheKey, isSessionCacheHydrated, journal_id]);
 
   const handleDelete = async (userId: string, journalId: string) => {
     const response = await DeleteJournalId(userId, journalId);
@@ -197,15 +274,13 @@ export default function MyJournal({ params }: MyJournalProps) {
               selectedSentiment={selectedSentiment}
               onSelectedSentimentChange={setSelectedSentiment}
               cacheEntry={insightsCache[journal_id]}
+              forceRefresh={shouldForceRefreshInsights}
               onCacheUpdate={(nextState) => {
                 if (!journal_id) return;
 
                 setInsightsCache((current) => ({
                   ...current,
-                  [journal_id]: {
-                    ...nextState,
-                    cachedAt: Date.now(),
-                  },
+                  [journal_id]: nextState,
                 }));
               }}
             />
@@ -298,6 +373,7 @@ function AiInsightsSidebar({
   selectedSentiment,
   onSelectedSentimentChange,
   cacheEntry,
+  forceRefresh,
   onCacheUpdate,
 }: {
   userId: string;
@@ -306,12 +382,15 @@ function AiInsightsSidebar({
   selectedSentiment: HighlightableSentiment | null;
   onSelectedSentimentChange: (value: HighlightableSentiment | null) => void;
   cacheEntry?: InsightsCacheRecord;
+  forceRefresh: boolean;
   onCacheUpdate: (nextState: InsightsState) => void;
 }) {
   const [state, setState] = useState<InsightsState>(() =>
     getInitialInsightsState(cacheEntry),
   );
   const [retryToken, setRetryToken] = useState(0);
+  const effectiveState =
+    (retryToken === 0 ? getValidCachedInsights(cacheEntry) : null) ?? state;
 
   useEffect(() => {
     if (!userId || !journalId || !journal) {
@@ -319,7 +398,7 @@ function AiInsightsSidebar({
     }
 
     const cachedState = getValidCachedInsights(cacheEntry);
-    if (cachedState && retryToken === 0) {
+    if (cachedState && retryToken === 0 && !forceRefresh) {
       return;
     }
 
@@ -336,7 +415,7 @@ function AiInsightsSidebar({
         const result = await fetchJournalInsights({
           userId,
           journalId,
-          journal,
+          forceRefresh,
         });
 
         if (!isCancelled) {
@@ -373,14 +452,23 @@ function AiInsightsSidebar({
     return () => {
       isCancelled = true;
     };
-  }, [cacheEntry, journal, journalId, onCacheUpdate, retryToken, userId]);
+  }, [
+    cacheEntry,
+    forceRefresh,
+    journal,
+    journalId,
+    onCacheUpdate,
+    retryToken,
+    userId,
+  ]);
 
-  const metrics = buildSentimentMetrics(state.percentages);
-  const segmentCount = state.sentiment?.segments.length ?? 0;
+  const metrics = buildSentimentMetrics(effectiveState.percentages);
+  const segmentCount = effectiveState.sentiment?.segments.length ?? 0;
   const suggestedReframe =
-    state.percentages?.suggested_reframe?.trim() ||
+    effectiveState.percentages?.suggested_reframe?.trim() ||
     "No reframe suggestion is available for this journal yet.";
-  const recommendedProtocol = state.percentages?.recommended_protocol ?? null;
+  const recommendedProtocol =
+    effectiveState.percentages?.recommended_protocol ?? null;
 
   return (
     <section className="h-full px-6 py-7 lg:sticky lg:top-[73px] lg:h-[calc(100vh-73px)] lg:overflow-y-auto">
@@ -390,11 +478,11 @@ function AiInsightsSidebar({
           AI Insights Sidebar
         </header>
 
-        {state.status === "loading" ? <InsightsLoadingState /> : null}
+        {effectiveState.status === "loading" ? <InsightsLoadingState /> : null}
 
-        {state.status === "error" ? (
+        {effectiveState.status === "error" ? (
           <InsightsErrorState
-            message={state.errorMessage}
+            message={effectiveState.errorMessage}
             onRetry={() => {
               setState(EMPTY_INSIGHTS_STATE);
               setRetryToken((current) => current + 1);
@@ -402,7 +490,7 @@ function AiInsightsSidebar({
           />
         ) : null}
 
-        {state.status === "success" ? (
+        {effectiveState.status === "success" ? (
           <>
             <section className="space-y-4 border-b border-slate-200 pb-6">
               <div className="flex items-center justify-between gap-3">
@@ -612,37 +700,30 @@ function InsightMeter({
 async function fetchJournalInsights({
   userId,
   journalId,
-  journal,
+  forceRefresh,
 }: {
   userId: string;
   journalId: string;
-  journal: JournalDetail;
+  forceRefresh: boolean;
 }) {
+  return fetchJournalInsightsSnapshot(journalId, userId, forceRefresh);
+}
+
+async function fetchJournalInsightsSnapshot(
+  journalId: string,
+  userId: string,
+  forceRefresh: boolean,
+) {
+  const percentages = await getJournalSentimentPercentages(journalId, userId, {
+    refresh: forceRefresh,
+  });
+
   try {
-    const [percentages, sentiment] = await Promise.all([
-      getJournalSentimentPercentages(journalId, userId),
-      getJournalSentiment(journalId, userId),
-    ]);
-
+    const sentiment = await getJournalSentiment(journalId, userId);
     return { percentages, sentiment };
-  } catch (initialError) {
-    if (!journal.content?.trim()) {
-      throw initialError;
-    }
-
-    await analyzeJournalSentiment({
-      user_id: userId,
-      journal_id: journalId,
-      content: journal.content,
-      created_at: resolveCreatedAtIso(journal.createdAt),
-    });
-
-    const [percentages, sentiment] = await Promise.all([
-      getJournalSentimentPercentages(journalId, userId),
-      getJournalSentiment(journalId, userId),
-    ]);
-
-    return { percentages, sentiment };
+  } catch (error) {
+    console.warn("Sentiment segments unavailable for journal:", error);
+    return { percentages, sentiment: null };
   }
 }
 
@@ -706,10 +787,6 @@ function resolveJournalTimestamp(journal: RawJournal) {
   );
 }
 
-function resolveCreatedAtIso(createdAt: number | null) {
-  return new Date(createdAt ?? Date.now()).toISOString();
-}
-
 function getInitialInsightsState(cacheEntry?: InsightsCacheRecord) {
   return getValidCachedInsights(cacheEntry) ?? EMPTY_INSIGHTS_STATE;
 }
@@ -719,14 +796,68 @@ function getValidCachedInsights(cacheEntry?: InsightsCacheRecord) {
     return null;
   }
 
-  if (Date.now() - cacheEntry.cachedAt > INSIGHTS_CACHE_TTL_MS) {
-    return null;
-  }
-
   return {
     status: cacheEntry.status,
     percentages: cacheEntry.percentages,
     sentiment: cacheEntry.sentiment,
     errorMessage: cacheEntry.errorMessage,
   } satisfies InsightsState;
+}
+
+function getJournalDetailCacheKey(userId: string, journalId: string) {
+  if (!userId || !journalId) {
+    return "";
+  }
+
+  return `${JOURNAL_DETAIL_SESSION_CACHE_PREFIX}:${userId}:${journalId}`;
+}
+
+function getJournalInsightsCacheKey(userId: string, journalId: string) {
+  if (!userId || !journalId) {
+    return "";
+  }
+
+  return `${JOURNAL_INSIGHTS_SESSION_CACHE_PREFIX}:${userId}:${journalId}`;
+}
+
+function readSessionCache<T>(key: string) {
+  if (!key || typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    const rawValue = window.sessionStorage.getItem(key);
+    if (!rawValue) {
+      return null;
+    }
+
+    return JSON.parse(rawValue) as T;
+  } catch (error) {
+    console.warn("Failed to read journal session cache:", error);
+    return null;
+  }
+}
+
+function writeSessionCache(key: string, value: unknown) {
+  if (!key || typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    window.sessionStorage.setItem(key, JSON.stringify(value));
+  } catch (error) {
+    console.warn("Failed to write journal session cache:", error);
+  }
+}
+
+function clearSessionCache(key: string) {
+  if (!key || typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    window.sessionStorage.removeItem(key);
+  } catch (error) {
+    console.warn("Failed to clear journal session cache:", error);
+  }
 }

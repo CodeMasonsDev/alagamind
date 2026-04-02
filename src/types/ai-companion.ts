@@ -1,7 +1,14 @@
+export type LanguagePreference =
+  | "auto"
+  | "english"
+  | "bisaya"
+  | "tagalog";
+
 export type ChatRequest = {
   user_message: string;
   session_id?: string;
   user_id?: string;
+  language_preference?: LanguagePreference;
 };
 
 export type ChatResponse = {
@@ -9,6 +16,7 @@ export type ChatResponse = {
   session_id: string;
   user_id?: string;
   language?: string;
+  language_preference?: LanguagePreference;
   emotion?: string | null;
   problem?: string | null;
 };
@@ -19,6 +27,7 @@ export type Chat_history = {
   emotion?: string | null;
   problem?: string | null;
   language?: string | null;
+  language_preference?: LanguagePreference;
 };
 
 export type ChatHistoryResponse = {
@@ -43,6 +52,7 @@ export type SessionTurn = {
   emotion?: string | null;
   problem?: string | null;
   language?: string | null;
+  language_preference?: LanguagePreference;
   timestamp: string;
 };
 

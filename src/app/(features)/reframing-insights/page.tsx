@@ -3,22 +3,28 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import {
+  AlertCircle,
   Brain,
   Check,
   ChevronLeft,
   LoaderCircle,
   MoonStar,
   PanelRightOpen,
+  RefreshCw,
   ScanSearch,
   Sparkles,
   WandSparkles,
 } from "lucide-react";
 
 import {
+  type ApiSavedReframe,
+  type ApiThought,
+  type DetectedPattern,
+  type DistortionBreakdown,
+  type GeneratedReframe,
   fetchThoughtsByUsers,
   generateReframes,
-  getDetectedPatterns,
-  getDistortionBreakDown,
+  getInsights,
   getSaveReframe,
   saveGeneratedReframeThought,
 } from "@/api/reframing";
@@ -35,6 +41,8 @@ type Thought = {
   source: string;
   time: string;
   distortion: string;
+  journalId: string;
+  position: number;
 };
 
 type Reframe = {
@@ -54,39 +62,6 @@ type SavedReframe = {
   savedAt: string;
 };
 
-type ApiThought = {
-  thought_id: number;
-  text: string;
-  distortion: string;
-  confidence: number;
-  position: number;
-  created_at: string;
-  context_note: string;
-  journal_id: string;
-};
-
-type ApiSaveThought = {
-  reframe_id: number;
-  thought_id: number;
-  thought_text: string;
-  distortion: string;
-  style: string;
-  text: string;
-  created_at: string;
-};
-
-type DetectedPattern = {
-  type: string;
-  title: string;
-  share: number;
-  count: number;
-  severity: string | null;
-  window: string | null;
-  keywords: string[] | string | null;
-};
-
-type DistortionBreakdown = Record<string, number>;
-
 const DATE_TIME_FORMATTER = new Intl.DateTimeFormat("en-PH", {
   year: "numeric",
   month: "short",
@@ -98,7 +73,17 @@ const DATE_TIME_FORMATTER = new Intl.DateTimeFormat("en-PH", {
 });
 
 export default function MoodTrendsPage() {
-  const [thoughts, setThougts] = useState<Thought[]>([]);
+  const [thoughts, setThoughts] = useState<Thought[]>([]);
+  const [thoughtsStatus, setThoughtsStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
+  const [thoughtsErrorMessage, setThoughtsErrorMessage] = useState<
+    string | null
+  >(null);
+  const [reframeErrorMessage, setReframeErrorMessage] = useState<string | null>(
+    null,
+  );
+  const [thoughtsRetryToken, setThoughtsRetryToken] = useState(0);
 
   const [profile, setProfile] = useState<SessionUser | null>(null);
 
@@ -122,47 +107,6 @@ export default function MoodTrendsPage() {
   }, []);
 
   const defaultUserId = profile?.id;
-
-  useEffect(() => {
-    if (!defaultUserId) return;
-
-    void (async () => {
-      await Promise.all([
-        fetchDetectedPatterns(defaultUserId),
-        fetchDistortionBreakdown(defaultUserId),
-      ]);
-
-      try {
-        const thoughtResponse = await fetchThoughtsByUsers(defaultUserId);
-        const thoughtItems: ApiThought[] = Array.isArray(thoughtResponse)
-          ? thoughtResponse
-          : thoughtResponse
-            ? [thoughtResponse]
-            : [];
-        const mappedThoughts = thoughtItems.map(mapApiThoughtToUi);
-        setThougts(mappedThoughts);
-        setSelectedThoughtId(
-          (current) => current || mappedThoughts[0]?.thought_Id || "",
-        );
-      } catch (error) {
-        console.log(error);
-        setThougts([]);
-      }
-
-      try {
-        const savedResponse = await getSaveReframe(defaultUserId);
-        const savedItems: ApiSaveThought[] = Array.isArray(savedResponse)
-          ? savedResponse
-          : savedResponse
-            ? [savedResponse]
-            : [];
-        setSavedReframes(savedItems.map(mapApiSaveThoughtToUi));
-      } catch (error) {
-        console.log(error);
-        setSavedReframes([]);
-      }
-    })();
-  }, [defaultUserId]);
 
   const { refreshFocusMomentum } = useDashboardMetrics();
 
@@ -188,6 +132,86 @@ export default function MoodTrendsPage() {
   const hasGeneratedSelection =
     generatedThoughtId === selectedThoughtId && generatedReframes.length > 0;
 
+  useEffect(() => {
+    if (!defaultUserId) {
+      return;
+    }
+
+    let isCancelled = false;
+
+    const loadPageData = async () => {
+      setThoughtsStatus("loading");
+      setThoughtsErrorMessage(null);
+
+      const [thoughtsResult, savedReframesResult, insightsResult] =
+        await Promise.allSettled([
+          fetchThoughtsByUsers(defaultUserId),
+          getSaveReframe(defaultUserId),
+          getInsights(defaultUserId),
+        ]);
+
+      if (isCancelled) {
+        return;
+      }
+
+      if (thoughtsResult.status === "fulfilled") {
+        const mappedThoughts = thoughtsResult.value
+          .map(mapApiThoughtToUi)
+          .sort(compareThoughtsByRecency);
+        setThoughts(mappedThoughts);
+        setThoughtsStatus("success");
+      } else {
+        console.error("Failed to load thoughts:", thoughtsResult.reason);
+        setThoughts([]);
+        setThoughtsStatus("error");
+        setThoughtsErrorMessage(
+          "We could not load your thought list right now.",
+        );
+      }
+
+      if (savedReframesResult.status === "fulfilled") {
+        setSavedReframes(savedReframesResult.value.map(mapApiSaveThoughtToUi));
+      } else {
+        console.error(
+          "Failed to load saved reframes:",
+          savedReframesResult.reason,
+        );
+        setSavedReframes([]);
+      }
+
+      if (insightsResult.status === "fulfilled") {
+        setDetectedPatterns(insightsResult.value.detected_patterns ?? []);
+        setDistortionBreakdown(insightsResult.value.distortion_breakdown ?? {});
+      } else {
+        console.error(
+          "Failed to load reframing insights:",
+          insightsResult.reason,
+        );
+        setDetectedPatterns([]);
+        setDistortionBreakdown({});
+      }
+    };
+
+    void loadPageData();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [defaultUserId, thoughtsRetryToken]);
+
+  useEffect(() => {
+    if (!thoughts.length) {
+      setSelectedThoughtId("");
+      return;
+    }
+
+    setSelectedThoughtId((current) =>
+      thoughts.some((thought) => thought.thought_Id === current)
+        ? current
+        : thoughts[0].thought_Id,
+    );
+  }, [thoughts]);
+
   const headerMetrics = useMemo(() => {
     const uniqueThoughts = new Set(savedReframes.map((item) => item.thoughtId))
       .size;
@@ -210,30 +234,6 @@ export default function MoodTrendsPage() {
     };
   }, [detectedPatterns, distortionBreakdowns, savedReframes]);
 
-  async function fetchDistortionBreakdown(user_id: string) {
-    try {
-      const res = await getDistortionBreakDown(user_id);
-      if (res) {
-        console.log("distortions:", res);
-        setDistortionBreakdown(res);
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  async function fetchDetectedPatterns(user_id: string) {
-    try {
-      const res = await getDetectedPatterns(user_id);
-      if (res) {
-        console.log("patterns:", res);
-        setDetectedPatterns(res);
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
   function mapApiThoughtToUi(item: ApiThought): Thought {
     return {
       thought_Id: String(item.thought_id),
@@ -241,20 +241,9 @@ export default function MoodTrendsPage() {
       source: item.context_note || "Journal thought",
       time: item.created_at,
       distortion: item.distortion || "Unknown",
+      journalId: item.journal_id,
+      position: item.position,
     };
-  }
-
-  async function generateThoughts(thought_id: number, text: string) {
-    try {
-      const res = await generateReframes({ thought_id, text });
-      const generatedItems = Array.isArray(res) ? res : [];
-      console.log("generated reframes", res);
-      setGeneratedReframes(generatedItems);
-      return generatedItems;
-    } catch {
-      console.log("failed to fetch");
-      return [];
-    }
   }
 
   function handleThoughtSelect(thoughtId: string) {
@@ -262,6 +251,7 @@ export default function MoodTrendsPage() {
     setGeneratedThoughtId(null);
     setGeneratedReframes([]);
     setIsGenerating(false);
+    setReframeErrorMessage(null);
   }
   async function handleGenerate() {
     if (!selectedThought) return;
@@ -269,26 +259,30 @@ export default function MoodTrendsPage() {
     setIsGenerating(true);
     setGeneratedThoughtId(null);
     setGeneratedReframes([]);
-
-    console.log("generating reframing...");
+    setReframeErrorMessage(null);
 
     try {
-      const res = await generateThoughts(
-        Number(selectedThought.thought_Id),
-        selectedThought.text,
-      );
+      const response = await generateReframes({
+        thought_id: Number(selectedThought.thought_Id),
+      });
+      const nextReframes = Array.isArray(response.reframes)
+        ? response.reframes.map(mapApiReframeToUi)
+        : [];
 
-      console.log("res", res);
-
-      setGeneratedThoughtId(selectedThought.thought_Id);
-      setGeneratedReframes(Array.isArray(res) ? res : []);
+      setGeneratedThoughtId(String(response.thought_id));
+      setGeneratedReframes(nextReframes);
     } catch (error) {
       console.error("Failed to generate reframes:", error);
+      setGeneratedThoughtId(null);
       setGeneratedReframes([]);
+      setReframeErrorMessage(
+        "We could not generate reframes for this thought right now.",
+      );
     } finally {
       setIsGenerating(false);
     }
   }
+
   async function handleSave(reframe: Reframe) {
     if (!selectedThought || !hasGeneratedSelection || !defaultUserId) return;
     const id = `${selectedThought.thought_Id}-${reframe.id}`;
@@ -312,26 +306,33 @@ export default function MoodTrendsPage() {
     const responseData = {
       user_id: defaultUserId,
       thought_id: Number(selectedThought.thought_Id),
-      style: reframe.title.toLowerCase(),
+      style: reframe.id,
       text: reframe.text,
       corrected_distortion: selectedThought.distortion,
     };
 
-    const res = await saveGeneratedReframeThought(responseData);
-    if (!res) {
-      console.log("failed to fetch");
-    } else {
-      console.log("saved reframe:", responseData);
+    try {
+      await saveGeneratedReframeThought(responseData);
       await Promise.all([
-        getSaveReframes(defaultUserId),
-        fetchDetectedPatterns(defaultUserId),
-        fetchDistortionBreakdown(defaultUserId),
+        loadSavedReframes(defaultUserId),
+        loadInsights(defaultUserId),
         refreshFocusMomentum(defaultUserId),
       ]);
+    } catch (error) {
+      console.error("Failed to save generated reframe:", error);
     }
   }
 
-  function mapApiSaveThoughtToUi(item: ApiSaveThought): SavedReframe {
+  function mapApiReframeToUi(item: GeneratedReframe): Reframe {
+    return {
+      id: item.id,
+      title: item.title,
+      tone: item.tone,
+      text: item.text,
+    };
+  }
+
+  function mapApiSaveThoughtToUi(item: ApiSavedReframe): SavedReframe {
     return {
       id: String(item.reframe_id),
       thoughtId: String(item.thought_id),
@@ -343,21 +344,25 @@ export default function MoodTrendsPage() {
     };
   }
 
-  async function getSaveReframes(user_id: string) {
+  async function loadSavedReframes(userId: string) {
     try {
-      const res = await getSaveReframe(user_id);
-      if (!res) {
-        setSavedReframes([]);
-        return;
-      }
-      console.log("save", res);
-
-      const items: ApiSaveThought[] = Array.isArray(res) ? res : [res];
-      const mappedThoughts = items.map(mapApiSaveThoughtToUi);
-
-      setSavedReframes(mappedThoughts);
+      const items = await getSaveReframe(userId);
+      setSavedReframes(items.map(mapApiSaveThoughtToUi));
     } catch (error) {
-      console.log(error);
+      console.error("Failed to load saved reframes:", error);
+      setSavedReframes([]);
+    }
+  }
+
+  async function loadInsights(userId: string) {
+    try {
+      const response = await getInsights(userId);
+      setDetectedPatterns(response.detected_patterns ?? []);
+      setDistortionBreakdown(response.distortion_breakdown ?? {});
+    } catch (error) {
+      console.error("Failed to load reframing insights:", error);
+      setDetectedPatterns([]);
+      setDistortionBreakdown({});
     }
   }
 
@@ -437,8 +442,28 @@ export default function MoodTrendsPage() {
               />
             </div>
 
-            <div className="space-y-3 px-5 py-5 sm:px-6 overflow-auto h-[300px]">
-              {thoughts.length > 0 ? (
+            <div className="space-y-3 px-5 py-5 sm:px-6 overflow-auto h-[250px]">
+              {thoughtsStatus === "loading" ? (
+                <ThoughtListLoadingState />
+              ) : thoughtsStatus === "error" ? (
+                <InlineRetryState
+                  title="Thoughts unavailable"
+                  message={
+                    thoughtsErrorMessage ??
+                    "We could not load thoughts for reframing."
+                  }
+                  onRetry={() => {
+                    if (!defaultUserId) return;
+                    setThoughtsStatus("idle");
+                    setThoughtsErrorMessage(null);
+                    setThoughts([]);
+                    setSelectedThoughtId("");
+                    setGeneratedThoughtId(null);
+                    setGeneratedReframes([]);
+                    setThoughtsRetryToken((current) => current + 1);
+                  }}
+                />
+              ) : thoughts.length > 0 ? (
                 thoughts.map((thought) => (
                   <ThoughtCard
                     key={thought.thought_Id}
@@ -449,7 +474,7 @@ export default function MoodTrendsPage() {
                 ))
               ) : (
                 <div className="flex justify-center items-center h-full">
-                  <p className="text-gray-600">No Entries</p>
+                  <p className="text-gray-600">No thoughts available yet.</p>
                 </div>
               )}
             </div>
@@ -473,7 +498,9 @@ export default function MoodTrendsPage() {
                         : "Choose a thought to unlock generation"}
                     </p>
                     <p className="mt-1 text-sm leading-relaxed text-slate-500">
-                      Simulated AI behavior with local state only.
+                      {thoughts.length
+                        ? "Showing all available thoughts returned by the backend."
+                        : "Thoughts will appear here after journals are analyzed."}
                     </p>
                   </div>
                 </div>
@@ -495,6 +522,15 @@ export default function MoodTrendsPage() {
                 </button>
 
                 {isGenerating ? <GenerationSkeleton /> : null}
+                {reframeErrorMessage ? (
+                  <div className="mt-4">
+                    <InlineRetryState
+                      title="Reframes unavailable"
+                      message={reframeErrorMessage}
+                      onRetry={() => void handleGenerate()}
+                    />
+                  </div>
+                ) : null}
               </div>
             </div>
           </section>
@@ -976,6 +1012,55 @@ function EmptyState({ text }: { text: string }) {
   );
 }
 
+function ThoughtListLoadingState() {
+  return (
+    <div className="space-y-3">
+      {Array.from({ length: 3 }).map((_, index) => (
+        <div key={index} className="border border-slate-200 bg-white p-4">
+          <div className="animate-pulse space-y-3">
+            <div className="h-5 w-4/5 bg-slate-100" />
+            <div className="h-5 w-3/5 bg-slate-100" />
+            <div className="flex gap-3">
+              <div className="h-4 w-28 bg-slate-100" />
+              <div className="h-4 w-24 bg-slate-100" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function InlineRetryState({
+  title,
+  message,
+  onRetry,
+}: {
+  title: string;
+  message: string;
+  onRetry: () => void;
+}) {
+  return (
+    <div className="border border-rose-200 bg-rose-50 px-4 py-4 text-rose-800">
+      <div className="flex items-start gap-3">
+        <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+        <div className="min-w-0">
+          <p className="text-sm font-semibold">{title}</p>
+          <p className="mt-1 text-sm leading-relaxed">{message}</p>
+          <button
+            type="button"
+            onClick={onRetry}
+            className="mt-3 inline-flex items-center gap-2 border border-rose-200 bg-white px-3 py-2 text-xs font-medium uppercase tracking-[0.18em] text-rose-700 transition-colors hover:bg-rose-100"
+          >
+            <RefreshCw className="h-3.5 w-3.5" />
+            Retry
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function LoadingState() {
   return (
     <div className="border border-slate-200 bg-slate-50/70 p-5">
@@ -1051,9 +1136,7 @@ function formatPercent(value: number) {
 function parseApiDate(value?: string | null) {
   if (!value) return null;
 
-  const normalized = /(?:Z|[+-]\d{2}:\d{2})$/.test(value)
-    ? value
-    : `${value}Z`;
+  const normalized = /(?:Z|[+-]\d{2}:\d{2})$/.test(value) ? value : `${value}Z`;
 
   const date = new Date(normalized);
   return Number.isNaN(date.getTime()) ? null : date;
@@ -1075,6 +1158,17 @@ function isTodayTimestamp(value?: string | null) {
     date.getMonth() === now.getMonth() &&
     date.getDate() === now.getDate()
   );
+}
+
+function compareThoughtsByRecency(left: Thought, right: Thought) {
+  const leftTimestamp = parseApiDate(left.time)?.getTime() ?? 0;
+  const rightTimestamp = parseApiDate(right.time)?.getTime() ?? 0;
+
+  if (rightTimestamp !== leftTimestamp) {
+    return rightTimestamp - leftTimestamp;
+  }
+
+  return left.position - right.position;
 }
 
 function getDominantDistortion(distortionBreakdowns: DistortionBreakdown) {

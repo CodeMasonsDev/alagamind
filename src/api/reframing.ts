@@ -1,79 +1,41 @@
 import axiosInstance from "@/lib/axios";
 import { BASEURL } from "@/lib/base";
 
-type analyzeJournalProps = {
+export type AnalyzeJournalPayload = {
   userId: string;
   journalId: string;
   content: string;
-  dateTime: Date;
 };
 
-export const AnalyzeJournal = async (
-  body: analyzeJournalProps,
-): Promise<any> => {
-  try {
-    const res = await axiosInstance.post(`${BASEURL}api/journal/analyze`, {
-      user_id: body.userId,
-      journal_id: body.journalId,
-      content: body.content,
-      created_at: body.dateTime,
-    });
-
-    return res.data;
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-type thoughtProps = {
+export type ApiThought = {
   thought_id: number;
   text: string;
   distortion: string;
-  confidence: Float16Array;
+  confidence: number;
   position: number;
   created_at: string;
   context_note: string;
   journal_id: string;
 };
 
-export const fetchThoughtsByUsers = async (
-  userid: string,
-): Promise<thoughtProps> => {
-  const res = await axiosInstance.get(
-    `${BASEURL}api/thoughts/by-user?user_id=${userid}`,
-  );
-
-  if (res == null) console.log("cant process request");
-
-  return res.data;
-};
-
-type Reframe = {
-  id: string;
+export type GeneratedReframe = {
+  id: "logical" | "compassionate" | "direct";
   title: string;
   tone: string;
   text: string;
 };
 
-type reframeProps = {
+export type GenerateReframesPayload = {
   thought_id: number;
-  text: string;
 };
 
-export const generateReframes = async (
-  body: reframeProps,
-): Promise<Reframe> => {
-  const res = await axiosInstance.post(`${BASEURL}api/reframes/generate`, {
-    thought_id: body.thought_id,
-    text: body.text,
-  });
-
-  if (res == null) console.log("empty response");
-
-  return res.data;
+export type GenerateReframesResponse = {
+  thought_id: number;
+  thought_text: string;
+  reframes: GeneratedReframe[];
 };
 
-type SaveThought = {
+export type SaveGeneratedReframePayload = {
   user_id: string;
   thought_id: number;
   style: string;
@@ -81,59 +43,106 @@ type SaveThought = {
   corrected_distortion: string;
 };
 
-export const saveGeneratedReframeThought = async (
-  body: SaveThought,
-): Promise<SaveThought[]> => {
-  const res = await axiosInstance.post(`${BASEURL}api/reframes/save`, {
-    user_id: body.user_id,
-    thought_id: body.thought_id,
-    style: body.style,
-    text: body.text,
-    corrected_distortion: body.corrected_distortion,
+export type ApiSavedReframe = {
+  reframe_id: number;
+  thought_id: number;
+  thought_text: string;
+  distortion: string;
+  style: string;
+  text: string;
+  created_at: string;
+};
+
+export type DetectedPattern = {
+  type: string;
+  title: string;
+  share: number;
+  count: number;
+  severity: string | null;
+  window: string | null;
+  keywords: string[] | string | null;
+};
+
+export type DistortionBreakdown = Record<string, number>;
+
+export type InsightsResponse = {
+  detected_patterns: DetectedPattern[];
+  distortion_breakdown: DistortionBreakdown;
+};
+
+export async function AnalyzeJournal(payload: AnalyzeJournalPayload) {
+  const response = await axiosInstance.post(`${BASEURL}api/journal/analyze`, {
+    user_id: payload.userId,
+    journal_id: payload.journalId,
+    content: payload.content,
   });
 
-  if (res == null) console.log("empty response");
+  return response.data;
+}
 
-  return res.data;
-};
-
-export const getSaveReframe = async (user_id: string): any => {
-  const res = await axiosInstance.get(
-    `${BASEURL}api/reframes/by-user?user_id=${user_id}`,
-  );
-  if (res == null) console.log("empty response");
-
-  return res.data;
-};
-
-type DectedPatterns = {
-  type: string; //"distortion",
-  title: string; // "Unknown shows up a lot",
-  share: number; //0.3,
-  count: number; //7,
-  severity: string; //"dominant",
-  window: string; //null,
-  keywords: string; //null
-};
-
-export const getDetectedPatterns = async (
-  user_id: string,
-): Promise<DectedPatterns[]> => {
-  const res = await axiosInstance.get(
-    `${BASEURL}api/insights?user_id=${user_id}`,
+export async function fetchThoughtsByUsers(userId: string) {
+  const response = await axiosInstance.get<ApiThought[]>(
+    `${BASEURL}api/thoughts/by-user`,
+    {
+      params: {
+        user_id: userId,
+      },
+    },
   );
 
-  if (res == null) console.log("empty response");
+  return Array.isArray(response.data) ? response.data : [];
+}
 
-  return res.data.detected_patterns;
-};
-
-export const getDistortionBreakDown = async (user_id: string) => {
-  const res = await axiosInstance.get(
-    `${BASEURL}api/insights?user_id=${user_id}`,
+export async function generateReframes(payload: GenerateReframesPayload) {
+  const response = await axiosInstance.post<GenerateReframesResponse>(
+    `${BASEURL}api/reframes/generate`,
+    {
+      thought_id: payload.thought_id,
+    },
   );
 
-  if (res == null) console.log("empty response");
+  return response.data;
+}
 
-  return res.data.distortion_breakdown;
-};
+export async function saveGeneratedReframeThought(
+  payload: SaveGeneratedReframePayload,
+) {
+  const response = await axiosInstance.post<ApiSavedReframe[]>(
+    `${BASEURL}api/reframes/save`,
+    {
+      user_id: payload.user_id,
+      thought_id: payload.thought_id,
+      style: payload.style,
+      text: payload.text,
+      corrected_distortion: payload.corrected_distortion,
+    },
+  );
+
+  return Array.isArray(response.data) ? response.data : [];
+}
+
+export async function getSaveReframe(userId: string) {
+  const response = await axiosInstance.get<ApiSavedReframe[]>(
+    `${BASEURL}api/reframes/by-user`,
+    {
+      params: {
+        user_id: userId,
+      },
+    },
+  );
+
+  return Array.isArray(response.data) ? response.data : [];
+}
+
+export async function getInsights(userId: string) {
+  const response = await axiosInstance.get<InsightsResponse>(
+    `${BASEURL}api/insights`,
+    {
+      params: {
+        user_id: userId,
+      },
+    },
+  );
+
+  return response.data;
+}
