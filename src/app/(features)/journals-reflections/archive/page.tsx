@@ -231,7 +231,13 @@ export default function JournalsArchivePage() {
   };
 
   return (
-    <div className="flex min-h-full w-full flex-col bg-slate-50/60">
+    <div className="flex min-h-full w-full flex-col  bg-slate-50/60 ">
+      <header className="flex sticky top-0  z-10 items-center justify-between pb-4 border-b bg-white border-slate-200 p-4">
+        <div className="flex items-center gap-2 text-xs font-bold tracking-widest text-slate-500 uppercase">
+          <span className="text-slate-300">/</span>
+          <span className="text-slate-900">Journal-reflections</span>
+        </div>
+      </header>
       <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
         <HeaderSection viewMode={viewMode} setViewMode={setViewMode} />
 

@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -14,6 +20,9 @@ import {
   Repeat,
   Activity,
 } from "lucide-react";
+import { BoxBreathPayload } from "@/types/BoxBreathPayload";
+import { createBoxBreath } from "@/api/exercise-protocols";
+import { getMe, SessionUser } from "@/api/auth/auth";
 
 /* ─────────────────────── constants ─────────────────────── */
 
@@ -48,6 +57,7 @@ const soundscapes: { key: SoundKey; label: string }[] = [
 /* ─────────────────────── component ─────────────────────── */
 
 export default function BoxBreathingSessionPage() {
+  const [profile, setProfile] = useState<SessionUser | null>(null);
   const [phaseIndex, setPhaseIndex] = useState(0);
   const [phaseProgress, setPhaseProgress] = useState(0); // 0-100
   const [remainingSeconds, setRemainingSeconds] = useState(SESSION_DURATION_S);
@@ -55,14 +65,32 @@ export default function BoxBreathingSessionPage() {
   const [isPaused, setIsPaused] = useState(false);
   const [cycles, setCycles] = useState(0);
   const [totalBreaths, setTotalBreaths] = useState(0);
-
+  const [totalElapsed, setTotalElapsed] = useState();
   // audio
   const [selectedSound, setSelectedSound] = useState<SoundKey>("rain");
   const [volume, setVolume] = useState(0.5);
   const [isPlaying, setIsPlaying] = useState(false);
+
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const isRunning = isActive && !isPaused;
+
+  useEffect(() => {
+    let isMounted = true;
+
+    void (async () => {
+      try {
+        const res = await getMe();
+        if (isMounted) setProfile(res);
+      } catch (error) {
+        if (isMounted) setProfile(null);
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   /* ── phase cycling ── */
   useEffect(() => {
@@ -73,7 +101,10 @@ export default function BoxBreathingSessionPage() {
         const next = (prev + 1) % PHASES.length;
         if (next === 0) setCycles((c) => c + 1);
         // count inhale & exhale as breaths
-        if (PHASES[next].label === "Inhale" || PHASES[next].label === "Exhale") {
+        if (
+          PHASES[next].label === "Inhale" ||
+          PHASES[next].label === "Exhale"
+        ) {
           setTotalBreaths((b) => b + 1);
         }
         return next;
@@ -180,12 +211,15 @@ export default function BoxBreathingSessionPage() {
     setTotalBreaths(0);
   };
 
-  const handleEnd = () => {
+  const handleEnd = (payload: BoxBreathPayload) => {
     setIsActive(false);
     setIsPaused(false);
     if (audioRef.current) {
       audioRef.current.pause();
     }
+    console.log(payload);
+
+    handleSaveBoxBreathing(payload);
   };
 
   /* ── derived ── */
@@ -213,6 +247,15 @@ export default function BoxBreathingSessionPage() {
     : isPaused
       ? "Paused"
       : currentPhase.label;
+
+  async function handleSaveBoxBreathing(payload: BoxBreathPayload) {
+    try {
+      const res = await createBoxBreath(payload);
+      console.log("Success,", res);
+    } catch (error: any) {
+      console.error(error.message);
+    }
+  }
 
   return (
     <div className="flex min-h-full w-full flex-col bg-slate-50/60">
@@ -261,7 +304,8 @@ export default function BoxBreathingSessionPage() {
                   Box Breathing
                 </h1>
                 <p className="mt-1 max-w-md text-sm text-slate-500">
-                  4-second inhale, hold, exhale, rest cycle for nervous system regulation.
+                  4-second inhale, hold, exhale, rest cycle for nervous system
+                  regulation.
                 </p>
               </div>
             </div>
@@ -289,7 +333,14 @@ export default function BoxBreathingSessionPage() {
               {isActive ? (
                 <button
                   type="button"
-                  onClick={handleEnd}
+                  onClick={() =>
+                    handleEnd({
+                      userId: profile?.id as string,
+                      cycles: cycles,
+                      breaths: totalBreaths,
+                      elapsed: elapsedDisplay,
+                    })
+                  }
                   className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-white transition-colors hover:bg-slate-800"
                 >
                   End Session
@@ -350,8 +401,7 @@ export default function BoxBreathingSessionPage() {
             <div className="mt-10 w-full max-w-lg">
               <div className="grid grid-cols-4 gap-2">
                 {PHASES.map((phase, index) => {
-                  const isDone =
-                    isRunning && index < phaseIndex;
+                  const isDone = isRunning && index < phaseIndex;
                   const isCurrent = isRunning && index === phaseIndex;
                   const wasDone = !isActive && true;
 
@@ -359,9 +409,7 @@ export default function BoxBreathingSessionPage() {
                     <div key={phase.id} className="text-center">
                       <p
                         className={`text-[10px] font-bold uppercase tracking-widest ${
-                          isCurrent
-                            ? "text-slate-900"
-                            : "text-slate-400"
+                          isCurrent ? "text-slate-900" : "text-slate-400"
                         }`}
                       >
                         {phase.label}

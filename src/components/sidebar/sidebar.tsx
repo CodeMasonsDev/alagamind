@@ -35,7 +35,7 @@ type NavGroup = {
 
 const NAVIGATION_DATA: NavGroup[] = [
   {
-    title: "Wellness Intelligence",
+    title: "",
     items: [
       {
         label: "Dashboard",
@@ -67,8 +67,16 @@ const NAVIGATION_DATA: NavGroup[] = [
   {
     title: "Insights & Sessions",
     items: [
-      { label: "Insights & Reports", icon: BarChart3, href: "#" },
-      { label: "History & Sessions", icon: History, href: "#" },
+      {
+        label: "Insights & Reports",
+        icon: BarChart3,
+        href: "/insights-reports",
+      },
+      {
+        label: "History & Sessions",
+        icon: History,
+        href: "/history-sessions",
+      },
     ],
   },
   {
@@ -162,7 +170,7 @@ export default function Sidebar() {
   return (
     <aside className="flex h-screen w-60 flex-col border-r border-slate-200 bg-slate-50">
       <div className="p-6 pb-4">
-        <div className="mb-6 flex items-center gap-3">
+        <div className="mb-2 flex items-center gap-3">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-teal-400">
             <Command size={20} />
           </div>
@@ -170,19 +178,10 @@ export default function Sidebar() {
             AlagaMind
           </span>
         </div>
-
-        <div className="flex w-max items-center gap-2 rounded-full border border-teal-100 bg-teal-50/80 px-3 py-2">
-          <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-teal-400 opacity-75" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-teal-500" />
-          </span>
-          <span className="text-[10px] font-bold uppercase tracking-wider text-teal-700">
-            Neural Engine Active
-          </span>
-        </div>
       </div>
+      <div className="border-b-1 border-gray-300"></div>
 
-      <div className="custom-scrollbar flex-1 overflow-x-hidden overflow-y-auto px-4 py-2">
+      <div className="custom-scrollbar flex-1 overflow-x-hidden overflow-y-auto px-4 py-3 ">
         <nav className="flex flex-col gap-8">
           {navigation.map((group) => (
             <div key={group.title}>
