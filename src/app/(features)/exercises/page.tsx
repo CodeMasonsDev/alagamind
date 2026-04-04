@@ -235,36 +235,10 @@ export default function ExercisesPage() {
 
 function TopBar() {
   return (
-    <header className="sticky top-0 z-10 border-b border-slate-200 bg-white px-4 py-3 sm:px-6 lg:px-8">
-      <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold uppercase tracking-widest">
-          <span className="text-slate-900">Protocol Library</span>
-          <span className="text-slate-300">/</span>
-          <span className="rounded-md border border-teal-100 bg-teal-50 px-2.5 py-1 text-[10px] text-teal-700">
-            Session Streak: 12 Days
-          </span>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3">
-          <button
-            type="button"
-            className="text-[10px] font-bold uppercase tracking-widest text-slate-500 transition-colors hover:text-slate-700"
-          >
-            Support
-          </button>
-          <button
-            type="button"
-            className="rounded-md p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
-          >
-            <HelpCircle size={16} />
-          </button>
-          <button
-            type="button"
-            className="rounded-md border border-teal-100 bg-teal-50 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-teal-700"
-          >
-            System Status
-          </button>
-        </div>
+    <header className="flex sticky top-0  z-10 items-center justify-between pb-4 border-b bg-white border-slate-200 p-4">
+      <div className="flex items-center gap-2 text-xs font-bold tracking-widest text-slate-500 uppercase">
+        <span className="text-slate-300">/</span>
+        <span className="text-slate-900">Exercises & Protocols</span>
       </div>
     </header>
   );

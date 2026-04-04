@@ -61,15 +61,15 @@ function TopBar() {
   return (
     <header className="flex sticky top-0  z-10 items-center justify-between pb-4 border-b bg-white border-slate-200 p-4">
       <div className="flex items-center gap-2 text-xs font-bold tracking-widest text-slate-500 uppercase">
-        <span className="flex items-center gap-2 text-teal-500">
+        {/* <span className="flex items-center gap-2 text-teal-500">
           <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
           System Status: Nominal
-        </span>
+        </span> */}
         <span className="text-slate-300">/</span>
         <span className="text-slate-900">Dashboard</span>
       </div>
 
-      <div className="flex items-center gap-4">
+      {/* <div className="flex items-center gap-4">
         <div className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold tracking-wide text-slate-500 bg-slate-100 rounded-md">
           <Clock size={14} />
           Secure Session: 14:22 Remaining
@@ -77,7 +77,7 @@ function TopBar() {
         <button className="p-1.5 text-slate-400 hover:text-slate-900 transition-colors">
           <Bell size={20} />
         </button>
-      </div>
+      </div> */}
     </header>
   );
 }
@@ -514,9 +514,6 @@ function IntegratedWellnessSuite() {
           <p className="text-sm text-slate-500 mt-1">
             Core clinical pathways for personalized mental optimization.
           </p>
-        </div>
-        <div className="text-xs font-bold tracking-widest text-slate-900 uppercase border-b-2 border-slate-900 pb-1">
-          Hub Status: Optimized
         </div>
       </div>
 
