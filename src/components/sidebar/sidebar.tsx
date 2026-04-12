@@ -17,6 +17,7 @@ import {
   Settings,
 } from "lucide-react";
 import { getMe, logout, type SessionUser } from "@/api/auth/auth";
+import ProfileAvatar from "@/components/shared/profile-avatar";
 import NavItem from "./nav-item";
 
 export type NavItems = {
@@ -99,7 +100,7 @@ export default function Sidebar() {
   useEffect(() => {
     let isMounted = true;
 
-    void (async () => {
+    const loadProfile = async () => {
       try {
         const currentUser = await getMe();
         if (isMounted) {
@@ -114,10 +115,22 @@ export default function Sidebar() {
           setIsProfileLoading(false);
         }
       }
-    })();
+    };
+
+    void loadProfile();
+
+    const handleProfileUpdated = () => {
+      void loadProfile();
+    };
+
+    window.addEventListener("alagamind:profile-updated", handleProfileUpdated);
 
     return () => {
       isMounted = false;
+      window.removeEventListener(
+        "alagamind:profile-updated",
+        handleProfileUpdated,
+      );
     };
   }, []);
 
@@ -239,13 +252,18 @@ export default function Sidebar() {
           className="flex w-full items-center justify-between rounded-xl p-2 transition-colors hover:bg-slate-50"
         >
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-slate-900 text-sm font-semibold text-white">
-              {isProfileLoading ? (
+            {isProfileLoading ? (
+              <div className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-slate-900 text-sm font-semibold text-white">
                 <LoaderCircle className="h-4 w-4 animate-spin text-slate-300" />
-              ) : (
-                initials
-              )}
-            </div>
+              </div>
+            ) : (
+              <ProfileAvatar
+                src={profile?.profileImageUrl}
+                alt={`${profileName} profile picture`}
+                initials={initials}
+                className="h-10 w-10 rounded-full"
+              />
+            )}
             <div className="flex flex-col items-start">
               <span className="text-sm font-semibold text-slate-900">
                 {isProfileLoading ? "Loading profile..." : profileName}

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
+  Camera,
   Languages,
   LoaderCircle,
   LogOut,
@@ -16,6 +17,8 @@ import {
 import {
   getMe,
   logout,
+  removeProfilePicture,
+  uploadProfilePicture,
   updateProfile,
   type SessionUser,
 } from "@/api/auth/auth";
@@ -24,11 +27,13 @@ import LanguagePreferenceSelector, {
   getSupportedLanguagePreview,
 } from "@/components/settings/language-preference-selector";
 import { useLanguage } from "@/components/providers/language-provider";
+import ProfileAvatar from "@/components/shared/profile-avatar";
 import {
   LANGUAGE_STORAGE_KEY,
   isSupportedLanguage,
   type SupportedLanguage,
 } from "@/lib/language";
+import { DEFAULT_PROFILE_PICTURE_URL } from "@/lib/profile-picture-constants";
 
 type PreferenceState = {
   language: SupportedLanguage;
@@ -46,6 +51,10 @@ export default function SettingsPage() {
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [profileSuccess, setProfileSuccess] = useState<string | null>(null);
   const [profileSaveError, setProfileSaveError] = useState<string | null>(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [isRemovingAvatar, setIsRemovingAvatar] = useState(false);
+  const [avatarStatus, setAvatarStatus] = useState<string | null>(null);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
 
   const [isSavingPreferences, setIsSavingPreferences] = useState(false);
   const [preferencesSuccess, setPreferencesSuccess] = useState<string | null>(
@@ -154,6 +163,14 @@ export default function SettingsPage() {
     profile?.roles?.length && profile.roles.length > 0
       ? profile.roles.join(", ")
       : "Authenticated session";
+  const hasCustomProfilePicture = Boolean(
+    profile?.profileImageUrl &&
+      !profile.profileImageUrl.startsWith(DEFAULT_PROFILE_PICTURE_URL),
+  );
+
+  function broadcastProfileUpdate() {
+    window.dispatchEvent(new CustomEvent("alagamind:profile-updated"));
+  }
 
   async function handleProfileSave(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -283,11 +300,19 @@ export default function SettingsPage() {
               </p>
 
               <div className="mt-4 flex items-start gap-4">
-                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-slate-900 text-xl font-bold text-white">
+                <div className="relative">
                   {isLoadingProfile ? (
-                    <LoaderCircle className="h-5 w-5 animate-spin text-slate-300" />
+                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-slate-900 text-xl font-bold text-white">
+                      <LoaderCircle className="h-5 w-5 animate-spin text-slate-300" />
+                    </div>
                   ) : (
-                    initials
+                    <ProfileAvatar
+                      src={profile?.profileImageUrl}
+                      alt={`${firstName || "User"} profile picture`}
+                      initials={initials}
+                      className="h-16 w-16 rounded-2xl"
+                      iconClassName="h-5 w-5"
+                    />
                   )}
                 </div>
 
@@ -313,6 +338,149 @@ export default function SettingsPage() {
                 />
                 <SnapshotRow label="Email" value={email || "No email loaded"} />
                 <SnapshotRow label="Roles" value={roleSummary} />
+              </div>
+
+              <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                      Profile picture
+                    </p>
+                    <p className="mt-1 text-sm text-slate-500">
+                      Upload a square photo. We store it locally using your user
+                      ID as the filename.
+                    </p>
+                  </div>
+
+                  <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-slate-800">
+                    {isUploadingAvatar ? (
+                      <>
+                        <LoaderCircle className="h-4 w-4 animate-spin" />
+                        Uploading
+                      </>
+                    ) : (
+                      <>
+                        <Camera className="h-4 w-4" />
+                        Upload photo
+                      </>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp,image/gif"
+                      className="sr-only"
+                      disabled={isUploadingAvatar || isLoadingProfile}
+                      onChange={(event) => {
+                        const file = event.target.files?.[0];
+                        event.currentTarget.value = "";
+
+                        if (!file) {
+                          return;
+                        }
+
+                        void (async () => {
+                          try {
+                            setIsUploadingAvatar(true);
+                            setAvatarStatus(null);
+                            setAvatarError(null);
+
+                            const response = await uploadProfilePicture(file);
+                            setProfile((current) =>
+                              current
+                                ? {
+                                    ...current,
+                                    profileImageUrl:
+                                      response.user?.profileImageUrl ??
+                                      response.profileImageUrl,
+                                  }
+                                : current,
+                            );
+                            setAvatarStatus(
+                              response.message ||
+                                "Profile picture uploaded successfully.",
+                            );
+                            broadcastProfileUpdate();
+                          } catch (error) {
+                            setAvatarError(
+                              error instanceof Error
+                                ? error.message
+                                : "Failed to upload profile picture.",
+                            );
+                          } finally {
+                            setIsUploadingAvatar(false);
+                          }
+                        })();
+                      }}
+                    />
+                  </label>
+
+                  <button
+                    type="button"
+                    disabled={
+                      isUploadingAvatar ||
+                      isRemovingAvatar ||
+                      isLoadingProfile ||
+                      !hasCustomProfilePicture
+                    }
+                    onClick={() => {
+                      void (async () => {
+                        try {
+                          setIsRemovingAvatar(true);
+                          setAvatarStatus(null);
+                          setAvatarError(null);
+
+                          const response = await removeProfilePicture();
+                          setProfile((current) =>
+                            current
+                              ? {
+                                  ...current,
+                                  profileImageUrl:
+                                    response.user?.profileImageUrl ??
+                                    response.profileImageUrl,
+                                }
+                              : current,
+                          );
+                          setAvatarStatus(
+                            response.message ||
+                              "Profile picture removed successfully.",
+                          );
+                          broadcastProfileUpdate();
+                        } catch (error) {
+                          setAvatarError(
+                            error instanceof Error
+                              ? error.message
+                              : "Failed to remove profile picture.",
+                          );
+                        } finally {
+                          setIsRemovingAvatar(false);
+                        }
+                      })();
+                    }}
+                    className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {isRemovingAvatar ? (
+                      <>
+                        <LoaderCircle className="h-4 w-4 animate-spin" />
+                        Removing
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 className="h-4 w-4" />
+                        Remove photo
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {avatarError ? (
+                  <p className="mt-3 rounded-2xl border border-rose-100 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+                    {avatarError}
+                  </p>
+                ) : null}
+                {avatarStatus ? (
+                  <p className="mt-3 rounded-2xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+                    {avatarStatus}
+                  </p>
+                ) : null}
               </div>
 
               {profileError ? (

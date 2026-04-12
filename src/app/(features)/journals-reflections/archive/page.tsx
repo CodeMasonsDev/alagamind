@@ -6,6 +6,10 @@ import { useRouter } from "next/navigation";
 import { ChevronDown, Grid2x2, List, Plus, Search, Shield } from "lucide-react";
 import LongMenu from "@/components/ui/long-menu";
 import { GetUserJournals } from "@/api/journal";
+import {
+  getJournalSentimentPercentages,
+  type JournalSentimentPercentagesResponse,
+} from "@/api/journal-sentiment";
 import { DeleteJournalId } from "@/services/journals";
 import { getMe, SessionUser } from "@/api/auth/auth";
 import {
@@ -30,6 +34,7 @@ type RawJournal = {
   updatedAt?: number | string;
 
   mood?: string;
+  journalId?: string;
   title?: string;
   content?: string;
   preview?: string;
@@ -44,22 +49,24 @@ type RawJournal = {
 type JournalEntri = {
   id: string;
   userId: string;
+  sentimentJournalId: string;
   createdAt: number | null;
   rawDateLabel: string;
   mood: string;
+  dominantSentiment: string;
   title: string;
   content: string;
   preview: string;
   tags: string[];
-  subBadge?: string;
   wordCount: string;
-  action: string;
   moodClass: string;
   dotClass: string;
 };
 
 type DateFilter = "7" | "30" | "90" | "all";
 type ViewMode = "card" | "list";
+const JOURNAL_INSIGHTS_SESSION_CACHE_PREFIX = "journal-insights";
+const JOURNAL_ARCHIVE_SENTIMENT_CACHE_PREFIX = "journal-archive-sentiment";
 
 export default function JournalsArchivePage() {
   const router = useRouter();
@@ -118,9 +125,14 @@ export default function JournalsArchivePage() {
           )
           .filter(Boolean) as JournalEntri[];
 
-        normalized.sort(sortJournalsNewestFirst);
+        const normalizedWithSentiment = await enrichJournalsWithSentiment(
+          normalized,
+          userId,
+        );
 
-        setJournals(normalized);
+        normalizedWithSentiment.sort(sortJournalsNewestFirst);
+
+        setJournals(normalizedWithSentiment);
         console.log(response);
       } catch (error) {
         console.error("Failed to fetch journals:", error);
@@ -512,12 +524,11 @@ function ListView({ entries }: { entries: JournalEntri[] }) {
     <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div className="overflow-x-auto">
         <div className="min-w-[980px]">
-          <div className="grid grid-cols-[130px_190px_minmax(280px,1fr)_130px_140px_100px] gap-4 border-b border-slate-200 px-5 py-4 text-xs font-bold uppercase tracking-widest text-slate-400">
+          <div className="grid grid-cols-[130px_190px_minmax(280px,1fr)_130px_100px] gap-4 border-b border-slate-200 px-5 py-4 text-xs font-bold uppercase tracking-widest text-slate-400">
             <span>Mood</span>
             <span>Date &amp; Time</span>
             <span>Entry Details</span>
             <span>Word Count</span>
-            <span>Session Type</span>
             <span>Status</span>
           </div>
 
@@ -538,7 +549,7 @@ function ListRow({ entry }: { entry: JournalEntri }) {
   return (
     <Link
       href={`/journals-reflections/my-journal/${entry.userId}/${entry.id}`}
-      className="grid grid-cols-[130px_190px_minmax(280px,1fr)_130px_140px_100px] items-center gap-4 border-b border-slate-100 px-5 py-4 transition-colors hover:bg-slate-50 last:border-b-0"
+      className="grid grid-cols-[130px_190px_minmax(280px,1fr)_130px_100px] items-center gap-4 border-b border-slate-100 px-5 py-4 transition-colors hover:bg-slate-50 last:border-b-0"
     >
       <div>
         <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-medium uppercase text-slate-700">
@@ -558,13 +569,6 @@ function ListRow({ entry }: { entry: JournalEntri }) {
       <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
         {entry.wordCount}
       </p>
-
-      <div>
-        <span className="inline-flex rounded-md bg-slate-100 px-2 py-1 text-xs font-semibold uppercase tracking-wider text-slate-700">
-          {entry.action}
-        </span>
-      </div>
-
       <div className="flex items-center gap-2">
         <span className={`h-2 w-2 rounded-full ${entry.dotClass}`} />
         <span className="text-xs uppercase tracking-wider text-slate-400">
@@ -618,24 +622,11 @@ function JournalCard({ entries, onDelete, onUpdate }: Props) {
           {entries.preview}
         </p>
 
-        {entries.subBadge ? (
-          <span className="mt-3 inline-flex w-fit rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">
-            {entries.subBadge}
-          </span>
-        ) : null}
-
         <div className="mt-auto flex items-center justify-between pt-5">
           <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
             <span className={`h-2 w-2 rounded-full ${entries.dotClass}`} />
             {getEstimatedReadTime(entries.content)}
           </div>
-
-          <button
-            type="button"
-            className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-700 transition-colors hover:bg-slate-50"
-          >
-            {entries.action}
-          </button>
         </div>
       </article>
     </Link>
@@ -674,19 +665,7 @@ function EmptyStateCard() {
 function FooterStrip() {
   return (
     <footer className="border-t border-slate-200 bg-white px-4 py-3 sm:px-6 lg:px-8">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-400 sm:flex-row sm:items-center sm:justify-between">
-        <div className="inline-flex items-center gap-2">
-          <Shield size={12} />
-          Enterprise AES-256 Vault Encryption
-        </div>
-
-        <div className="flex items-center gap-3">
-          <span>Cloud Sync: 100% Complete</span>
-          <span className="h-1 w-20 overflow-hidden rounded-full bg-slate-200">
-            <span className="block h-full w-full bg-teal-500" />
-          </span>
-        </div>
-      </div>
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-400 sm:flex-row sm:items-center sm:justify-between"></div>
     </footer>
   );
 }
@@ -714,25 +693,105 @@ function normalizeJournal(
   const tags = Array.isArray(entry.tags)
     ? entry.tags.map((tag) => sanitizeDisplayText(String(tag))).filter(Boolean)
     : [];
-  const action = normalizeAction(entry.action, entry.subBadge);
   const wordCount = getWordCountLabel(cleanContent);
 
   return {
     id,
     userId,
+    sentimentJournalId: String(entry.journalId ?? entry.id ?? id),
     createdAt: parsedDate,
     rawDateLabel: parsedDate ? new Date(parsedDate).toISOString() : "",
     mood,
+    dominantSentiment: mood,
     title: cleanTitle,
     content: cleanContent,
     preview: cleanPreviewFromApi || fallbackPreview || "No preview available.",
     tags,
-    subBadge: entry.subBadge ? sanitizeDisplayText(entry.subBadge) : undefined,
     wordCount,
-    action,
     moodClass: getMoodClass(mood),
     dotClass: getMoodDotClass(mood),
   };
+}
+
+async function enrichJournalsWithSentiment(
+  journals: JournalEntri[],
+  userId: string,
+) {
+  const enriched = await Promise.all(
+    journals.map(async (journal) => {
+      const journalIds = Array.from(
+        new Set(
+          [journal.sentimentJournalId, journal.id]
+            .map((value) => value.trim())
+            .filter(Boolean),
+        ),
+      );
+
+      const cachedPercentages =
+        readCachedArchiveSentimentPercentages(userId, journalIds) ??
+        readCachedJournalSentimentPercentages(userId, journalIds);
+
+      if (cachedPercentages) {
+        const dominantSentiment = getDominantSentimentLabel(cachedPercentages);
+
+        return {
+          ...journal,
+          mood: dominantSentiment,
+          dominantSentiment,
+          moodClass: getMoodClass(dominantSentiment),
+          dotClass: getMoodDotClass(dominantSentiment),
+        };
+      }
+
+      try {
+        const percentages = await fetchJournalSentimentPercentagesForArchive(
+          journalIds,
+          userId,
+        );
+        const dominantSentiment = getDominantSentimentLabel(percentages);
+
+        writeCachedArchiveSentimentPercentages(
+          userId,
+          journal.sentimentJournalId,
+          percentages,
+        );
+
+        return {
+          ...journal,
+          mood: dominantSentiment,
+          dominantSentiment,
+          moodClass: getMoodClass(dominantSentiment),
+          dotClass: getMoodDotClass(dominantSentiment),
+        };
+      } catch (error) {
+        const cachedPercentages = readCachedJournalSentimentPercentages(
+          userId,
+          journalIds,
+        );
+
+        if (cachedPercentages) {
+          const dominantSentiment =
+            getDominantSentimentLabel(cachedPercentages);
+
+          return {
+            ...journal,
+            mood: dominantSentiment,
+            dominantSentiment,
+            moodClass: getMoodClass(dominantSentiment),
+            dotClass: getMoodDotClass(dominantSentiment),
+          };
+        }
+
+        console.warn(
+          `Sentiment percentages unavailable for journal ${journal.sentimentJournalId}:`,
+          error,
+        );
+        return journal;
+      }
+    }),
+  );
+
+  return enriched;
 }
 
 function sortJournalsNewestFirst(a: JournalEntri, b: JournalEntri) {
@@ -792,11 +851,6 @@ function normalizeMood(mood?: string) {
   return value ? formatFilterLabel(value) : "Neutral";
 }
 
-function normalizeAction(action?: string, subBadge?: string) {
-  const value = String(action ?? subBadge ?? "GUIDED").trim();
-  return value ? sanitizeDisplayText(value).toUpperCase() : "GUIDED";
-}
-
 function getMoodClass(mood: string) {
   const value = mood.toLowerCase();
 
@@ -809,6 +863,12 @@ function getMoodClass(mood: string) {
   if (value.includes("stressed")) {
     return "border-amber-200 bg-amber-50 text-amber-700";
   }
+  if (value.includes("negative") || value.includes("low")) {
+    return "border-rose-200 bg-rose-50 text-rose-700";
+  }
+  if (value.includes("neutral")) {
+    return "border-slate-200 bg-slate-50 text-slate-700";
+  }
 
   return "border-slate-200 bg-white text-slate-700";
 }
@@ -817,10 +877,162 @@ function getMoodDotClass(mood: string) {
   const value = mood.toLowerCase();
 
   if (value.includes("positive")) return "bg-emerald-500";
+  if (value.includes("negative") || value.includes("low")) return "bg-rose-500";
   if (value.includes("low")) return "bg-rose-500";
   if (value.includes("stressed")) return "bg-amber-500";
+  if (value.includes("neutral")) return "bg-slate-400";
 
   return "bg-slate-400";
+}
+
+function getDominantSentimentLabel(
+  percentages: JournalSentimentPercentagesResponse,
+) {
+  const scoreEntries = [
+    {
+      key: "positive",
+      value: roundPercentage(percentages.percentages.positive),
+      label: "Positive",
+    },
+    {
+      key: "neutral",
+      value: roundPercentage(percentages.percentages.neutral),
+      label: "Neutral",
+    },
+    {
+      key: "negative",
+      value: roundPercentage(percentages.percentages.negative),
+      label: "Negative",
+    },
+  ];
+
+  scoreEntries.sort((left, right) => right.value - left.value);
+
+  return scoreEntries[0]?.label ?? "Neutral";
+}
+
+function roundPercentage(value?: number) {
+  return Number.isFinite(value) ? Math.round(value ?? 0) : 0;
+}
+
+async function fetchJournalSentimentPercentagesForArchive(
+  journalIds: string[],
+  userId: string,
+) {
+  let lastError: unknown = null;
+
+  for (const journalId of journalIds) {
+    try {
+      return await getJournalSentimentPercentages(journalId, userId);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError ?? new Error("Sentiment percentages unavailable");
+}
+
+function readCachedJournalSentimentPercentages(
+  userId: string,
+  journalIds: string[],
+) {
+  if (typeof window === "undefined" || !userId.trim()) {
+    return null;
+  }
+
+  for (const journalId of journalIds) {
+    if (!journalId.trim()) {
+      continue;
+    }
+
+    try {
+      const rawValue = window.sessionStorage.getItem(
+        `${JOURNAL_INSIGHTS_SESSION_CACHE_PREFIX}:${userId}:${journalId}`,
+      );
+
+      if (!rawValue) {
+        continue;
+      }
+
+      const parsed = JSON.parse(rawValue) as {
+        percentages?: JournalSentimentPercentagesResponse | null;
+        status?: string;
+      };
+
+      if (parsed.status === "success" && parsed.percentages) {
+        return parsed.percentages;
+      }
+    } catch (error) {
+      console.warn(
+        "Failed to read cached journal sentiment percentages:",
+        error,
+      );
+    }
+  }
+
+  return null;
+}
+
+function readCachedArchiveSentimentPercentages(
+  userId: string,
+  journalIds: string[],
+) {
+  if (typeof window === "undefined" || !userId.trim()) {
+    return null;
+  }
+
+  for (const journalId of journalIds) {
+    if (!journalId.trim()) {
+      continue;
+    }
+
+    try {
+      const rawValue = window.sessionStorage.getItem(
+        `${JOURNAL_ARCHIVE_SENTIMENT_CACHE_PREFIX}:${userId}:${journalId}`,
+      );
+
+      if (!rawValue) {
+        continue;
+      }
+
+      const parsed = JSON.parse(rawValue) as {
+        percentages?: JournalSentimentPercentagesResponse | null;
+      };
+
+      if (parsed.percentages) {
+        return parsed.percentages;
+      }
+    } catch (error) {
+      console.warn(
+        "Failed to read cached archive sentiment percentages:",
+        error,
+      );
+    }
+  }
+
+  return null;
+}
+
+function writeCachedArchiveSentimentPercentages(
+  userId: string,
+  journalId: string,
+  percentages: JournalSentimentPercentagesResponse,
+) {
+  if (typeof window === "undefined" || !userId.trim() || !journalId.trim()) {
+    return;
+  }
+
+  try {
+    window.sessionStorage.setItem(
+      `${JOURNAL_ARCHIVE_SENTIMENT_CACHE_PREFIX}:${userId}:${journalId}`,
+      JSON.stringify({ percentages }),
+    );
+  } catch (error) {
+    console.warn(
+      "Failed to write cached archive sentiment percentages:",
+      error,
+    );
+  }
 }
 
 function stripHtml(value: string) {

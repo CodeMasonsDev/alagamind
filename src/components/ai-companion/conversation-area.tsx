@@ -86,6 +86,8 @@ export default function ConversationArea({
   messages,
   isTyping,
   streamingMessageId,
+  userProfileImageUrl,
+  userInitials,
   onSuggestionStart,
   messageAudio,
   currentlyPlayingId,
@@ -94,6 +96,8 @@ export default function ConversationArea({
   messages: ChatMessage[];
   isTyping: boolean;
   streamingMessageId?: number | null;
+  userProfileImageUrl?: string | null;
+  userInitials?: string;
   onSuggestionStart?: (command: string) => void;
   messageAudio?: Record<number, MessageAudioState>;
   currentlyPlayingId?: number | null;
@@ -108,7 +112,11 @@ export default function ConversationArea({
         if (message.role === "user") {
           return (
             <div key={message.id} className="flex flex-col items-end gap-2">
-              <UserMessage text={message.text} />
+              <UserMessage
+                text={message.text}
+                profileImageUrl={userProfileImageUrl}
+                initials={userInitials}
+              />
               {timestampLabel ? (
                 <p className="mr-10 text-[11px] text-slate-400">
                   {timestampLabel}
