@@ -7,6 +7,7 @@ import ConversationArea from "@/components/ai-companion/conversation-area";
 import SessionSidebar from "@/components/ai-companion/session-sidebar";
 import TopBar from "@/components/ai-companion/top-bar";
 import { useDashboardMetrics } from "@/components/providers/dashboard-metrics-provider";
+import { useLanguage } from "@/components/providers/language-provider";
 import { getMe, SessionUser } from "@/api/auth/auth";
 import {
   createNewSession,
@@ -59,8 +60,7 @@ type MessageAudioState = {
 };
 
 export const SUGGESTIONS: Suggestion[] = [];
-const LANGUAGE_PREFERENCE_STORAGE_KEY =
-  "ai-companion.language-preference";
+const LANGUAGE_PREFERENCE_STORAGE_KEY = "ai-companion.language-preference";
 
 function isLanguagePreference(value: unknown): value is LanguagePreference {
   return (
@@ -98,12 +98,17 @@ function sortSessionsByUpdatedAt(nextSessions: UserSession[]) {
 
 function buildMessagesFromHistory(
   session: UserSession | null | undefined,
+  sessionGreeting?: {
+    text: string;
+    language: string;
+    timestamp?: string;
+  } | null,
 ): AppendableChatMessage[] {
-  if (!session || session.history.length === 0) {
+  if (!session) {
     return [];
   }
 
-  return session.history.flatMap((turn: SessionTurn) => [
+  const historyMessages = session.history.flatMap((turn: SessionTurn) => [
     {
       role: "user" as const,
       text: turn.user,
@@ -122,6 +127,21 @@ function buildMessagesFromHistory(
       language: turn.language,
     },
   ]);
+
+  if (!sessionGreeting) {
+    return historyMessages;
+  }
+
+  return [
+    {
+      role: "assistant" as const,
+      kind: "text" as const,
+      text: sessionGreeting.text,
+      timestamp: sessionGreeting.timestamp ?? session.created_at,
+      language: sessionGreeting.language,
+    },
+    ...historyMessages,
+  ];
 }
 
 function buildEmptySession(sessionId: string, userId: string): UserSession {
@@ -137,8 +157,38 @@ function buildEmptySession(sessionId: string, userId: string): UserSession {
   };
 }
 
+function resolveSessionGreetingLanguage(
+  languagePreference: LanguagePreference,
+  interfaceLanguage: "english" | "tagalog" | "bisaya",
+) {
+  return languagePreference === "auto" ? interfaceLanguage : languagePreference;
+}
+
+function buildInitialAssistantGreeting(
+  language: "english" | "tagalog" | "bisaya",
+  firstName?: string | null,
+) {
+  const safeName = firstName?.trim();
+
+  switch (language) {
+    case "tagalog":
+      return safeName
+        ? `Kumusta, ${safeName}. Nandito ako para makinig at tumulong sa paraang kaya ko. Ano ang gusto mong pag-usapan ngayon?`
+        : "Kumusta. Nandito ako para makinig at tumulong sa paraang kaya ko. Ano ang gusto mong pag-usapan ngayon?";
+    case "bisaya":
+      return safeName
+        ? `Kumusta, ${safeName}. Naa ko diri aron maminaw ug motabang sa akong mahimo. Unsa ang gusto nimong hisgutan karon?`
+        : "Kumusta. Naa ko diri aron maminaw ug motabang sa akong mahimo. Unsa ang gusto nimong hisgutan karon?";
+    default:
+      return safeName
+        ? `Hi ${safeName}. I'm here to listen and help where I can. What would you like to talk about today?`
+        : "Hi. I'm here to listen and help where I can. What would you like to talk about today?";
+  }
+}
+
 export default function AiCompanionPage() {
   const { refreshFocusMomentum } = useDashboardMetrics();
+  const { language: interfaceLanguage } = useLanguage();
 
   const [profile, setProfile] = useState<SessionUser | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
@@ -159,6 +209,9 @@ export default function AiCompanionPage() {
   const [currentlyPlayingId, setCurrentlyPlayingId] = useState<number | null>(
     null,
   );
+  const [streamingMessageId, setStreamingMessageId] = useState<number | null>(
+    null,
+  );
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isCreatingSession, setIsCreatingSession] = useState(false);
@@ -166,6 +219,11 @@ export default function AiCompanionPage() {
   const nextIdRef = useRef(1);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const selectedSessionIdRef = useRef("");
+  const greetingAnimationTimeoutRef = useRef<number | null>(null);
+  const greetingAnimationIntervalRef = useRef<number | null>(null);
+  const sessionGreetingsRef = useRef<
+    Record<string, { text: string; language: string; timestamp: string }>
+  >({});
   const messageAudioRef = useRef<Record<number, MessageAudioState>>({});
   const audioContextRef = useRef<AudioContext | null>(null);
   const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
@@ -179,6 +237,21 @@ export default function AiCompanionPage() {
       sessions.find((session) => session.session_id === selectedSessionId) ??
       null,
     [selectedSessionId, sessions],
+  );
+  const greetingLanguage = useMemo(
+    () =>
+      resolveSessionGreetingLanguage(
+        languagePreference,
+        interfaceLanguage,
+      ),
+    [interfaceLanguage, languagePreference],
+  );
+  const emptySessionGreeting = useMemo(
+    () => ({
+      text: buildInitialAssistantGreeting(greetingLanguage, profile?.firstname),
+      language: greetingLanguage,
+    }),
+    [greetingLanguage, profile?.firstname],
   );
 
   const hasNoSessions =
@@ -198,9 +271,102 @@ export default function AiCompanionPage() {
     setCurrentlyPlayingId(null);
   }, []);
 
+  const stopGreetingAnimation = useCallback(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    if (greetingAnimationTimeoutRef.current !== null) {
+      window.clearTimeout(greetingAnimationTimeoutRef.current);
+      greetingAnimationTimeoutRef.current = null;
+    }
+
+    if (greetingAnimationIntervalRef.current !== null) {
+      window.clearInterval(greetingAnimationIntervalRef.current);
+      greetingAnimationIntervalRef.current = null;
+    }
+  }, []);
+
+  const resetConversationState = useCallback(() => {
+    stopGreetingAnimation();
+    setMessageAudio({});
+    messageAudioRef.current = {};
+    stopCurrentAudio();
+    decodedAudioRef.current = {};
+    audioRequestRef.current = {};
+    setCurrentlyPlayingId(null);
+    setStreamingMessageId(null);
+  }, [stopCurrentAudio, stopGreetingAnimation]);
+
+  const streamEmptySessionGreeting = useCallback(
+    (session: UserSession, greeting: { text: string; language: string }) => {
+      resetConversationState();
+      nextIdRef.current = 1;
+      setMessages([]);
+      setIsTyping(true);
+      sessionGreetingsRef.current[session.session_id] = {
+        text: greeting.text,
+        language: greeting.language,
+        timestamp: session.created_at,
+      };
+
+      greetingAnimationTimeoutRef.current = window.setTimeout(() => {
+        const assistantMessageId = nextIdRef.current++;
+
+        setIsTyping(false);
+        setStreamingMessageId(assistantMessageId);
+        setMessages([
+          {
+            id: assistantMessageId,
+            role: "assistant",
+            kind: "text",
+            text: "",
+            timestamp: session.created_at,
+            language: greeting.language,
+          },
+        ]);
+
+        let visibleLength = 0;
+
+        greetingAnimationIntervalRef.current = window.setInterval(() => {
+          visibleLength = Math.min(
+            greeting.text.length,
+            visibleLength + Math.max(2, Math.ceil(greeting.text.length / 35)),
+          );
+
+          setMessages([
+            {
+              id: assistantMessageId,
+              role: "assistant",
+              kind: "text",
+              text: greeting.text.slice(0, visibleLength),
+              timestamp: session.created_at,
+              language: greeting.language,
+            },
+          ]);
+
+          if (visibleLength >= greeting.text.length) {
+            stopGreetingAnimation();
+            setStreamingMessageId(null);
+            setIsTyping(false);
+          }
+        }, 28);
+      }, 280);
+    },
+    [resetConversationState, stopGreetingAnimation],
+  );
+
   const setMessagesFromSession = useCallback(
     (session: UserSession | null | undefined) => {
-      const nextMessages = buildMessagesFromHistory(session);
+      if (session && session.history.length === 0) {
+        streamEmptySessionGreeting(session, emptySessionGreeting);
+        return;
+      }
+
+      const nextMessages = buildMessagesFromHistory(
+        session,
+        session ? sessionGreetingsRef.current[session.session_id] : null,
+      );
       nextIdRef.current = 1;
       setMessages(
         nextMessages.map((message) => ({
@@ -208,14 +374,10 @@ export default function AiCompanionPage() {
           id: nextIdRef.current++,
         })),
       );
-      setMessageAudio({});
-      messageAudioRef.current = {};
-      stopCurrentAudio();
-      decodedAudioRef.current = {};
-      audioRequestRef.current = {};
-      setCurrentlyPlayingId(null);
+      resetConversationState();
+      setIsTyping(false);
     },
-    [stopCurrentAudio],
+    [emptySessionGreeting, resetConversationState, streamEmptySessionGreeting],
   );
 
   const syncSessionSelection = useCallback(
@@ -357,6 +519,14 @@ export default function AiCompanionPage() {
   }, [selectedSessionId]);
 
   useEffect(() => {
+    if (!selectedSession || selectedSession.history.length > 0) {
+      return;
+    }
+
+    setMessagesFromSession(selectedSession);
+  }, [selectedSession, setMessagesFromSession]);
+
+  useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) {
       return;
@@ -395,6 +565,8 @@ export default function AiCompanionPage() {
 
   useEffect(() => {
     return () => {
+      stopGreetingAnimation();
+
       if (audioSourceRef.current) {
         audioSourceRef.current.stop();
         audioSourceRef.current.disconnect();
@@ -404,7 +576,7 @@ export default function AiCompanionPage() {
         void audioContextRef.current.close();
       }
     };
-  }, []);
+  }, [stopGreetingAnimation]);
 
   const updateMessageAudioState = useCallback(
     (
@@ -811,7 +983,7 @@ export default function AiCompanionPage() {
         onRetry={handleRetry}
       />
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col bg-[linear-gradient(180deg,#fffdf4_0%,#f6f7fb_100%)]">
         <TopBar onToggleSidebar={() => setIsSidebarOpen((open) => !open)} />
 
         <main
@@ -868,6 +1040,7 @@ export default function AiCompanionPage() {
             <ConversationArea
               messages={messages}
               isTyping={isTyping}
+              streamingMessageId={streamingMessageId}
               messageAudio={messageAudio}
               currentlyPlayingId={currentlyPlayingId}
               onPlayMessage={(messageId) => {

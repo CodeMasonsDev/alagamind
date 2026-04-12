@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
-  Bell,
   Languages,
   LoaderCircle,
   LogOut,
@@ -23,9 +22,13 @@ import {
 import LanguagePreferenceSelector, {
   getSupportedLanguageLabel,
   getSupportedLanguagePreview,
+} from "@/components/settings/language-preference-selector";
+import { useLanguage } from "@/components/providers/language-provider";
+import {
+  LANGUAGE_STORAGE_KEY,
   isSupportedLanguage,
   type SupportedLanguage,
-} from "@/components/settings/language-preference-selector";
+} from "@/lib/language";
 
 type PreferenceState = {
   language: SupportedLanguage;
@@ -34,10 +37,9 @@ type PreferenceState = {
   anonymizedInsights: boolean;
 };
 
-const SETTINGS_STORAGE_KEY = "alagamind.profile-settings";
-
 export default function SettingsPage() {
   const router = useRouter();
+  const { language, setLanguage } = useLanguage();
   const [profile, setProfile] = useState<SessionUser | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [profileError, setProfileError] = useState<string | null>(null);
@@ -58,11 +60,22 @@ export default function SettingsPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const [preferences, setPreferences] = useState<PreferenceState>({
-    language: "english",
+    language,
     productUpdates: true,
     supportAnnouncements: true,
     anonymizedInsights: false,
   });
+
+  useEffect(() => {
+    setPreferences((current) =>
+      current.language === language
+        ? current
+        : {
+            ...current,
+            language,
+          },
+    );
+  }, [language]);
 
   useEffect(() => {
     let isMounted = true;
@@ -108,7 +121,7 @@ export default function SettingsPage() {
       return;
     }
 
-    const stored = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
+    const stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
     if (!stored) {
       return;
     }
@@ -119,7 +132,7 @@ export default function SettingsPage() {
       setPreferences((current) => ({
         language: isSupportedLanguage(parsed.language)
           ? parsed.language
-          : current.language,
+          : language,
         productUpdates: parsed.productUpdates ?? current.productUpdates,
         supportAnnouncements:
           parsed.supportAnnouncements ?? current.supportAnnouncements,
@@ -129,7 +142,7 @@ export default function SettingsPage() {
     } catch {
       return;
     }
-  }, []);
+  }, [language]);
 
   const initials = useMemo(() => {
     const first = firstName.trim().charAt(0);
@@ -202,7 +215,7 @@ export default function SettingsPage() {
     setPreferencesSuccess(null);
 
     window.localStorage.setItem(
-      SETTINGS_STORAGE_KEY,
+      LANGUAGE_STORAGE_KEY,
       JSON.stringify(preferences),
     );
 
@@ -221,7 +234,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-full w-full bg-slate-50/60">
+    <div className="min-h-full w-full bg-[linear-gradient(180deg,#fffdf4_0%,#f6f7fb_100%)]">
       <main className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
         <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
           <div className="grid gap-6 px-6 py-6 lg:grid-cols-[1.45fr_0.95fr]">
@@ -424,6 +437,7 @@ export default function SettingsPage() {
                   value={preferences.language}
                   onChange={(language) => {
                     setPreferencesSuccess(null);
+                    setLanguage(language);
                     setPreferences((current) => ({
                       ...current,
                       language,
@@ -642,52 +656,6 @@ function Field({
       </div>
       {helper ? <p className="mt-2 text-xs text-slate-500">{helper}</p> : null}
     </label>
-  );
-}
-
-function ToggleRow({
-  icon,
-  title,
-  description,
-  checked,
-  onChange,
-}: {
-  icon: ReactNode;
-  title: string;
-  description: string;
-  checked: boolean;
-  onChange: (checked: boolean) => void;
-}) {
-  return (
-    <div className="flex items-start justify-between gap-4 rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-4">
-      <div className="flex items-start gap-3">
-        <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-slate-600 shadow-sm">
-          {icon}
-        </span>
-        <div>
-          <p className="text-sm font-semibold text-slate-900">{title}</p>
-          <p className="mt-1 text-sm leading-relaxed text-slate-500">
-            {description}
-          </p>
-        </div>
-      </div>
-
-      <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        onClick={() => onChange(!checked)}
-        className={`relative inline-flex h-7 w-12 shrink-0 rounded-full transition-colors ${
-          checked ? "bg-teal-500" : "bg-slate-300"
-        }`}
-      >
-        <span
-          className={`absolute top-1 h-5 w-5 rounded-full bg-white transition-transform ${
-            checked ? "translate-x-6" : "translate-x-1"
-          }`}
-        />
-      </button>
-    </div>
   );
 }
 

@@ -63,14 +63,16 @@ const supportChannels = [
     title: "Privacy requests",
     detail:
       "Use when the concern involves account access, data boundaries, or deletion/export handling.",
-    expectation: "Route through the privacy workflow before making irreversible changes.",
+    expectation:
+      "Route through the privacy workflow before making irreversible changes.",
     tone: "violet" as const,
   },
   {
     title: "Clinical safety boundary",
     detail:
       "The app can support reflection, but it should not present itself as emergency or crisis care.",
-    expectation: "Escalate to real human services for urgent risk or immediate danger.",
+    expectation:
+      "Escalate to real human services for urgent risk or immediate danger.",
     tone: "rose" as const,
   },
 ];
@@ -128,7 +130,8 @@ export default function HelpSupportPage() {
           {
             label: "Quick paths",
             value: "4",
-            detail: "Direct entry points into the main product areas users usually need.",
+            detail:
+              "Direct entry points into the main product areas users usually need.",
             tone: "teal",
           },
           {
@@ -140,7 +143,8 @@ export default function HelpSupportPage() {
           {
             label: "FAQ answers",
             value: String(faqItems.length),
-            detail: "Short answers for the questions users are likely to ask first.",
+            detail:
+              "Short answers for the questions users are likely to ask first.",
             tone: "amber",
           },
           {
@@ -203,7 +207,9 @@ export default function HelpSupportPage() {
                 className="rounded-2xl border border-slate-200 bg-slate-50/80 p-5"
               >
                 <div className="flex items-center gap-3">
-                  <SettingsBadge tone={channel.tone}>{channel.title}</SettingsBadge>
+                  <SettingsBadge tone={channel.tone}>
+                    {channel.title}
+                  </SettingsBadge>
                 </div>
                 <p className="mt-4 text-sm leading-7 text-slate-600">
                   {channel.detail}
@@ -245,7 +251,7 @@ export default function HelpSupportPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-        <SettingsPanel className="border-rose-200">
+        {/* <SettingsPanel className="border-rose-200">
           <SettingsSectionHeading
             eyebrow="Urgent support"
             title="Keep crisis guidance unmistakable"
@@ -306,7 +312,7 @@ export default function HelpSupportPage() {
               </Link>
             </div>
           </SettingsPanelBody>
-        </SettingsPanel>
+        </SettingsPanel> */}
 
         <SettingsPanel>
           <SettingsSectionHeading
@@ -333,9 +339,9 @@ export default function HelpSupportPage() {
                 Reusable rule of thumb
               </p>
               <p className="mt-2 text-sm leading-7 text-slate-600">
-                Help pages work best when they reduce support demand in two
-                ways at once: route users to the right place immediately, and
-                teach them the minimum context needed for a useful request.
+                Help pages work best when they reduce support demand in two ways
+                at once: route users to the right place immediately, and teach
+                them the minimum context needed for a useful request.
               </p>
             </div>
           </SettingsPanelBody>

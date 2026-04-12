@@ -1,15 +1,41 @@
 "use client";
 
 import React, { useState } from "react";
-import { type LucideIcon, Frown, Meh, Smile, Zap, X } from "lucide-react";
+import Image from "next/image";
+import { X } from "lucide-react";
 import { submitCheckIn } from "@/services/check-in";
 
-const EMOTIONS: { label: string; icon: LucideIcon; state: number }[] = [
-  { label: "Stressed", icon: Frown, state: 0 },
-  { label: "Tired", icon: Meh, state: 1 },
-  { label: "Focused", icon: Smile, state: 2 },
-  { label: "Calm", icon: Smile, state: 3 },
-  { label: "Energized", icon: Zap, state: 4 },
+const EMOTIONS = [
+  {
+    label: "Stressed",
+    state: 0,
+    image: "/stressed_emoji.png",
+    alt: "Stressed emotion",
+  },
+  {
+    label: "Tired",
+    state: 1,
+    image: "/tired_emoji.png",
+    alt: "Tired emotion",
+  },
+  {
+    label: "Focused",
+    state: 2,
+    image: "/focused_emoji.png",
+    alt: "Focused emotion",
+  },
+  {
+    label: "Calm",
+    state: 3,
+    image: "/calm_emoji.png",
+    alt: "Calm emotion",
+  },
+  {
+    label: "Energized",
+    state: 4,
+    image: "/energized_emoji.png",
+    alt: "Energized emotion",
+  },
 ];
 
 type CheckInModalProps = {
@@ -89,7 +115,7 @@ export function CheckInModal({
               Current Emotional State
             </p>
             <div className="grid grid-cols-5 gap-2">
-              {EMOTIONS.map(({ label, icon: Icon, state: s }) => (
+              {EMOTIONS.map(({ label, image, alt, state: s }) => (
                 <button
                   key={label}
                   type="button"
@@ -101,7 +127,13 @@ export function CheckInModal({
                       : "border-slate-100 bg-white text-slate-400 hover:bg-slate-50"
                   }`}
                 >
-                  <Icon size={24} strokeWidth={state === s ? 2.5 : 2} />
+                  <Image
+                    src={image}
+                    alt={alt}
+                    width={32}
+                    height={32}
+                    className="h-8 w-8 object-contain"
+                  />
                   <span className="text-[10px] font-bold uppercase tracking-wider">
                     {label}
                   </span>

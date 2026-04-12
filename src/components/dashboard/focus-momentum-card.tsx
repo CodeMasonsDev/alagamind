@@ -58,7 +58,7 @@ export function FocusMomentumCard({
                 Day Streak
               </span>
             </div>
-            <p className="flex items-center gap-1 text-[10px] font-bold tracking-wider text-teal-600 uppercase mt-1">
+            <p className="mt-1 flex items-center gap-1 text-[10px] font-bold tracking-wider text-teal-600 uppercase">
               <Zap size={10} />
               Today {Math.round(data.today_percentage)}% / Week Avg{" "}
               {Math.round(data.weekly_average_percentage)}%
@@ -89,7 +89,7 @@ export function FocusMomentumCard({
                       data-testid={`focus-momentum-bar-${day.date}`}
                     >
                       <div
-                        className={`w-full rounded-sm transition-[height] duration-300 ${fillClass}`}
+                        className={`w-full transition-[height] duration-300 ${fillClass}`}
                         style={{ height: `${visualPercentage}%` }}
                       />
                     </div>
@@ -142,17 +142,17 @@ function FocusMomentumSkeleton() {
   return (
     <>
       <div className="animate-pulse">
-        <div className="h-10 w-20 bg-slate-100 rounded-md" />
-        <div className="mt-3 h-3 w-36 bg-slate-100 rounded-md" />
+        <div className="h-10 w-20 border-2 border-slate-900 bg-slate-100" />
+        <div className="mt-3 h-3 w-36 border-2 border-slate-900 bg-slate-100" />
       </div>
 
       <div className="mt-5 flex min-h-[104px] flex-1 items-end justify-between gap-2">
         {Array.from({ length: 7 }).map((_, index) => (
           <div key={index} className="flex flex-col items-center gap-2 flex-1">
-            <div className="relative h-20 w-full overflow-hidden rounded-sm bg-slate-50">
-              <div className="absolute inset-x-0 bottom-0 h-10 bg-slate-100 animate-pulse rounded-sm" />
+            <div className="relative h-20 w-full overflow-hidden border-2 border-slate-900 bg-slate-50">
+              <div className="absolute inset-x-0 bottom-0 h-10 animate-pulse bg-slate-100" />
             </div>
-            <div className="h-2.5 w-3 bg-slate-100 rounded-sm animate-pulse" />
+            <div className="h-2.5 w-3 animate-pulse border border-slate-900 bg-slate-100" />
           </div>
         ))}
       </div>
@@ -168,7 +168,7 @@ function FocusMomentumErrorState({ message }: { message: string }) {
           <span className="text-4xl font-black text-slate-300 tracking-tight">
             --
           </span>
-          <span className="text-xs font-bold tracking-widest text-slate-300 uppercase">
+          <span className="text-xs font-black uppercase tracking-[0.18em] text-slate-300">
             Day Streak
           </span>
         </div>
@@ -187,8 +187,8 @@ function EmptyBars() {
           key={`${label}-${index}`}
           className="flex flex-col items-center gap-2 flex-1"
         >
-          <div className="h-20 w-full rounded-sm bg-slate-50" />
-          <span className="text-[10px] font-bold text-slate-300">{label}</span>
+          <div className="h-20 w-full border-2 border-slate-900 bg-slate-50" />
+          <span className="text-[10px] font-black text-slate-300">{label}</span>
         </div>
       ))}
     </div>

@@ -81,7 +81,7 @@ export default function BoxBreathingSessionPage() {
     void (async () => {
       try {
         const res = await getMe();
-        if (isMounted) setProfile(res);
+        setProfile(res);
       } catch (error) {
         if (isMounted) setProfile(null);
       }

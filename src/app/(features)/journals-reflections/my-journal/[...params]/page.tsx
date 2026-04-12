@@ -108,9 +108,8 @@ export default function MyJournal({ params }: MyJournalProps) {
     setIsSessionCacheHydrated(false);
 
     const cachedJournal = readSessionCache<JournalDetail>(journalCacheKey);
-    const cachedInsights = readSessionCache<InsightsCacheRecord>(
-      insightsCacheKey,
-    );
+    const cachedInsights =
+      readSessionCache<InsightsCacheRecord>(insightsCacheKey);
 
     setJournal(cachedJournal);
     setIsJournalLoading(Boolean(user_id && journal_id && !cachedJournal));
@@ -181,13 +180,7 @@ export default function MyJournal({ params }: MyJournalProps) {
     }
 
     router.replace(pathname, { scroll: false });
-  }, [
-    insightsCache,
-    journal_id,
-    pathname,
-    router,
-    shouldForceRefreshInsights,
-  ]);
+  }, [insightsCache, journal_id, pathname, router, shouldForceRefreshInsights]);
 
   useEffect(() => {
     if (!isSessionCacheHydrated || !journalCacheKey) {
@@ -237,7 +230,7 @@ export default function MyJournal({ params }: MyJournalProps) {
   };
 
   return (
-    <div className="flex min-h-full w-full flex-col bg-slate-50/60">
+    <div className="flex min-h-full w-full flex-col bg-[linear-gradient(180deg,#fffdf4_0%,#f6f7fb_100%)]">
       <TopBar
         title={journal?.title}
         createdAt={journal?.createdAt ?? null}
@@ -258,7 +251,8 @@ export default function MyJournal({ params }: MyJournalProps) {
             journal={journal}
             selectedSentiment={selectedSentiment}
             highlightedSegments={
-              selectedSentiment && insightsCache[journal_id]?.sentiment?.segments
+              selectedSentiment &&
+              insightsCache[journal_id]?.sentiment?.segments
                 ? insightsCache[journal_id].sentiment.segments
                 : []
             }
@@ -471,11 +465,11 @@ function AiInsightsSidebar({
     effectiveState.percentages?.recommended_protocol ?? null;
 
   return (
-    <section className="h-full px-6 py-7 lg:sticky lg:top-[73px] lg:h-[calc(100vh-73px)] lg:overflow-y-auto">
+    <section className="h-full px-6 py-7 lg:sticky lg:top-[73px] lg:h-[calc(100vh-73px)] lg:overflow-y-auto bg-[linear-gradient(180deg,#fffdf4_0%,#f6f7fb_100%)]">
       <div className="space-y-6">
         <header className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-slate-700">
           <Sparkles size={13} className="text-teal-500" />
-          AI Insights Sidebar
+          Insights
         </header>
 
         {effectiveState.status === "loading" ? <InsightsLoadingState /> : null}

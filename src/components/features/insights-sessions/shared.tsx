@@ -45,18 +45,19 @@ export function PageHeader({
   metrics?: readonly HeaderMetric[];
 }) {
   return (
-    <header className="overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-sm">
-      <div className="flex flex-col gap-6 border-b border-slate-200 px-6 py-6 lg:flex-row lg:items-end lg:justify-between lg:px-8">
-        <div className="max-w-3xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-teal-600">
-            {eyebrow}
-          </p>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 lg:text-4xl">
-            {title}
-          </h1>
-          <p className="mt-3 text-sm leading-7 text-slate-500 lg:text-base">
-            {description}
-          </p>
+    <header className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm">
+      {/* HEADER TOP */}
+      <div className="flex flex-col gap-4 border-b border-slate-200 px-5 py-5 lg:px-6">
+        <div className="flex w-full items-start justify-between">
+          {/* LEFT */}
+          <div className="max-w-3xl">
+            <h1 className="text-2xl font-semibold uppercase tracking-[0.28em] text-teal-600">
+              {title}
+            </h1>
+            <p className="mt-2 text-sm leading-6 text-slate-500">
+              {description}
+            </p>
+          </div>
         </div>
 
         {actions ? (
@@ -64,8 +65,10 @@ export function PageHeader({
         ) : null}
       </div>
 
+      {/* METRICS */}
       {metrics?.length ? (
-        <div className="grid gap-4 px-6 py-6 md:grid-cols-2 xl:grid-cols-4 lg:px-8">
+        <div className="grid gap-2 px-4 py-4 md:grid-cols-3 xl:grid-cols-5">
+          {" "}
           {metrics.map((metric) => (
             <MetricCard
               key={metric.label}
@@ -93,7 +96,7 @@ export function SurfaceCard({
   return (
     <section
       id={id}
-      className={`rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm ${className}`}
+      className={`rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm ${className}`}
     >
       {children}
     </section>
@@ -114,10 +117,10 @@ export function SectionHeading({
       <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
         {eyebrow}
       </p>
-      <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
+      <h2 className="mt-2 text-xl font-semibold tracking-tight text-slate-950">
         {title}
       </h2>
-      <p className="mt-2 text-sm leading-7 text-slate-500">{description}</p>
+      <p className="mt-2 text-sm leading-6 text-slate-500">{description}</p>
     </div>
   );
 }
@@ -128,15 +131,39 @@ export function MetricCard({
   detail,
   tone = "slate",
 }: HeaderMetric) {
+  const isCheckIn = label.toLowerCase().includes("check");
+
   return (
-    <div className={`rounded-2xl border p-4 ${metricToneStyles[tone]}`}>
-      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+    <div
+      className={`rounded-lg border ${
+        isCheckIn
+          ? "p-2 min-h-[90px]" // 🔥 smaller height
+          : "p-3.5 min-h-[140px]"
+      } ${metricToneStyles[tone]}`}
+    >
+      <p
+        className={`${
+          isCheckIn ? "text-[9px]" : "text-xs"
+        } font-semibold uppercase tracking-[0.15em] text-slate-500`}
+      >
         {label}
       </p>
-      <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
+
+      <p
+        className={`${
+          isCheckIn ? "text-lg" : "text-2xl"
+        } mt-1 font-semibold text-slate-900`}
+      >
         {value}
       </p>
-      <p className="mt-2 text-sm text-slate-500">{detail}</p>
+
+      <p
+        className={`${
+          isCheckIn ? "text-[10px]" : "text-xs"
+        } mt-1 text-slate-500`}
+      >
+        {detail}
+      </p>
     </div>
   );
 }
@@ -170,9 +197,7 @@ export function TrendLineChart({
   strokeColor?: string;
   fillColor?: string;
 }) {
-  if (points.length === 0) {
-    return null;
-  }
+  if (points.length === 0) return null;
 
   const width = 100;
   const height = 56;
@@ -186,6 +211,7 @@ export function TrendLineChart({
         ? width / 2
         : paddingX +
           (index * (width - paddingX * 2)) / Math.max(points.length - 1, 1);
+
     const y =
       height -
       paddingY -
@@ -195,12 +221,12 @@ export function TrendLineChart({
   });
 
   const linePath = coordinates
-    .map((point, index) => `${index === 0 ? "M" : "L"} ${point.x} ${point.y}`)
+    .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`)
     .join(" ");
 
   const areaPath = [
     `M ${coordinates[0].x} ${height - paddingY}`,
-    ...coordinates.map((point) => `L ${point.x} ${point.y}`),
+    ...coordinates.map((p) => `L ${p.x} ${p.y}`),
     `L ${coordinates[coordinates.length - 1].x} ${height - paddingY}`,
     "Z",
   ].join(" ");
@@ -208,67 +234,15 @@ export function TrendLineChart({
   return (
     <div className="space-y-4">
       <div className="rounded-2xl border border-slate-100 bg-slate-50/80 p-4">
-        <svg
-          viewBox={`0 0 ${width} ${height}`}
-          className="h-52 w-full overflow-visible"
-          role="img"
-          aria-label="Trend chart"
-        >
-          {[1, 2, 3].map((line) => {
-            const y = paddingY + ((height - paddingY * 2) / 4) * line;
-            return (
-              <line
-                key={line}
-                x1={paddingX}
-                y1={y}
-                x2={width - paddingX}
-                y2={y}
-                stroke="#cbd5e1"
-                strokeDasharray="2 2"
-                strokeWidth="0.4"
-              />
-            );
-          })}
-
+        <svg viewBox={`0 0 ${width} ${height}`} className="h-52 w-full">
           <path d={areaPath} fill={fillColor} />
           <path
             d={linePath}
             fill="none"
             stroke={strokeColor}
             strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
           />
-
-          {coordinates.map((point) => (
-            <circle
-              key={`${point.label}-${point.value}`}
-              cx={point.x}
-              cy={point.y}
-              r="1.8"
-              fill={strokeColor}
-              stroke="white"
-              strokeWidth="0.8"
-            />
-          ))}
         </svg>
-      </div>
-
-      <div
-        className="grid gap-2"
-        style={{
-          gridTemplateColumns: `repeat(${points.length}, minmax(0, 1fr))`,
-        }}
-      >
-        {points.map((point) => (
-          <div key={`${point.label}-${point.value}`} className="min-w-0">
-            <p className="text-sm font-semibold text-slate-900">{point.label}</p>
-            <p className="text-xs text-slate-500">{point.value}</p>
-            {point.caption ? (
-              <p className="truncate text-xs text-slate-400">{point.caption}</p>
-            ) : null}
-          </div>
-        ))}
       </div>
     </div>
   );

@@ -1,6 +1,5 @@
 import { Check, Languages } from "lucide-react";
-
-export type SupportedLanguage = "english" | "tagalog" | "bisaya";
+import type { SupportedLanguage } from "@/lib/language";
 
 const LANGUAGE_OPTIONS: Array<{
   value: SupportedLanguage;
@@ -40,10 +39,6 @@ export function getSupportedLanguagePreview(value: SupportedLanguage) {
     LANGUAGE_OPTIONS.find((option) => option.value === value)?.preview ??
     LANGUAGE_OPTIONS[0].preview
   );
-}
-
-export function isSupportedLanguage(value: unknown): value is SupportedLanguage {
-  return LANGUAGE_OPTIONS.some((option) => option.value === value);
 }
 
 export default function LanguagePreferenceSelector({

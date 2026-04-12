@@ -218,21 +218,29 @@ export default function MoodTrendsPage() {
     const completedToday = savedReframes.filter((item) =>
       isTodayTimestamp(item.savedAt),
     ).length;
-    const dominantDistortion = getDominantDistortion(distortionBreakdowns);
+    const dominantDistortion =
+      getDominantDistortion(distortionBreakdowns) ??
+      getDominantDistortionFromThoughts(thoughts);
     const insightWindow =
       detectedPatterns.find((pattern) => pattern.window?.trim())?.window ??
       "live";
+    const fired =
+      detectedPatterns.length > 0
+        ? detectedPatterns.length
+        : dominantDistortion
+          ? 1
+          : 0;
 
     return {
       completed: savedReframes.length,
       uniqueThoughts,
       completedToday,
       dominantDistortion,
-      fired: detectedPatterns.length,
+      fired,
       insightWindow,
-      insightTypes: getInsightTypesLabel(detectedPatterns),
+      insightTypes: getInsightTypesLabel(detectedPatterns, dominantDistortion),
     };
-  }, [detectedPatterns, distortionBreakdowns, savedReframes]);
+  }, [detectedPatterns, distortionBreakdowns, savedReframes, thoughts]);
 
   function mapApiThoughtToUi(item: ApiThought): Thought {
     return {
@@ -374,7 +382,7 @@ export default function MoodTrendsPage() {
   }
 
   return (
-    <div className="min-h-full w-full bg-[#fbfcfc]  p-3">
+    <div className="min-h-full w-full bg-[linear-gradient(180deg,#fffdf4_0%,#f6f7fb_100%)]  p-3">
       <div className="mx-auto w-full max-w-[1440px] space-y-6">
         <header className="overflow-hidden border border-slate-200 bg-white shadow-[0_18px_50px_-34px_rgba(15,23,42,0.28)]">
           <div className="flex flex-col gap-4 px-5 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
@@ -382,16 +390,9 @@ export default function MoodTrendsPage() {
               <h1 className="text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">
                 Reframing Lab
               </h1>
-              <span className="inline-flex items-center gap-2 border border-teal-100 bg-teal-50 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-teal-700">
-                <span className="h-1.5 w-1.5 bg-teal-500" />
-                Neural engine active
-              </span>
             </div>
 
             <div className="flex flex-wrap items-center gap-3 lg:justify-end">
-              <p className="max-w-md text-sm leading-relaxed text-slate-500">
-                Reframe a thought and watch your patterns update.
-              </p>
               <button
                 type="button"
                 onClick={() => setIsInsightsOpen(true)}
@@ -410,7 +411,7 @@ export default function MoodTrendsPage() {
               detail={
                 headerMetrics.completed > 0
                   ? `Across ${headerMetrics.uniqueThoughts} unique thoughts`
-                  : "No saved reframes yet"
+                  : "Saved reframes will appear here after you choose a thought and keep one of the generated options."
               }
               chip={`+${headerMetrics.completedToday} today`}
             />
@@ -420,13 +421,19 @@ export default function MoodTrendsPage() {
               detail={
                 headerMetrics.dominantDistortion
                   ? `Present in ${formatPercent(headerMetrics.dominantDistortion.value)} of entries`
-                  : "Waiting for distortion data"
+                  : thoughts.length > 0
+                    ? "Thoughts are loaded, but no dominant distortion is strong enough to summarize yet."
+                    : "Dominant distortion will appear after journal thoughts are analyzed."
               }
             />
             <TopMetric
               label="Pattern Insights Fired"
               value={String(headerMetrics.fired)}
-              detail={headerMetrics.insightTypes}
+              detail={
+                headerMetrics.fired > 0
+                  ? headerMetrics.insightTypes
+                  : "Pattern insights will appear here after saved reframes create enough signal."
+              }
               chip={titleCase(headerMetrics.insightWindow)}
             />
           </div>
@@ -473,9 +480,7 @@ export default function MoodTrendsPage() {
                   />
                 ))
               ) : (
-                <div className="flex justify-center items-center h-full">
-                  <p className="text-gray-600">No thoughts available yet.</p>
-                </div>
+                <EmptyThoughtsState />
               )}
             </div>
 
@@ -545,19 +550,22 @@ export default function MoodTrendsPage() {
             </div>
 
             <div className="px-5 py-5 sm:px-6">
-              {!selectedThought ? (
+              {thoughts.length === 0 ? (
                 <EmptyState
-                  text={
-                    'Pick a thought on the left and press "Reframe this thought" to begin.'
-                  }
+                  title="No reframes to save yet"
+                  description="This workspace unlocks after a journal thought is detected on the left. Once thoughts are available, generate three tones here and save the version that feels most grounded."
+                />
+              ) : !selectedThought ? (
+                <EmptyState
+                  title="Pick a thought to begin"
+                  description='Choose a thought from the left panel, then press "Reframe this thought" to generate the three saved options in this workspace.'
                 />
               ) : isGenerating ? (
                 <LoadingState />
               ) : !hasGeneratedSelection ? (
                 <EmptyState
-                  text={
-                    'Pick a thought on the left and press "Reframe this thought" to begin.'
-                  }
+                  title="Generate reframes for the selected thought"
+                  description='The selected thought is ready. Press "Reframe this thought" to create logical, compassionate, and direct versions here.'
                 />
               ) : (
                 <div className="space-y-5">
@@ -832,39 +840,51 @@ function InsightsDrawer({
             <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-slate-500">
               Live feed
             </p>
-            <div className="mt-3 space-y-2.5 overflow-y-auto h-[150px]">
-              {savedReframes.map((item, index) => (
-                <SavedFeedItem key={index} item={item} />
-              ))}
-            </div>
+            {savedReframes.length > 0 ? (
+              <div className="mt-3 space-y-2.5 overflow-y-auto h-[150px]">
+                {savedReframes.map((item, index) => (
+                  <SavedFeedItem key={index} item={item} />
+                ))}
+              </div>
+            ) : (
+              <DrawerEmptyState message="No reframes have been saved yet. Save a generated reframe to start the live feed." />
+            )}
           </div>
 
           <div>
             <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-slate-500">
               Detected patterns
             </p>
-            <div className="mt-3 space-y-3">
-              {detectedPattern.map((pattern, index) => (
-                <PatternCard key={index} pattern={pattern} />
-              ))}
-            </div>
+            {detectedPattern.length > 0 ? (
+              <div className="mt-3 space-y-3">
+                {detectedPattern.map((pattern, index) => (
+                  <PatternCard key={index} pattern={pattern} />
+                ))}
+              </div>
+            ) : (
+              <DrawerEmptyState message="No behavioral patterns are available yet. They will appear once reframes accumulate enough trend data." />
+            )}
           </div>
 
           <div>
             <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-slate-500">
               Distortion breakdown
             </p>
-            <div className="mt-1">
-              <div className="space-y-2">
-                {items.map((item) => (
-                  <DistortionRow
-                    key={item.label}
-                    label={item.label}
-                    value={item.value}
-                  />
-                ))}
+            {items.length > 0 ? (
+              <div className="mt-1">
+                <div className="space-y-2">
+                  {items.map((item) => (
+                    <DistortionRow
+                      key={item.label}
+                      label={item.label}
+                      value={item.value}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
+            ) : (
+              <DrawerEmptyState message="No distortion summary is available yet. Save reframes first so the drawer can summarize recurring thinking patterns." />
+            )}
           </div>
         </div>
       </aside>
@@ -999,15 +1019,52 @@ function capitalize(value: string) {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
-function EmptyState({ text }: { text: string }) {
+function EmptyState({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}) {
   return (
     <div className="border border-dashed border-slate-200 bg-slate-50/70 px-6 py-14 text-center">
       <div className="mx-auto flex h-14 w-14 items-center justify-center bg-white text-slate-400 shadow-sm">
         <Brain className="h-6 w-6" />
       </div>
-      <p className="mx-auto mt-5 max-w-md text-lg font-medium leading-relaxed text-slate-700">
-        {text}
+      <p className="mx-auto mt-5 max-w-md text-lg font-semibold leading-relaxed text-slate-800">
+        {title}
       </p>
+      <p className="mx-auto mt-2 max-w-lg text-sm leading-7 text-slate-500">
+        {description}
+      </p>
+    </div>
+  );
+}
+
+function EmptyThoughtsState() {
+  return (
+    <div className="flex h-full min-h-[240px] items-center justify-center border border-dashed border-slate-200 bg-slate-50/70 px-6 py-10 text-center">
+      <div className="max-w-lg">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center bg-white text-slate-400 shadow-sm">
+          <WandSparkles className="h-6 w-6" />
+        </div>
+        <p className="mt-5 text-xl font-semibold text-slate-800">
+          No thoughts are ready for reframing yet
+        </p>
+        <p className="mt-2 text-sm leading-7 text-slate-500">
+          This panel fills after journal analysis detects thoughts worth
+          reframing. Write or analyze a journal entry first, then return here to
+          generate logical, compassionate, and direct alternatives.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function DrawerEmptyState({ message }: { message: string }) {
+  return (
+    <div className="mt-3 rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 px-4 py-5">
+      <p className="text-sm leading-7 text-slate-500">{message}</p>
     </div>
   );
 }
@@ -1182,7 +1239,10 @@ function getDominantDistortion(distortionBreakdowns: DistortionBreakdown) {
   return { label, value };
 }
 
-function getInsightTypesLabel(patterns: DetectedPattern[]) {
+function getInsightTypesLabel(
+  patterns: DetectedPattern[],
+  dominantDistortion?: { label: string; value: number } | null,
+) {
   const types = Array.from(
     new Set(
       patterns
@@ -1193,7 +1253,37 @@ function getInsightTypesLabel(patterns: DetectedPattern[]) {
 
   return types.length
     ? `${types.join(", ")} signals`
-    : "No time, topic, or distortion signals yet";
+    : dominantDistortion
+      ? "Distortion signals detected"
+      : "No time, topic, or distortion signals yet";
+}
+
+function getDominantDistortionFromThoughts(thoughts: Thought[]) {
+  const counts = new Map<string, number>();
+
+  for (const thought of thoughts) {
+    const label = thought.distortion?.trim();
+    if (!label) {
+      continue;
+    }
+
+    counts.set(label, (counts.get(label) ?? 0) + 1);
+  }
+
+  const sorted = [...counts.entries()].sort(
+    (left, right) => right[1] - left[1],
+  );
+  if (!sorted.length) {
+    return null;
+  }
+
+  const [label, count] = sorted[0];
+  const total = thoughts.length || 1;
+
+  return {
+    label,
+    value: (count / total) * 100,
+  };
 }
 
 function formatKeywords(keywords: DetectedPattern["keywords"]) {

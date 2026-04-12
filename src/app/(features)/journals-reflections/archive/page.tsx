@@ -231,7 +231,7 @@ export default function JournalsArchivePage() {
   };
 
   return (
-    <div className="flex min-h-full w-full flex-col  bg-slate-50/60 ">
+    <div className="flex min-h-full w-full flex-col  bg-[linear-gradient(180deg,#fffdf4_0%,#f6f7fb_100%)]">
       <header className="flex sticky top-0  z-10 items-center justify-between pb-4 border-b bg-white border-slate-200 p-4">
         <div className="flex items-center gap-2 text-xs font-bold tracking-widest text-slate-500 uppercase">
           <span className="text-slate-300">/</span>

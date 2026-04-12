@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { cognitiveReframingService } from "./cognitive-reframing-service";
 import { CognitiveReframingDraft, ReframeSuggestion } from "./types";
+import { getMe, SessionUser } from "@/api/auth/auth";
+import { createCognitiveReframing } from "@/api/exercise-protocols";
 
 type UseCognitiveReframing = {
   draft: CognitiveReframingDraft;
@@ -35,6 +37,26 @@ export function useCognitiveReframing(): UseCognitiveReframing {
   const [savedSnapshot, setSavedSnapshot] = useState(() =>
     createSnapshot(cognitiveReframingService.createEmptyDraft()),
   );
+
+  const [profile, setProfile] = useState<SessionUser | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    void (async () => {
+      try {
+        const res = await getMe();
+        if (isMounted) setProfile(res);
+      } catch (error) {
+        if (isMounted) setProfile(null);
+        console.log(error);
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     const latest = cognitiveReframingService.loadLatestDraft();
@@ -106,6 +128,22 @@ export function useCognitiveReframing(): UseCognitiveReframing {
     setIsSaving(true);
     try {
       const saved = await cognitiveReframingService.saveDraft(draft);
+
+      const payload = {
+        userId: profile?.id as string,
+        automaticThoughts: draft.automaticThought,
+        cognitiveDistortion: draft.distortion,
+        distressIntensity: draft.intensity,
+        evidenceSupportingThought: draft.evidenceFor,
+        evidenceAgainstThought: draft.evidenceAgainst,
+        balancedThoughtBehavioralExperiment: draft.balancedThought,
+      };
+
+      const res = await createCognitiveReframing(payload);
+
+      if (!res) console.log("failed to save");
+      console.log("Sucess", res);
+
       setDraft(saved);
       setSavedSnapshot(createSnapshot(saved));
       setLastSavedAt(saved.savedAt);

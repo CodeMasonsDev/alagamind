@@ -205,7 +205,7 @@ export default function ExercisesPage() {
     selectedDuration !== "All Durations";
 
   return (
-    <div className="flex min-h-full w-full flex-col bg-slate-50/60">
+    <div className="flex min-h-full w-full flex-col bg-[linear-gradient(180deg,#fffdf4_0%,#f6f7fb_100%)]">
       <TopBar />
 
       <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
