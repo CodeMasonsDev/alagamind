@@ -10,13 +10,11 @@ import {
   Command,
   Dumbbell,
   HelpCircle,
-  History,
   LayoutDashboard,
   LoaderCircle,
   LogOut,
   MessageSquare,
   Settings,
-  ShieldCheck,
 } from "lucide-react";
 import { getMe, logout, type SessionUser } from "@/api/auth/auth";
 import NavItem from "./nav-item";
@@ -72,18 +70,18 @@ const NAVIGATION_DATA: NavGroup[] = [
         icon: BarChart3,
         href: "/insights-reports",
       },
-      {
-        label: "History & Sessions",
-        icon: History,
-        href: "/history-sessions",
-      },
+      // {
+      //   label: "History & Sessions",
+      //   icon: History,
+      //   href: "/history-sessions",
+      // },
     ],
   },
   {
     title: "System",
     items: [
       { label: "Settings", icon: Settings, href: "/settings" },
-      { label: "Privacy & Security", icon: ShieldCheck, href: "/privacy" },
+      // { label: "Privacy & Security", icon: ShieldCheck, href: "/privacy" },
       { label: "Help & Support", icon: HelpCircle, href: "/help-support" },
     ],
   },
@@ -168,7 +166,7 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="flex h-screen w-60 flex-col border-r border-slate-200 bg-slate-50">
+    <aside className="flex h-screen w-60 flex-col border-r bg-[linear-gradient(180deg,#fffdf4_0%,#f6f7fb_25%)]">
       <div className="p-6 pb-4">
         <div className="mb-2 flex items-center gap-3">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-teal-400">

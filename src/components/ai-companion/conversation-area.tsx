@@ -85,6 +85,7 @@ function AssistantAudioButton({
 export default function ConversationArea({
   messages,
   isTyping,
+  streamingMessageId,
   onSuggestionStart,
   messageAudio,
   currentlyPlayingId,
@@ -92,6 +93,7 @@ export default function ConversationArea({
 }: {
   messages: ChatMessage[];
   isTyping: boolean;
+  streamingMessageId?: number | null;
   onSuggestionStart?: (command: string) => void;
   messageAudio?: Record<number, MessageAudioState>;
   currentlyPlayingId?: number | null;
@@ -132,10 +134,10 @@ export default function ConversationArea({
         return (
           <div key={message.id} className="flex flex-col gap-3">
             <AssistantTextCard text={message.text} />
-            {timestampLabel ||
-            message.emotion ||
-            message.problem ||
-            messageAudio?.[message.id]?.error ? (
+            {streamingMessageId === message.id ? null : timestampLabel ||
+              message.emotion ||
+              message.problem ||
+              messageAudio?.[message.id]?.error ? (
               <div className="ml-14 flex flex-wrap items-center gap-2 text-[11px] text-slate-400">
                 <AssistantAudioButton
                   messageId={message.id}

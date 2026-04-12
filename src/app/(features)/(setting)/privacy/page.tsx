@@ -64,13 +64,15 @@ const dataLifecycle = [
   },
   {
     label: "Reframes",
-    purpose: "Saved cognitive shifts, distortion tracking, and recurrence reporting.",
+    purpose:
+      "Saved cognitive shifts, distortion tracking, and recurrence reporting.",
     boundary:
       "Should remain editable and reviewable by the user, with any export flow staying deliberate and visible.",
   },
   {
     label: "AI sessions",
-    purpose: "Conversation continuity, session themes, and dominant emotion previews.",
+    purpose:
+      "Conversation continuity, session themes, and dominant emotion previews.",
     boundary:
       "Needs the clearest retention and deletion story because this is the highest-density sensitive text surface.",
   },
@@ -130,19 +132,22 @@ export default function PrivacyPage() {
           {
             label: "Consent controls",
             value: "In settings",
-            detail: "Language and anonymized-insight choices live on the account screen.",
+            detail:
+              "Language and anonymized-insight choices live on the account screen.",
             tone: "violet",
           },
           {
             label: "Sensitive actions",
             value: "Verified",
-            detail: "Deletion and export should stay backend-driven, not cosmetic.",
+            detail:
+              "Deletion and export should stay backend-driven, not cosmetic.",
             tone: "amber",
           },
           {
             label: "Support path",
             value: "Available",
-            detail: "Users need a clear escalation route for privacy requests and account issues.",
+            detail:
+              "Users need a clear escalation route for privacy requests and account issues.",
             tone: "rose",
           },
         ]}
@@ -310,9 +315,9 @@ export default function PrivacyPage() {
                     Rule of thumb
                   </p>
                   <p className="mt-2 text-sm leading-7 text-slate-600">
-                    Privacy UI should describe boundaries clearly, but any action
-                    that changes real access or real data must be backed by a
-                    trustworthy server flow.
+                    Privacy UI should describe boundaries clearly, but any
+                    action that changes real access or real data must be backed
+                    by a trustworthy server flow.
                   </p>
                 </div>
               </div>

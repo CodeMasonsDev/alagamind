@@ -239,7 +239,6 @@ export default function ReflectionEditor() {
         setEditorHtml(savedHtml);
         setBaselineEditorHtml(savedHtml);
         setBaselineTitle(resolvedTitle);
-
       } else {
         const payload = {
           userId,
@@ -292,7 +291,7 @@ export default function ReflectionEditor() {
   };
 
   return (
-    <div className="min-h-screen bg-white font-sans text-gray-900">
+    <div className="min-h-screen bg-[linear-gradient(180deg,#fffdf4_0%,#f6f7fb_100%)] font-sans text-gray-900">
       <header className="flex items-center justify-between px-8 py-4 border-b border-gray-100">
         <div className="flex items-center space-x-6 text-sm font-medium text-gray-500">
           <Link
@@ -606,4 +605,3 @@ function clearJournalSessionCache(userId: string, journalId: string | null) {
     console.warn("Failed to clear journal session cache:", error);
   }
 }
-

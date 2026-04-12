@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { NavItems } from "./sidebar";
 import { usePathname } from "next/navigation";
+import Image from "next/image";
 
 export default function NavItem({ item }: { item: NavItems }) {
   const Icon = item.icon;
@@ -32,6 +33,7 @@ export default function NavItem({ item }: { item: NavItems }) {
           strokeWidth={isActive ? 2.5 : 2}
           className={`w-5 h-5 ${isActive ? "text-slate-800" : "text-slate-400 group-hover:text-slate-600"}`}
         />
+
         <span
           className={`text-sm ${isActive ? "font-semibold" : "font-medium"}`}
         >
