@@ -186,6 +186,14 @@ function buildInitialAssistantGreeting(
   }
 }
 
+function getInitials(profile: SessionUser | null) {
+  const first = profile?.firstname?.trim().charAt(0) ?? "";
+  const last = profile?.lastname?.trim().charAt(0) ?? "";
+  const combined = `${first}${last}`.trim();
+
+  return combined || "AM";
+}
+
 export default function AiCompanionPage() {
   const { refreshFocusMomentum } = useDashboardMetrics();
   const { language: interfaceLanguage } = useLanguage();
@@ -253,6 +261,7 @@ export default function AiCompanionPage() {
     }),
     [greetingLanguage, profile?.firstname],
   );
+  const userInitials = useMemo(() => getInitials(profile), [profile]);
 
   const hasNoSessions =
     !isLoadingProfile &&
@@ -1041,6 +1050,8 @@ export default function AiCompanionPage() {
               messages={messages}
               isTyping={isTyping}
               streamingMessageId={streamingMessageId}
+              userProfileImageUrl={profile?.profileImageUrl}
+              userInitials={userInitials}
               messageAudio={messageAudio}
               currentlyPlayingId={currentlyPlayingId}
               onPlayMessage={(messageId) => {

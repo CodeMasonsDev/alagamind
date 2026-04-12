@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { ACCESS_TOKEN_COOKIE, decodeAuthCookie } from "@/lib/auth-cookies";
 import { BASEURLDOTNETAPI } from "@/lib/base";
+import { getProfilePicturePublicUrl } from "@/lib/profile-picture";
 
 type BackendErrorResponse = {
   message?: string;
@@ -59,6 +60,7 @@ export async function GET() {
       firstname: user.firstname,
       lastname: user.lastname,
       roles: user.roles,
+      profileImageUrl: await getProfilePicturePublicUrl(user.id),
     });
   } catch (error) {
     const axiosError = error as AxiosError<BackendErrorResponse>;

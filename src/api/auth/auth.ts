@@ -17,6 +17,7 @@ export type SessionUser = {
   firstname: string;
   lastname: string;
   roles: string[];
+  profileImageUrl?: string;
 };
 
 export type UpdateProfilePayload = {
@@ -112,4 +113,44 @@ export async function updateProfile(payload: UpdateProfilePayload) {
   }
 
   return data as { message: string; user: SessionUser | null };
+}
+
+export async function uploadProfilePicture(file: File) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const res = await fetch("/api/auth/profile-picture", {
+    method: "POST",
+    body: formData,
+  });
+
+  const data = await res.json().catch(() => null);
+
+  if (!res.ok) {
+    throw new Error(data?.message ?? "Failed to upload profile picture");
+  }
+
+  return data as {
+    message: string;
+    profileImageUrl: string;
+    user?: SessionUser;
+  };
+}
+
+export async function removeProfilePicture() {
+  const res = await fetch("/api/auth/profile-picture", {
+    method: "DELETE",
+  });
+
+  const data = await res.json().catch(() => null);
+
+  if (!res.ok) {
+    throw new Error(data?.message ?? "Failed to remove profile picture");
+  }
+
+  return data as {
+    message: string;
+    profileImageUrl: string;
+    user?: SessionUser;
+  };
 }

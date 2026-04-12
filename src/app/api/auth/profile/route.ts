@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { ACCESS_TOKEN_COOKIE, decodeAuthCookie } from "@/lib/auth-cookies";
 import { BASEURLDOTNETAPI } from "@/lib/base";
+import { getProfilePicturePublicUrl } from "@/lib/profile-picture";
 
 type UpdateProfileRequest = {
   firstname: string;
@@ -76,6 +77,7 @@ export async function PUT(request: NextRequest) {
             firstname: user.firstname,
             lastname: user.lastname,
             roles: user.roles,
+            profileImageUrl: await getProfilePicturePublicUrl(user.id),
           }
         : null,
     });
