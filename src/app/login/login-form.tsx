@@ -2,7 +2,7 @@
 
 import { login } from "@/api/auth/auth";
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import { motion } from "framer-motion";
 
 /* ── animation helpers ── */
@@ -20,7 +20,7 @@ const fadeUp = {
   },
 };
 
-export default function LoginForm() {
+function LoginFormInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
@@ -238,5 +238,43 @@ export default function LoginForm() {
         </motion.div>
       </motion.div>
     </motion.div>
+  );
+}
+
+/* ── Suspense skeleton ── */
+function LoginShell() {
+  return (
+    <div className="rounded-[2.5rem] border border-white/30 bg-white/40 p-10 shadow-[0_30px_60px_rgba(0,0,0,0.05)] backdrop-blur-2xl dark:border-white/[0.06] dark:bg-white/[0.02] dark:shadow-[0_30px_80px_rgba(0,0,0,0.6)]">
+      <div className="mb-10 flex items-center gap-3">
+        <div className="h-10 w-10 rounded-xl bg-slate-200/50 dark:bg-white/10" />
+        <div className="h-6 w-32 rounded-md bg-slate-200/50 dark:bg-white/10" />
+      </div>
+      <div className="mb-10">
+        <div className="mb-3 h-10 w-56 rounded-md bg-slate-200/50 dark:bg-white/10" />
+        <div className="h-5 w-64 rounded-md bg-slate-100/50 dark:bg-white/[0.05]" />
+      </div>
+      <div className="space-y-8">
+        <div className="space-y-3">
+          <div className="h-3 w-14 rounded bg-slate-200/50 dark:bg-white/[0.06]" />
+          <div className="h-[56px] rounded-2xl bg-white/50 dark:bg-white/[0.03]" />
+        </div>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="h-3 w-20 rounded bg-slate-200/50 dark:bg-white/[0.06]" />
+            <div className="h-3 w-24 rounded bg-slate-200/50 dark:bg-white/[0.06]" />
+          </div>
+          <div className="h-[56px] rounded-2xl bg-white/50 dark:bg-white/[0.03]" />
+        </div>
+        <div className="mt-2 h-[60px] animate-pulse rounded-2xl bg-teal-100/50 dark:bg-teal-500/10" />
+      </div>
+    </div>
+  );
+}
+
+export default function LoginForm() {
+  return (
+    <Suspense fallback={<LoginShell />}>
+      <LoginFormInner />
+    </Suspense>
   );
 }
