@@ -79,7 +79,7 @@ export default function SignupPage() {
                 Begin Your Journey
               </h1>
               <p className="text-sm font-medium text-slate-500">
-                Create your account, then continue directly into the workspace.
+                Create your account, then continue directly into the dashboard.
               </p>
             </div>
 
