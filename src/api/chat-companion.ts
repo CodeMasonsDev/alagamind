@@ -1,5 +1,4 @@
 import axiosInstance from "@/lib/axios";
-import { BASEURL } from "@/lib/base";
 import {
   ChatHistoryResponse,
   ChatRequest,
@@ -259,10 +258,12 @@ export async function chatStream(
   }: ChatRequest,
   handlers: ChatStreamHandlers,
 ) {
-  const response = await fetch(`${BASEURL}api/chat/stream`, {
+  const response = await fetch("/api/chat/stream", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      Accept: "text/event-stream",
+      "Cache-Control": "no-cache",
     },
     body: JSON.stringify({
       user_message,
