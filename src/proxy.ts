@@ -12,7 +12,7 @@ const protectedRoutes = [
   "/help-support",
 ];
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const hasAccessToken = request.cookies.has(ACCESS_TOKEN_COOKIE);
 
