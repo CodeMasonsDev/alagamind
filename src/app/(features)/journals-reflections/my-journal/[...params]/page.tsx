@@ -241,7 +241,7 @@ export default function MyJournal({ params }: MyJournalProps) {
         onUpdate={() => handleUpdate(user_id, journal_id)}
       />
 
-      <main className="flex w-full flex-1 flex-col lg:flex-row">
+      <main className="flex w-full flex-1 flex:flex-row relative">
         <div
           className={`w-full transition-all duration-300 ${
             isInsightsOpen ? "lg:w-[72%]" : "lg:w-full"
@@ -259,27 +259,63 @@ export default function MyJournal({ params }: MyJournalProps) {
           />
         </div>
 
+        {/* Mobile backdrop */}
         {isInsightsOpen ? (
-          <aside className="w-full border-t border-slate-200 bg-white lg:w-[40%] lg:border-l lg:border-t-0">
-            <AiInsightsSidebar
-              userId={user_id}
-              journalId={journal_id}
-              journal={journal}
-              selectedSentiment={selectedSentiment}
-              onSelectedSentimentChange={setSelectedSentiment}
-              cacheEntry={insightsCache[journal_id]}
-              forceRefresh={shouldForceRefreshInsights}
-              onCacheUpdate={(nextState) => {
-                if (!journal_id) return;
-
-                setInsightsCache((current) => ({
-                  ...current,
-                  [journal_id]: nextState,
-                }));
-              }}
-            />
-          </aside>
+          <div
+            className="fixed inset-0 z-30 bg-black/40 lg:hidden"
+            onClick={() => setIsInsightsOpen(false)}
+          />
         ) : null}
+
+        {/* Insights drawer: slide-over on mobile, inline on desktop */}
+        <aside
+          className={`
+            fixed right-0 top-0 z-40 h-full w-[85%] max-w-[400px] transform border-l border-slate-200 bg-white shadow-xl transition-transform duration-300 ease-in-out
+            lg:static lg:z-auto lg:h-auto lg:max-w-none lg:transform-none lg:shadow-none lg:transition-none
+            ${isInsightsOpen
+              ? "translate-x-0 lg:w-[40%] lg:border-l lg:block"
+              : "translate-x-full lg:hidden lg:w-0"
+            }
+          `}
+        >
+          {isInsightsOpen ? (
+            <>
+              {/* Mobile close header */}
+              <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 lg:hidden">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-600">Insights</span>
+                <button
+                  type="button"
+                  onClick={() => setIsInsightsOpen(false)}
+                  className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+                  aria-label="Close insights"
+                >
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div className="h-full overflow-y-auto lg:h-auto">
+                <AiInsightsSidebar
+                  userId={user_id}
+                  journalId={journal_id}
+                  journal={journal}
+                  selectedSentiment={selectedSentiment}
+                  onSelectedSentimentChange={setSelectedSentiment}
+                  cacheEntry={insightsCache[journal_id]}
+                  forceRefresh={shouldForceRefreshInsights}
+                  onCacheUpdate={(nextState) => {
+                    if (!journal_id) return;
+
+                    setInsightsCache((current) => ({
+                      ...current,
+                      [journal_id]: nextState,
+                    }));
+                  }}
+                />
+              </div>
+            </>
+          ) : null}
+        </aside>
       </main>
     </div>
   );
@@ -310,7 +346,7 @@ function TopBar({
     : "Unknown time";
 
   return (
-    <header className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3">
+    <header className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white pl-14 pr-4 py-3 sm:px-4">
       <div className="flex w-full gap-2">
         <Link
           href="/journals-reflections/archive"

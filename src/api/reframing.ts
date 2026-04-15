@@ -1,5 +1,6 @@
 import axiosInstance from "@/lib/axios";
 import { BASEURL } from "@/lib/base";
+import { isAxiosError } from "axios";
 
 export type AnalyzeJournalPayload = {
   userId: string;
@@ -81,16 +82,24 @@ export async function AnalyzeJournal(payload: AnalyzeJournalPayload) {
 }
 
 export async function fetchThoughtsByUsers(userId: string) {
-  const response = await axiosInstance.get<ApiThought[]>(
-    `${BASEURL}api/thoughts/by-user`,
-    {
-      params: {
-        user_id: userId,
+  try {
+    const response = await axiosInstance.get<ApiThought[]>(
+      `${BASEURL}api/thoughts/by-user`,
+      {
+        params: {
+          user_id: userId,
+        },
       },
-    },
-  );
+    );
 
-  return Array.isArray(response.data) ? response.data : [];
+    return Array.isArray(response.data) ? response.data : [];
+  } catch (error) {
+    // Backend returns 400 or 404 when no thoughts exist — treat as empty
+    if (isAxiosError(error) && (error.response?.status === 400 || error.response?.status === 404)) {
+      return [];
+    }
+    throw error;
+  }
 }
 
 export async function generateReframes(payload: GenerateReframesPayload) {

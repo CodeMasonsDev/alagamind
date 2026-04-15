@@ -32,9 +32,9 @@ export default function JournalPaper({
   );
 
   return (
-    <section className="p-10">
+    <section className="p-4 sm:p-6 lg:p-10">
       <header>
-        <h1 className="text-[45px]">{journal?.title}</h1>
+        <h1 className="text-2xl sm:text-4xl lg:text-[45px]">{journal?.title}</h1>
       </header>
 
       <main
