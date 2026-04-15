@@ -94,7 +94,7 @@ export default function InsightsReportsPage() {
 
   return (
     <div className="min-h-full bg-[linear-gradient(180deg,#fffdf4_0%,#f6f7fb_100%)]">
-      <div className="mx-auto max-w-7xl space-y-6 p-6 lg:p-8">
+      <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         <PageHeader
           eyebrow="Insights & Reports"
           title="Insights & Reports"

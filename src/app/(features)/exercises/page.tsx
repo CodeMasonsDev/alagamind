@@ -235,7 +235,7 @@ export default function ExercisesPage() {
 
 function TopBar() {
   return (
-    <header className="flex sticky top-0  z-10 items-center justify-between pb-4 border-b bg-white border-slate-200 p-4">
+    <header className="flex sticky top-0 z-10 items-center justify-between pb-4 border-b bg-white border-slate-200 pl-14 pr-4 py-4 sm:pr-6 lg:pl-8 lg:pr-8">
       <div className="flex items-center gap-2 text-xs font-bold tracking-widest text-slate-500 uppercase">
         <span className="text-slate-300">/</span>
         <span className="text-slate-900">Exercises & Protocols</span>

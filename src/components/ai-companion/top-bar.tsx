@@ -6,7 +6,7 @@ export default function TopBar({
   onToggleSidebar: () => void;
 }) {
   return (
-    <header className="flex sticky top-0 z-10 items-center justify-between border-b border-slate-200 bg-white px-4 py-3 sm:px-6 lg:px-8">
+    <header className="flex sticky top-0 z-10 items-center justify-between border-b border-slate-200 bg-white pl-14 pr-4 py-3 sm:pr-6 lg:pl-8 lg:pr-8">
       <div className="flex items-center gap-3">
         <button
           type="button"

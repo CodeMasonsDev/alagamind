@@ -39,7 +39,7 @@ export default function Dashboard() {
     <div className="flex w-full min-h-full flex-col bg-[linear-gradient(180deg,#fffdf4_0%,#f6f7fb_100%)] pb-10">
       <TopBar />
 
-      <div className="mx-auto flex max-w-7xl flex-col gap-10 p-6 2xl:max-w-[1600px] lg:p-8">
+      <div className="mx-auto flex max-w-7xl flex-col gap-10 px-4 py-6 sm:px-6 lg:px-8 2xl:max-w-[1600px]">
         <WellnessIntelligence />
         <IntegratedWellnessSuite />
       </div>
@@ -53,7 +53,7 @@ export default function Dashboard() {
 
 function TopBar() {
   return (
-    <header className="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-4 py-4">
+    <header className="sticky top-0 z-10 flex items-center justify-between border-b bg-white pl-14 pr-4 py-4 sm:pr-6 lg:pl-8 lg:pr-8">
       <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500">
         <span className="text-slate-300">/</span>
         <span className="text-slate-900">Dashboard</span>
@@ -194,14 +194,14 @@ function WellnessIntelligence() {
     <>
       <section className="flex flex-col gap-6">
         <div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 sm:gap-5">
             <div className="shrink-0">
               <Image
                 src="/greeting.png"
                 alt="Greeting illustration"
                 width={144}
                 height={144}
-                className="h-28 w-28 object-contain lg:h-36 lg:w-36"
+                className="h-25 w-25 object-contain sm:h-28 sm:w-28 lg:h-36 lg:w-36"
                 priority
               />
             </div>
@@ -209,11 +209,11 @@ function WellnessIntelligence() {
               <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
                 {formatGreetingDate()}
               </p>
-              <h1 className="mt-2 text-[2rem] font-semibold leading-none tracking-tight text-slate-950 lg:text-[2.4rem]">
+              <h1 className="mt-1 text-xl font-semibold leading-tight tracking-tight text-slate-950 sm:mt-2 sm:text-[2rem] lg:text-[2.4rem]">
                 Good {greeting.toLowerCase()}
                 {profile?.firstname ? `, ${profile.firstname}` : ""}!
               </h1>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 sm:mt-3">
                 Here&apos;s your current wellbeing snapshot across check-ins,
                 resilience, and focus momentum.
               </p>
@@ -233,7 +233,7 @@ function WellnessIntelligence() {
                 setShowCheckInModal(true);
               }
             }}
-            className="col-span-2 flex cursor-pointer flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-colors hover:border-teal-200"
+            className="col-span-1 lg:col-span-2 flex cursor-pointer flex-col rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm transition-colors hover:border-teal-200"
           >
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xs font-bold tracking-widest text-slate-900 uppercase">
@@ -245,7 +245,7 @@ function WellnessIntelligence() {
               <p className="mb-2 text-center text-xs font-bold uppercase tracking-wider text-slate-400">
                 Current Emotional State
               </p>
-              <div className="grid grid-cols-5 gap-2">
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
                 {emotions.map(({ label }) => (
                   <EmotionBtn
                     key={label}
@@ -462,9 +462,9 @@ const SUITE_DATA = [
     badgeColor: "bg-teal-50 text-teal-600 border-teal-100",
     iconBg: "bg-teal-50 text-teal-500",
     stats: [
-      { label: "Status", value: "Ready", isStatus: true },
-      { label: "Type", value: "Conversational" },
-      { label: "Latency", value: "<200ms" },
+      { label: "Mode", value: "Empathetic" },
+      { label: "Support", value: "Emotional" },
+      { label: "Language", value: "Multilingual" },
     ],
     btnText: "CHAT NOW",
     href: "/ai-companion",
@@ -476,18 +476,13 @@ const SUITE_DATA = [
     description:
       "Review your insights or start a new reflection session to offload cognitive load.",
     icon: BookOpen,
-    badge: "LOG-04",
+    badge: "REFLECT",
     badgeColor: "bg-slate-100 text-slate-500 border-slate-200",
     iconBg: "bg-blue-50 text-blue-500",
     stats: [
-      { label: "Last Entry", value: "Today" },
-      { label: "Streak", value: "5 Days" },
-      {
-        label: "Privacy",
-        value: "Encrypted",
-        icon: Lock,
-        iconColor: "text-blue-500",
-      },
+      { label: "Sentiment", value: "Auto-Analyzed" },
+      { label: "Analysis", value: "Sentiment" },
+      { label: "Reframe", value: "Suggested" },
     ],
     btnText: "WRITE NOW",
     href: "/journals-reflections/write",
@@ -496,17 +491,17 @@ const SUITE_DATA = [
       "bg-white text-slate-900 border border-slate-200 hover:bg-slate-50",
   },
   {
-    title: "Exercises ",
+    title: "Exercises",
     description:
       "Browse the full library of mindfulness and grounding tools for nervous system care.",
     icon: Dumbbell,
-    badge: "LIB-42",
+    badge: "WELLNESS",
     badgeColor: "bg-slate-100 text-slate-500 border-slate-200",
     iconBg: "bg-purple-50 text-purple-500",
     stats: [
-      { label: "Protocols", value: "12 Available" },
-      { label: "Format", value: "Multi-modal" },
-      { label: "Updates", value: "New Added", color: "text-purple-600" },
+      { label: "Available", value: "Grounding & More" },
+      { label: "Duration", value: "5–15 min" },
+      { label: "Difficulty", value: "All Levels" },
     ],
     btnText: "EXPLORE LIBRARY",
     btnIcon: LayoutGrid,

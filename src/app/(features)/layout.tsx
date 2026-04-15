@@ -1,4 +1,4 @@
-import Sidebar from "@/components/sidebar/sidebar";
+import SidebarShell from "@/components/sidebar/sidebar-shell";
 import { DashboardMetricsProvider } from "@/components/providers/dashboard-metrics-provider";
 import { ReflectionsProvider } from "@/components/providers/reflections-provider";
 import { cookies } from "next/headers";
@@ -21,13 +21,12 @@ export default async function FeaturesLayout({
     <ReflectionsProvider>
       <DashboardMetricsProvider>
         <div className="flex h-screen bg-white">
-          <aside className="h-full">
-            <Sidebar />
-          </aside>
+          <SidebarShell />
 
-          <main className="flex-1 h-full overflow-y-auto  ">{children}</main>
+          <main className="flex-1 h-full overflow-y-auto">{children}</main>
         </div>
       </DashboardMetricsProvider>
     </ReflectionsProvider>
   );
 }
+

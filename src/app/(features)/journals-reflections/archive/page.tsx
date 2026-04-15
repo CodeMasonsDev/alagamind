@@ -244,7 +244,7 @@ export default function JournalsArchivePage() {
 
   return (
     <div className="flex min-h-full w-full flex-col  bg-[linear-gradient(180deg,#fffdf4_0%,#f6f7fb_100%)]">
-      <header className="flex sticky top-0  z-10 items-center justify-between pb-4 border-b bg-white border-slate-200 p-4">
+      <header className="flex sticky top-0 z-10 items-center justify-between pb-4 border-b bg-white border-slate-200 px-4 py-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-2 text-xs font-bold tracking-widest text-slate-500 uppercase">
           <span className="text-slate-300">/</span>
           <span className="text-slate-900">Journal-reflections</span>
@@ -637,7 +637,7 @@ function AddCard() {
   return (
     <Link
       href="/journals-reflections/write"
-      className="flex min-h-[260px] flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white/70 p-5 text-slate-500 transition-colors hover:border-teal-200 hover:bg-teal-50/40 hover:text-teal-700"
+      className="hidden sm:flex min-h-[260px] flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white/70 p-5 text-slate-500 transition-colors hover:border-teal-200 hover:bg-teal-50/40 hover:text-teal-700"
     >
       <span className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white">
         <Plus size={18} />

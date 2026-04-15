@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import {
   AlertCircle,
@@ -30,6 +30,23 @@ import {
 } from "@/api/reframing";
 import { useDashboardMetrics } from "@/components/providers/dashboard-metrics-provider";
 import { getMe, SessionUser } from "@/api/auth/auth";
+
+let cachedProfile: SessionUser | null = null;
+let profilePromise: Promise<SessionUser> | null = null;
+
+function getCachedMe(): Promise<SessionUser> {
+  if (cachedProfile) return Promise.resolve(cachedProfile);
+  if (!profilePromise) {
+    profilePromise = getMe().then((user) => {
+      cachedProfile = user;
+      return user;
+    }).catch((error) => {
+      profilePromise = null;
+      throw error;
+    });
+  }
+  return profilePromise;
+}
 
 type Distortion = string;
 
@@ -92,7 +109,7 @@ export default function MoodTrendsPage() {
 
     void (async () => {
       try {
-        const currentUser = await getMe();
+        const currentUser = await getCachedMe();
         console.log("from reframing", currentUser.id);
 
         if (isMounted) setProfile(currentUser);
@@ -126,6 +143,12 @@ export default function MoodTrendsPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isInsightsOpen, setIsInsightsOpen] = useState(false);
 
+  // Cache: generated reframes keyed by thought ID
+  const reframeCacheRef = useRef<Map<string, Reframe[]>>(new Map());
+
+  // Flag: skip redundant initial loads on re-mounts within the same session
+  const initialLoadDoneRef = useRef(false);
+
   const selectedThought =
     thoughts.find((thought) => thought.thought_Id === selectedThoughtId) ??
     null;
@@ -134,6 +157,11 @@ export default function MoodTrendsPage() {
 
   useEffect(() => {
     if (!defaultUserId) {
+      return;
+    }
+
+    // Skip fetch if data already loaded and this isn't a manual retry
+    if (initialLoadDoneRef.current && thoughtsRetryToken === 0) {
       return;
     }
 
@@ -190,6 +218,8 @@ export default function MoodTrendsPage() {
         setDetectedPatterns([]);
         setDistortionBreakdown({});
       }
+
+      initialLoadDoneRef.current = true;
     };
 
     void loadPageData();
@@ -254,13 +284,21 @@ export default function MoodTrendsPage() {
     };
   }
 
-  function handleThoughtSelect(thoughtId: string) {
+  const handleThoughtSelect = useCallback((thoughtId: string) => {
     setSelectedThoughtId(thoughtId);
-    setGeneratedThoughtId(null);
-    setGeneratedReframes([]);
-    setIsGenerating(false);
     setReframeErrorMessage(null);
-  }
+    setIsGenerating(false);
+
+    // Restore cached reframes for this thought instead of clearing
+    const cached = reframeCacheRef.current.get(thoughtId);
+    if (cached && cached.length > 0) {
+      setGeneratedThoughtId(thoughtId);
+      setGeneratedReframes(cached);
+    } else {
+      setGeneratedThoughtId(null);
+      setGeneratedReframes([]);
+    }
+  }, []);
   async function handleGenerate() {
     if (!selectedThought) return;
 
@@ -276,6 +314,12 @@ export default function MoodTrendsPage() {
       const nextReframes = Array.isArray(response.reframes)
         ? response.reframes.map(mapApiReframeToUi)
         : [];
+
+      // Store in cache for this thought
+      reframeCacheRef.current.set(
+        String(response.thought_id),
+        nextReframes,
+      );
 
       setGeneratedThoughtId(String(response.thought_id));
       setGeneratedReframes(nextReframes);
@@ -385,7 +429,7 @@ export default function MoodTrendsPage() {
     <div className="min-h-full w-full bg-[linear-gradient(180deg,#fffdf4_0%,#f6f7fb_100%)]  p-3">
       <div className="mx-auto w-full max-w-[1440px] space-y-6">
         <header className="overflow-hidden border border-slate-200 bg-white shadow-[0_18px_50px_-34px_rgba(15,23,42,0.28)]">
-          <div className="flex flex-col gap-4 px-5 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-col gap-4 px-4 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex flex-wrap items-center gap-3">
               <h1 className="text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">
                 Reframing Lab
@@ -439,8 +483,8 @@ export default function MoodTrendsPage() {
           </div>
         </header>
 
-        <div className=" flex gap-4 ">
-          <section className="w-[50%] border border-slate-200 bg-white shadow-[0_18px_50px_-34px_rgba(15,23,42,0.28)]">
+        <div className="flex flex-col gap-4 lg:flex-row">
+          <section className="w-full lg:w-[50%] border border-slate-200 bg-white shadow-[0_18px_50px_-34px_rgba(15,23,42,0.28)]">
             <div className="border-b border-slate-200 px-5 py-4 sm:px-6">
               <SectionTitle
                 eyebrow="Step 1 - Select a thought"
@@ -540,7 +584,7 @@ export default function MoodTrendsPage() {
             </div>
           </section>
 
-          <section className="w-[50%] border border-slate-200 bg-white shadow-[0_18px_50px_-34px_rgba(15,23,42,0.28)]">
+          <section className="w-full lg:w-[50%] border border-slate-200 bg-white shadow-[0_18px_50px_-34px_rgba(15,23,42,0.28)]">
             <div className="border-b border-slate-200 px-5 py-4 sm:px-6">
               <SectionTitle
                 eyebrow="Step 3 - Choose a reframe to save"

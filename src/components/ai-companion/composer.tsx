@@ -393,15 +393,15 @@ export default function Composer({
           </div>
 
           <div
-            className={`flex items-center gap-4 border-t border-slate-100 px-5 transition-[padding] duration-300 ease-out ${
+            className={`flex flex-wrap items-center gap-3 border-t border-slate-100 px-4 sm:px-5 sm:flex-nowrap sm:gap-4 transition-[padding] duration-300 ease-out ${
               isVoiceRailVisible ? "py-4" : "py-3"
             }`}
           >
-            <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-500">
+            <span className="hidden sm:inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-500">
               <Bot className="h-5 w-5" />
             </span>
 
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0 w-full sm:w-auto sm:flex-1 order-first sm:order-none">
               <div
                 className={`overflow-hidden transition-[max-height,opacity,margin] duration-300 ease-out ${
                   isVoiceRailVisible
@@ -440,13 +440,13 @@ export default function Composer({
                 </div>
               </div>
 
-              <p className={`text-[11px] font-medium ${statusTone}`}>
+              <p className={`truncate text-[11px] font-medium ${statusTone}`}>
                 {statusLabel}
               </p>
             </div>
 
             <label className="flex shrink-0 items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
-              <span>Language</span>
+              <span className="hidden sm:inline">Language</span>
               <select
                 value={languagePreference}
                 onChange={(event) =>
@@ -455,7 +455,7 @@ export default function Composer({
                   )
                 }
                 disabled={isDisabled || isTyping || isBusy}
-                className="min-w-[96px] bg-transparent text-[12px] font-semibold normal-case tracking-normal text-slate-700 outline-none disabled:cursor-not-allowed disabled:text-slate-300"
+                className="min-w-[72px] sm:min-w-[96px] bg-transparent text-[12px] font-semibold normal-case tracking-normal text-slate-700 outline-none disabled:cursor-not-allowed disabled:text-slate-300"
                 aria-label="Language"
               >
                 <option value="auto">Auto</option>
