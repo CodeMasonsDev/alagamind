@@ -47,7 +47,11 @@ function ThemeToggle() {
 
       <motion.div
         initial={false}
-        animate={{ opacity: isOpen ? 1 : 0, y: isOpen ? 0 : -10, pointerEvents: isOpen ? "auto" : "none" }}
+        animate={{
+          opacity: isOpen ? 1 : 0,
+          y: isOpen ? 0 : -10,
+          pointerEvents: isOpen ? "auto" : "none",
+        }}
         transition={{ duration: 0.2 }}
         className="absolute right-0 mt-3 flex w-[140px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white/80 p-1.5 shadow-[0_20px_40px_rgba(0,0,0,0.05)] backdrop-blur-3xl dark:border-slate-700/50 dark:bg-slate-900/80 dark:shadow-[0_20px_40px_rgba(0,0,0,0.4)]"
       >
@@ -69,11 +73,11 @@ function ThemeToggle() {
           </button>
         ))}
       </motion.div>
-      
+
       {/* Invisible overlay to close dropdown */}
       {isOpen && (
-        <div 
-          className="fixed inset-0 z-[-1]" 
+        <div
+          className="fixed inset-0 z-[-1]"
           onClick={() => setIsOpen(false)}
         />
       )}
@@ -83,7 +87,15 @@ function ThemeToggle() {
 
 /* ── Shared Stardust ── */
 const Stardust = () => {
-  const [stars, setStars] = useState<{ top: number; left: number; duration: number; delay: number; size: number }[]>([]);
+  const [stars, setStars] = useState<
+    {
+      top: number;
+      left: number;
+      duration: number;
+      delay: number;
+      size: number;
+    }[]
+  >([]);
 
   useEffect(() => {
     setStars(
@@ -93,7 +105,7 @@ const Stardust = () => {
         duration: 10 + Math.random() * 20,
         delay: Math.random() * 5,
         size: Math.random() * 2 + 1,
-      }))
+      })),
     );
   }, []);
 
@@ -138,7 +150,11 @@ const container = {
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] },
+  },
 };
 
 export default function SignupPage() {
@@ -331,9 +347,12 @@ export default function SignupPage() {
                   Create your account in seconds.
                 </p>
               </motion.div>
-
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <motion.div variants={fadeUp} className="grid gap-4 sm:grid-cols-2">
+              {/* onSubmit={handleSubmit} */}
+              <form className="space-y-6">
+                <motion.div
+                  variants={fadeUp}
+                  className="grid gap-4 sm:grid-cols-2"
+                >
                   <div className="space-y-2.5">
                     <label className="block px-1 text-[10px] font-bold uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400">
                       First Name
@@ -345,12 +364,19 @@ export default function SignupPage() {
                           : "border-slate-300 shadow-[inset_0_0_10px_rgba(0,0,0,0.02)] dark:border-white/[0.05] dark:shadow-[inset_0_0_15px_rgba(255,255,255,0.02)]"
                       }`}
                     >
-                      <div className={`absolute inset-0 transition-opacity duration-500 ${focusedField === "firstName" ? "opacity-100" : "opacity-0"} bg-gradient-to-r from-teal-500/5 via-cyan-500/5 to-transparent dark:from-teal-400/10 dark:via-cyan-400/5`} />
+                      <div
+                        className={`absolute inset-0 transition-opacity duration-500 ${focusedField === "firstName" ? "opacity-100" : "opacity-0"} bg-gradient-to-r from-teal-500/5 via-cyan-500/5 to-transparent dark:from-teal-400/10 dark:via-cyan-400/5`}
+                      />
                       <input
                         type="text"
                         placeholder="Jordan"
                         value={formData.firstName}
-                        onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            firstName: e.target.value,
+                          })
+                        }
                         onFocus={() => setFocusedField("firstName")}
                         onBlur={() => setFocusedField(null)}
                         className="relative w-full bg-white px-5 py-4 text-sm font-medium text-slate-900 placeholder:text-slate-400 transition-all focus:outline-none dark:bg-black/20 dark:text-white dark:placeholder:text-slate-600"
@@ -369,12 +395,16 @@ export default function SignupPage() {
                           : "border-slate-300 shadow-[inset_0_0_10px_rgba(0,0,0,0.02)] dark:border-white/[0.05] dark:shadow-[inset_0_0_15px_rgba(255,255,255,0.02)]"
                       }`}
                     >
-                      <div className={`absolute inset-0 transition-opacity duration-500 ${focusedField === "lastName" ? "opacity-100" : "opacity-0"} bg-gradient-to-r from-teal-500/5 via-cyan-500/5 to-transparent dark:from-teal-400/10 dark:via-cyan-400/5`} />
+                      <div
+                        className={`absolute inset-0 transition-opacity duration-500 ${focusedField === "lastName" ? "opacity-100" : "opacity-0"} bg-gradient-to-r from-teal-500/5 via-cyan-500/5 to-transparent dark:from-teal-400/10 dark:via-cyan-400/5`}
+                      />
                       <input
                         type="text"
                         placeholder="Henderson"
                         value={formData.lastName}
-                        onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, lastName: e.target.value })
+                        }
                         onFocus={() => setFocusedField("lastName")}
                         onBlur={() => setFocusedField(null)}
                         className="relative w-full bg-white px-5 py-4 text-sm font-medium text-slate-900 placeholder:text-slate-400 transition-all focus:outline-none dark:bg-black/20 dark:text-white dark:placeholder:text-slate-600"
@@ -395,12 +425,16 @@ export default function SignupPage() {
                         : "border-slate-300 shadow-[inset_0_0_10px_rgba(0,0,0,0.02)] dark:border-white/[0.05] dark:shadow-[inset_0_0_15px_rgba(255,255,255,0.02)]"
                     }`}
                   >
-                    <div className={`absolute inset-0 transition-opacity duration-500 ${focusedField === "email" ? "opacity-100" : "opacity-0"} bg-gradient-to-r from-teal-500/5 via-cyan-500/5 to-transparent dark:from-teal-400/10 dark:via-cyan-400/5`} />
+                    <div
+                      className={`absolute inset-0 transition-opacity duration-500 ${focusedField === "email" ? "opacity-100" : "opacity-0"} bg-gradient-to-r from-teal-500/5 via-cyan-500/5 to-transparent dark:from-teal-400/10 dark:via-cyan-400/5`}
+                    />
                     <input
                       type="email"
                       placeholder="name@gmail.com"
                       value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, email: e.target.value })
+                      }
                       onFocus={() => setFocusedField("email")}
                       onBlur={() => setFocusedField(null)}
                       className="relative w-full bg-white px-5 py-4 text-sm font-medium text-slate-900 placeholder:text-slate-400 transition-all focus:outline-none dark:bg-black/20 dark:text-white dark:placeholder:text-slate-600"
@@ -420,13 +454,17 @@ export default function SignupPage() {
                         : "border-slate-300 shadow-[inset_0_0_10px_rgba(0,0,0,0.02)] dark:border-white/[0.05] dark:shadow-[inset_0_0_15px_rgba(255,255,255,0.02)]"
                     }`}
                   >
-                    <div className={`absolute inset-0 transition-opacity duration-500 ${focusedField === "password" ? "opacity-100" : "opacity-0"} bg-gradient-to-r from-teal-500/5 via-cyan-500/5 to-transparent dark:from-teal-400/10 dark:via-cyan-400/5`} />
+                    <div
+                      className={`absolute inset-0 transition-opacity duration-500 ${focusedField === "password" ? "opacity-100" : "opacity-0"} bg-gradient-to-r from-teal-500/5 via-cyan-500/5 to-transparent dark:from-teal-400/10 dark:via-cyan-400/5`}
+                    />
                     <input
                       type="password"
                       placeholder="••••••••"
                       value={formData.password}
                       minLength={6}
-                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, password: e.target.value })
+                      }
                       onFocus={() => setFocusedField("password")}
                       onBlur={() => setFocusedField(null)}
                       className="relative w-full bg-white px-5 py-4 text-sm font-medium tracking-widest text-slate-900 placeholder:text-slate-400 transition-all focus:outline-none dark:bg-black/20 dark:text-white dark:placeholder:text-slate-600"
@@ -435,7 +473,10 @@ export default function SignupPage() {
                   </div>
                 </motion.div>
 
-                <motion.div variants={fadeUp} className="flex items-start gap-4 px-2 py-2">
+                <motion.div
+                  variants={fadeUp}
+                  className="flex items-start gap-4 px-2 py-2"
+                >
                   <div className="relative flex h-5 items-center">
                     <input
                       id="terms"
@@ -446,9 +487,15 @@ export default function SignupPage() {
                       required
                     />
                   </div>
-                  <label htmlFor="terms" className="cursor-pointer text-xs font-semibold leading-relaxed text-slate-500 dark:text-slate-400">
+                  <label
+                    htmlFor="terms"
+                    className="cursor-pointer text-xs font-semibold leading-relaxed text-slate-500 dark:text-slate-400"
+                  >
                     I acknowledge to the{" "}
-                    <a href="#" className="font-bold text-teal-600 transition-colors hover:text-teal-700 hover:underline dark:text-teal-400 dark:hover:text-teal-300">
+                    <a
+                      href="#"
+                      className="font-bold text-teal-600 transition-colors hover:text-teal-700 hover:underline dark:text-teal-400 dark:hover:text-teal-300"
+                    >
                       Terms of Resilience
                     </a>
                   </label>
@@ -481,8 +528,13 @@ export default function SignupPage() {
                 </motion.div>
               </form>
 
-              <motion.div variants={fadeUp} className="mt-10 text-center text-xs font-semibold tracking-wider">
-                <span className="text-slate-500">ALREADY HAVE AN ACCOUNT? </span>
+              <motion.div
+                variants={fadeUp}
+                className="mt-10 text-center text-xs font-semibold tracking-wider"
+              >
+                <span className="text-slate-500">
+                  ALREADY HAVE AN ACCOUNT?{" "}
+                </span>
                 <a
                   href="/login"
                   className="text-teal-600 transition-colors hover:text-teal-800 dark:text-teal-400 dark:hover:text-teal-300"
@@ -496,13 +548,25 @@ export default function SignupPage() {
 
         <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-8 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
           <div className="flex items-center gap-1.5 opacity-80 mix-blend-overlay">
-            <svg className="h-3 w-3 text-slate-500 dark:text-teal-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <svg
+              className="h-3 w-3 text-slate-500 dark:text-teal-400"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+            >
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
             </svg>
             HIPAA READY
           </div>
           <div className="flex items-center gap-1.5 opacity-80 mix-blend-overlay">
-            <svg className="h-3 w-3 text-slate-500 dark:text-teal-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <svg
+              className="h-3 w-3 text-slate-500 dark:text-teal-400"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+            >
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
               <path d="M7 11V7a5 5 0 0 1 10 0v4" />
             </svg>
