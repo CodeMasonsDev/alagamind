@@ -41,18 +41,18 @@ export default function EmotionalStateDistribution({
             key={state.key}
             className={`rounded-lg border p-2 transition-colors ${
               dominantState?.key === state.key
-                ? "border-teal-300 bg-teal-50"
-                : "border-slate-200 bg-white"
+                ? "border-teal-300 dark:border-teal-900/50 bg-teal-50 dark:bg-teal-900/20"
+                : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900"
             }`}
           >
             {/* TOP ROW */}
             <div className="flex items-center justify-between">
               <span className="text-sm">{state.emoji}</span>
-              <span className="text-xs text-slate-500">{state.label}</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400">{state.label}</span>
             </div>
 
             {/* VALUE */}
-            <p className="mt-1 text-lg font-semibold text-slate-900">
+            <p className="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-100">
               {state.count}
             </p>
 
@@ -66,11 +66,11 @@ export default function EmotionalStateDistribution({
         ))}
       </div>
 
-      <div className="mt-5 border-t border-slate-200 pt-4">
+      <div className="mt-5 border-t border-slate-200 dark:border-slate-800 pt-4">
         {dominantState ? (
-          <p className="text-base font-semibold text-slate-900">
+          <p className="text-base font-semibold text-slate-900 dark:text-slate-100">
             Dominant this week: {dominantState.label}{" "}
-            <span className="text-slate-500">
+            <span className="text-slate-500 dark:text-slate-400">
               avg intensity {formatIntensity(dominantState.averageIntensity)}
             </span>
           </p>

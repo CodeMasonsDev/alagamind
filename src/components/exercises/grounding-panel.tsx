@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -15,8 +15,16 @@ import {
   Wind,
   Cookie,
   RotateCcw,
+  Quote,
+  Volume2,
+  Play,
+  Square,
+  Sparkles,
+  Loader2,
   type LucideIcon,
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { getGroundingSensoryAnchor, GroundingSensoryAnchorPayload } from "@/api/reframing";
 
 type SenseStep = {
   id: string;
@@ -113,6 +121,8 @@ export default function GroundingPanel() {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [answers, setAnswers] = useState<StepAnswers>(createEmptyAnswers);
   const [isComplete, setIsComplete] = useState(false);
+  const [isSynthesizing, setIsSynthesizing] = useState(false);
+  const [sensoryNarrative, setSensoryNarrative] = useState<string>("");
 
   const currentStep = STEPS[currentStepIndex];
   const isFinalStep = currentStepIndex === STEPS.length - 1;
@@ -148,9 +158,32 @@ export default function GroundingPanel() {
     });
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (isFinalStep) {
-      setIsComplete(true);
+      setIsSynthesizing(true);
+      
+      try {
+        const payload: GroundingSensoryAnchorPayload = {
+          see: answers["see"] || [],
+          touch: answers["touch"] || [],
+          hear: answers["hear"] || [],
+          smell: answers["smell"] || [],
+          taste: answers["taste"] || [],
+        };
+
+        const response = await getGroundingSensoryAnchor(payload);
+        setSensoryNarrative(response.grounding_summarry);
+        
+        // Brief delay to ensure the animation feels natural
+        setTimeout(() => {
+          setIsSynthesizing(false);
+          setIsComplete(true);
+        }, 1500);
+      } catch (error) {
+        console.error("Failed to generate sensory anchor:", error);
+        setIsSynthesizing(false);
+        setIsComplete(true);
+      }
     } else {
       setCurrentStepIndex((prev) => prev + 1);
     }
@@ -170,8 +203,45 @@ export default function GroundingPanel() {
     setIsComplete(false);
   };
 
+  if (isSynthesizing) {
+    return (
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="flex min-h-[400px] flex-col items-center justify-center p-8 text-center rounded-b-3xl border border-slate-200 bg-white shadow-sm"
+      >
+        <div className="relative">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+            className="h-24 w-24 rounded-full border-t-2 border-teal-500/30"
+          />
+          <Sparkles className="absolute left-1/2 top-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 text-teal-600" />
+        </div>
+        <h2 className="mt-8 text-xl font-bold text-slate-900">Synthesizing Your Sensory Narrative</h2>
+        <p className="mt-2 text-sm text-slate-500">Weaving your 15 anchors into a clinical grounding map...</p>
+        <div className="mt-6 flex gap-1">
+           {[0, 1, 2].map((i) => (
+             <motion.div
+               key={i}
+               animate={{ opacity: [0.3, 1, 0.3] }}
+               transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.2 }}
+               className="h-1.5 w-1.5 rounded-full bg-teal-600"
+             />
+           ))}
+        </div>
+      </motion.div>
+    );
+  }
+
   if (isComplete) {
-    return <CompletionScreen answers={answers} onReset={handleReset} />;
+    return (
+      <CompletionScreen
+        answers={answers}
+        onReset={handleReset}
+        sensoryNarrative={sensoryNarrative}
+      />
+    );
   }
 
   const Icon = currentStep.icon;
@@ -213,19 +283,36 @@ export default function GroundingPanel() {
         </div>
 
         {/* Main content row */}
-        <div className="mt-6 flex flex-wrap items-start gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-900">
-            <Crosshair size={22} className="text-white" />
+        <div className="mt-6 flex flex-col items-start justify-between gap-6 sm:flex-row">
+          <div className="flex items-start gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-900">
+              <Crosshair size={22} className="text-white" />
+            </div>
+
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+                5-4-3-2-1 Sensory Grounding
+              </h1>
+              <p className="mt-1.5 max-w-sm text-sm leading-relaxed text-slate-500">
+                Redirect attention from anxious thoughts to the present moment by
+                engaging each of your five senses, one step at a time.
+              </p>
+            </div>
           </div>
 
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-              5-4-3-2-1 Sensory Grounding
-            </h1>
-            <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-slate-500">
-              Redirect attention from anxious thoughts to the present moment by
-              engaging each of your five senses, one step at a time.
-            </p>
+          {/* Expert Quote Card - Top Right */}
+          <div className="w-full rounded-xl border border-slate-200 bg-slate-50/40 p-4 sm:max-w-[340px]">
+            <div className="flex items-start gap-3">
+              <Quote size={18} className="mt-0.5 shrink-0 text-slate-300" />
+              <p className="text-[11px] font-medium leading-relaxed text-slate-600">
+                "This exercise acts as an immediate distraction that diverts our
+                attention away from anxious thoughts, by engaging our senses. It
+                moves us from an overthinking mindset to a noticing one."
+                <span className="mt-2 block text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">
+                  — Steph Strauss, Mindfulness Expert
+                </span>
+              </p>
+            </div>
           </div>
         </div>
       </header>
@@ -383,10 +470,75 @@ export default function GroundingPanel() {
 function CompletionScreen({
   answers,
   onReset,
+  sensoryNarrative,
 }: {
   answers: StepAnswers;
   onReset: () => void;
+  sensoryNarrative: string;
 }) {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isBuffering, setIsBuffering] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Use the live API narrative, falling back to a standard calm prompt if empty
+  const narrativeText = sensoryNarrative || "As you return to the present... notice the world you've mapped. You are grounded, safe, and entirely here.";
+
+  const handleTogglePlayback = async () => {
+    if (isPlaying) {
+      audioRef.current?.pause();
+      setIsPlaying(false);
+      return;
+    }
+
+    if (audioRef.current && audioRef.current.src) {
+      audioRef.current.play();
+      setIsPlaying(true);
+      return;
+    }
+
+    try {
+      setIsBuffering(true);
+      const response = await fetch("/api/tts/cartesia", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ transcript: narrativeText }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.details || "Voice generation failed");
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      
+      const audio = new Audio(url);
+      audioRef.current = audio;
+      
+      audio.onended = () => {
+        setIsPlaying(false);
+        URL.revokeObjectURL(url);
+        audioRef.current = null;
+      };
+
+      await audio.play();
+      setIsPlaying(true);
+    } catch (error) {
+      console.error("Audio Playback Error:", error);
+      alert(error instanceof Error ? error.message : "Failed to play voice");
+    } finally {
+      setIsBuffering(false);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
   return (
     <section className="rounded-b-3xl border border-slate-200 bg-white shadow-sm">
       <header className="border-b border-slate-200 bg-white px-5 py-6 sm:px-7 sm:py-8">
@@ -415,17 +567,67 @@ function CompletionScreen({
 
       <div className="px-5 py-5 sm:px-7">
         {/* Success banner */}
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
-            <CheckCircle2 size={28} className="text-emerald-600" />
+        <div className="rounded-xl border border-emerald-100 bg-teal-50/20 p-6 sm:p-8">
+          <div className="flex flex-col items-center text-center">
+             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-teal-100 text-teal-600">
+                <Volume2 size={24} />
+             </div>
+             <h2 className="mt-4 text-2xl font-extrabold tracking-tight text-slate-900">
+                Your Sensory Anchor
+             </h2>
+             
+             {/* Sensory Narrative Section */}
+             <div className="relative mt-8 max-w-xl">
+                <Quote size={40} className="absolute -left-6 -top-6 opacity-5 text-teal-900" />
+                <p className="relative text-lg font-medium italic leading-relaxed text-slate-700">
+                   "{narrativeText}"
+                </p>
+             </div>
+
+             {/* Deepgram TTS Player */}
+             <div className="mt-8 w-full max-w-sm rounded-[2rem] border border-slate-200 bg-white p-4 shadow-xl">
+                <div className="flex items-center gap-4">
+                   <button 
+                      onClick={handleTogglePlayback}
+                      disabled={isBuffering}
+                      className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-900 text-white transition-all hover:scale-110 active:scale-95 disabled:opacity-50"
+                   >
+                      {isBuffering ? (
+                         <Loader2 size={24} className="animate-spin" />
+                      ) : isPlaying ? (
+                         <Square size={24} fill="white" />
+                      ) : (
+                         <Play size={24} fill="white" className="ml-1" />
+                      )}
+                   </button>
+                   <div className="flex-1 text-left">
+                      <div className="flex items-center justify-between">
+                         <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                            {isBuffering ? "Generating Voice..." : isPlaying ? "Speaking..." : "Cartesia Voice (Sophie)"}
+                         </span>
+                         <span className="text-[8px] font-bold text-teal-600">SONIC-3.0</span>
+                      </div>
+                      {/* Waveform */}
+                      <div className="mt-3 flex items-end gap-[3px] h-8">
+                         {[...Array(24)].map((_, i) => (
+                           <motion.div 
+                             key={i} 
+                             animate={isPlaying ? { height: [`${Math.random() * 40 + 20}%`, `${Math.random() * 80 + 20}%`, `${Math.random() * 30 + 10}%`] } : { height: "20%" }}
+                             transition={isPlaying ? { duration: 0.5, repeat: Infinity, delay: i * 0.05 } : {}}
+                             className={`w-1 rounded-full transition-colors ${isPlaying ? "bg-teal-500" : "bg-slate-200"}`}
+                           />
+                         ))}
+                      </div>
+                   </div>
+                </div>
+             </div>
           </div>
-          <h2 className="mt-3 text-xl font-bold tracking-tight text-slate-900">
-            You Are Here
-          </h2>
-          <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-slate-600">
-            Your attention has moved from threat-based thinking to present-state
-            awareness. This is the foundation of emotional regulation.
-          </p>
+        </div>
+
+        <div className="mt-8 h-px bg-slate-100" />
+        
+        <div className="mt-8 text-center">
+           <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Supporting Metadata</h3>
         </div>
 
         {/* Summary of all answers */}

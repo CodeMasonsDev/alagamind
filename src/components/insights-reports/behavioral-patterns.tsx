@@ -20,17 +20,17 @@ export default function BehavioralPatterns({
           {patterns.map((pattern, index) => (
             <article
               key={`${pattern.type}-${pattern.title}-${index}`}
-              className="border-b border-slate-200 pb-3 last:border-b-0 last:pb-0"
+              className="border-b border-slate-200 dark:border-slate-800 pb-3 last:border-b-0 last:pb-0"
             >
               <div className="flex gap-4">
                 <span
                   className={`mt-2 h-3 w-3 rounded-full ${PATTERN_DOT_COLORS[index % PATTERN_DOT_COLORS.length]}`}
                 />
                 <div>
-                  <p className="text-lg font-semibold tracking-tight text-slate-950">
+                  <p className="text-lg font-semibold tracking-tight text-slate-950 dark:text-slate-100">
                     {pattern.title}
                   </p>
-                  <p className="mt-1.5 text-sm leading-6 text-slate-500">
+                  <p className="mt-1.5 text-sm leading-6 text-slate-500 dark:text-slate-400">
                     {pattern.type || "Pattern"} · {pattern.count} entries analyzed
                     · {Math.round(pattern.share)}%
                     {pattern.window ? ` · ${pattern.window}` : ""}

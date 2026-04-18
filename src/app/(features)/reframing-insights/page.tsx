@@ -426,12 +426,12 @@ export default function MoodTrendsPage() {
   }
 
   return (
-    <div className="min-h-full w-full bg-[linear-gradient(180deg,#fffdf4_0%,#f6f7fb_100%)]  p-3">
+    <div className="min-h-full w-full bg-[linear-gradient(180deg,#fffdf4_0%,#f6f7fb_100%)] p-3 dark:bg-[radial-gradient(circle_at_top_right,#17324d_0%,#0f172a_24%,#020617_100%)]">
       <div className="mx-auto w-full max-w-[1440px] space-y-6">
-        <header className="overflow-hidden border border-slate-200 bg-white shadow-[0_18px_50px_-34px_rgba(15,23,42,0.28)]">
+        <header className="overflow-hidden border border-slate-200 bg-white shadow-[0_18px_50px_-34px_rgba(15,23,42,0.28)] dark:border-slate-800 dark:bg-slate-900 dark:shadow-black/40">
           <div className="flex flex-col gap-4 px-4 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">
+              <h1 className="text-2xl font-semibold tracking-tight text-slate-950 dark:text-slate-100 sm:text-3xl">
                 Reframing Lab
               </h1>
             </div>
@@ -440,15 +440,15 @@ export default function MoodTrendsPage() {
               <button
                 type="button"
                 onClick={() => setIsInsightsOpen(true)}
-                className="inline-flex items-center gap-2 border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+                className="inline-flex items-center gap-2 border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
               >
-                <PanelRightOpen className="h-4 w-4 text-violet-700" />
+                <PanelRightOpen className="h-4 w-4 text-violet-700 dark:text-violet-300" />
                 View Pattern Insights
               </button>
             </div>
           </div>
 
-          <div className="grid border-t border-slate-200 sm:grid-cols-3">
+          <div className="grid border-t border-slate-200 dark:border-slate-800 sm:grid-cols-3">
             <TopMetric
               label="Reframes Completed"
               value={String(headerMetrics.completed)}
@@ -484,8 +484,8 @@ export default function MoodTrendsPage() {
         </header>
 
         <div className="flex flex-col gap-4 lg:flex-row">
-          <section className="w-full lg:w-[50%] border border-slate-200 bg-white shadow-[0_18px_50px_-34px_rgba(15,23,42,0.28)]">
-            <div className="border-b border-slate-200 px-5 py-4 sm:px-6">
+          <section className="w-full border border-slate-200 bg-white shadow-[0_18px_50px_-34px_rgba(15,23,42,0.28)] dark:border-slate-800 dark:bg-slate-900 dark:shadow-black/40 lg:w-[50%]">
+            <div className="border-b border-slate-200 px-5 py-4 dark:border-slate-800 sm:px-6">
               <SectionTitle
                 eyebrow="Step 1 - Select a thought"
                 title="Pick the thought you want to rework"
@@ -493,7 +493,7 @@ export default function MoodTrendsPage() {
               />
             </div>
 
-            <div className="space-y-3 px-5 py-5 sm:px-6 overflow-auto h-[250px]">
+            <div className="h-[250px] space-y-3 overflow-auto px-5 py-5 sm:px-6">
               {thoughtsStatus === "loading" ? (
                 <ThoughtListLoadingState />
               ) : thoughtsStatus === "error" ? (
@@ -528,25 +528,25 @@ export default function MoodTrendsPage() {
               )}
             </div>
 
-            <div className="border-t border-slate-200 px-5 py-5 sm:px-6">
+            <div className="border-t border-slate-200 px-5 py-5 dark:border-slate-800 sm:px-6">
               <SectionTitle
                 eyebrow="Step 2 - Generate reframes"
                 title="Generate three tones"
                 description="Logical, compassionate, and direct versions appear in the right workspace."
               />
 
-              <div className="mt-4 border border-slate-200 bg-slate-50/70 p-4">
+              <div className="mt-4 border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-800/50">
                 <div className="flex items-start gap-3">
-                  <span className="bg-teal-50 p-2 text-teal-700">
+                  <span className="bg-teal-50 p-2 text-teal-700 dark:bg-teal-900/20 dark:text-teal-300">
                     <WandSparkles className="h-4 w-4" />
                   </span>
                   <div>
-                    <p className="text-sm font-medium text-slate-900">
+                    <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
                       {selectedThought
                         ? `Ready to reframe: "${trimText(selectedThought.text, 56)}"`
                         : "Choose a thought to unlock generation"}
                     </p>
-                    <p className="mt-1 text-sm leading-relaxed text-slate-500">
+                    <p className="mt-1 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
                       {thoughts.length
                         ? "Showing all available thoughts returned by the backend."
                         : "Thoughts will appear here after journals are analyzed."}
@@ -558,7 +558,7 @@ export default function MoodTrendsPage() {
                   type="button"
                   onClick={handleGenerate}
                   disabled={!selectedThought || isGenerating}
-                  className="mt-4 inline-flex w-full items-center justify-center gap-2 border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+                  className="mt-4 inline-flex w-full items-center justify-center gap-2 border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
                 >
                   {isGenerating ? (
                     <>
@@ -584,8 +584,8 @@ export default function MoodTrendsPage() {
             </div>
           </section>
 
-          <section className="w-full lg:w-[50%] border border-slate-200 bg-white shadow-[0_18px_50px_-34px_rgba(15,23,42,0.28)]">
-            <div className="border-b border-slate-200 px-5 py-4 sm:px-6">
+          <section className="w-full border border-slate-200 bg-white shadow-[0_18px_50px_-34px_rgba(15,23,42,0.28)] dark:border-slate-800 dark:bg-slate-900 dark:shadow-black/40 lg:w-[50%]">
+            <div className="border-b border-slate-200 px-5 py-4 dark:border-slate-800 sm:px-6">
               <SectionTitle
                 eyebrow="Step 3 - Choose a reframe to save"
                 title="Save the reframe you want to keep"
@@ -613,11 +613,11 @@ export default function MoodTrendsPage() {
                 />
               ) : (
                 <div className="space-y-5">
-                  <div className="border border-slate-200 bg-slate-50/70 p-5">
-                    <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-slate-500">
+                  <div className="border border-slate-200 bg-slate-50/70 p-5 dark:border-slate-800 dark:bg-slate-800/50">
+                    <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-slate-500 dark:text-slate-500">
                       Selected original thought
                     </p>
-                    <p className="mt-3 text-2xl font-medium tracking-tight text-slate-900">
+                    <p className="mt-3 text-2xl font-medium tracking-tight text-slate-900 dark:text-slate-100">
                       {`"${selectedThought.text}"`}
                     </p>
                     <div className="mt-4 flex flex-wrap gap-2">
@@ -669,21 +669,21 @@ function TopMetric({
   chip?: string;
 }) {
   return (
-    <div className="border-slate-200 px-5 py-4 sm:px-6 sm:[&:not(:last-child)]:border-r">
-      <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-slate-500">
+    <div className="border-slate-200 px-5 py-4 dark:border-slate-800 sm:px-6 sm:[&:not(:last-child)]:border-r">
+      <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-slate-500 dark:text-slate-500">
         {label}
       </p>
       <div className="mt-2 flex items-center gap-2">
-        <p className="text-3xl font-semibold tracking-tight text-slate-950">
+        <p className="text-3xl font-semibold tracking-tight text-slate-950 dark:text-slate-100">
           {value}
         </p>
         {chip ? (
-          <span className="bg-teal-50 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.18em] text-teal-700">
+          <span className="bg-teal-50 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.18em] text-teal-700 dark:bg-teal-900/20 dark:text-teal-300">
             {chip}
           </span>
         ) : null}
       </div>
-      <p className="mt-1 text-sm text-slate-500">{detail}</p>
+      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{detail}</p>
     </div>
   );
 }
@@ -699,13 +699,13 @@ function SectionTitle({
 }) {
   return (
     <div>
-      <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-slate-500">
+      <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-slate-500 dark:text-slate-500">
         {eyebrow}
       </p>
-      <h2 className="mt-2 text-xl font-semibold tracking-tight text-slate-950">
+      <h2 className="mt-2 text-xl font-semibold tracking-tight text-slate-950 dark:text-slate-100">
         {title}
       </h2>
-      <p className="mt-1 text-sm leading-relaxed text-slate-500">
+      <p className="mt-1 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
         {description}
       </p>
     </div>
@@ -727,17 +727,17 @@ function ThoughtCard({
       onClick={onSelect}
       className={`w-full border p-4 text-left transition-all ${
         selected
-          ? "border-teal-400 bg-teal-50/80 shadow-[0_14px_34px_-28px_rgba(13,148,136,0.45)]"
-          : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/70"
+          ? "border-teal-400 bg-teal-50/80 shadow-[0_14px_34px_-28px_rgba(13,148,136,0.45)] dark:border-teal-500 dark:bg-teal-950/20"
+          : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/70 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700 dark:hover:bg-slate-800/60"
       }`}
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <p className="max-w-[75%] text-xl leading-relaxed text-slate-950">
+        <p className="max-w-[75%] text-xl leading-relaxed text-slate-950 dark:text-slate-100">
           {`"${thought.text}"`}
         </p>
         <DistortionBadge label={thought.distortion} />
       </div>
-      <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-slate-500">
+      <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
         <span>{formatExactDateTime(thought.time)}</span>
         <span>{thought.source}</span>
       </div>
@@ -757,26 +757,26 @@ function ReframeCard({
   const palette =
     reframe.id === "logical"
       ? {
-          shell: "border-violet-100 bg-violet-50/40",
-          heading: "text-violet-700",
-          badge: "border-violet-100 bg-white text-violet-700",
+          shell: "border-violet-100 bg-violet-50/40 dark:border-violet-900/30 dark:bg-violet-950/20",
+          heading: "text-violet-700 dark:text-violet-300",
+          badge: "border-violet-100 bg-white text-violet-700 dark:border-violet-900/30 dark:bg-slate-900 dark:text-violet-300",
           button: "bg-violet-600 text-white hover:bg-violet-700",
-          savedButton: "bg-violet-100 text-violet-700",
+          savedButton: "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-200",
         }
       : reframe.id === "compassionate"
         ? {
-            shell: "border-pink-100 bg-pink-50/45",
-            heading: "text-pink-700",
-            badge: "border-pink-100 bg-white text-pink-700",
+            shell: "border-pink-100 bg-pink-50/45 dark:border-pink-900/30 dark:bg-pink-950/20",
+            heading: "text-pink-700 dark:text-pink-300",
+            badge: "border-pink-100 bg-white text-pink-700 dark:border-pink-900/30 dark:bg-slate-900 dark:text-pink-300",
             button: "bg-pink-600 text-white hover:bg-pink-700",
-            savedButton: "bg-pink-100 text-pink-700",
+            savedButton: "bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-200",
           }
         : {
-            shell: "border-orange-100 bg-orange-50/45",
-            heading: "text-orange-700",
-            badge: "border-orange-100 bg-white text-orange-700",
+            shell: "border-orange-100 bg-orange-50/45 dark:border-orange-900/30 dark:bg-orange-950/20",
+            heading: "text-orange-700 dark:text-orange-300",
+            badge: "border-orange-100 bg-white text-orange-700 dark:border-orange-900/30 dark:bg-slate-900 dark:text-orange-300",
             button: "bg-orange-500 text-white hover:bg-orange-600",
-            savedButton: "bg-orange-100 text-orange-700",
+            savedButton: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-200",
           };
 
   return (
@@ -790,7 +790,7 @@ function ReframeCard({
           >
             {reframe.title}
           </p>
-          <p className="mt-1 text-sm leading-relaxed text-slate-500">
+          <p className="mt-1 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
             {reframe.tone}
           </p>
         </div>
@@ -801,7 +801,7 @@ function ReframeCard({
         </span>
       </div>
 
-      <p className="mt-6 flex-1 text-[15px] leading-9 text-slate-800">
+      <p className="mt-6 flex-1 text-[15px] leading-9 text-slate-800 dark:text-slate-200">
         {reframe.text}
       </p>
 
@@ -845,7 +845,7 @@ function InsightsDrawer({
   return (
     <>
       <div
-        className={`fixed inset-0 z-40 bg-slate-950/15 transition-opacity ${
+        className={`fixed inset-0 z-40 bg-slate-950/15 transition-opacity dark:bg-black/40 ${
           open
             ? "pointer-events-auto opacity-100"
             : "pointer-events-none opacity-0"
@@ -853,26 +853,26 @@ function InsightsDrawer({
         onClick={onClose}
       />
       <aside
-        className={`fixed right-0 top-0 z-50 flex h-full w-full max-w-[520px] transform flex-col border-l border-slate-200 bg-white shadow-[0_18px_60px_-30px_rgba(15,23,42,0.35)] transition-transform duration-300 sm:w-[520px] ${
+        className={`fixed right-0 top-0 z-50 flex h-full w-full max-w-[520px] transform flex-col border-l border-slate-200 bg-white shadow-[0_18px_60px_-30px_rgba(15,23,42,0.35)] transition-transform duration-300 dark:border-slate-800 dark:bg-slate-900 dark:shadow-black/50 sm:w-[520px] ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-5 sm:px-6">
+        <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-5 dark:border-slate-800 sm:px-6">
           <div>
-            <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-slate-500">
+            <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-slate-500 dark:text-slate-500">
               Pattern Insights
             </p>
-            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950 dark:text-slate-100">
               Updates live as you save reframes
             </h2>
-            <p className="mt-1 text-sm leading-relaxed text-slate-500">
+            <p className="mt-1 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
               This drawer comes from the right and hovers over the workspace.
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex items-center gap-2 border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 transition-colors hover:bg-slate-50"
+            className="inline-flex items-center gap-2 border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
           >
             <ChevronLeft className="h-4 w-4" />
             Close
@@ -881,7 +881,7 @@ function InsightsDrawer({
 
         <div className="flex-1 space-y-6 overflow-y-auto px-5 py-5 sm:px-6">
           <div>
-            <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-slate-500">
+            <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-slate-500 dark:text-slate-500">
               Live feed
             </p>
             {savedReframes.length > 0 ? (
@@ -896,7 +896,7 @@ function InsightsDrawer({
           </div>
 
           <div>
-            <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-slate-500">
+            <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-slate-500 dark:text-slate-500">
               Detected patterns
             </p>
             {detectedPattern.length > 0 ? (
@@ -911,7 +911,7 @@ function InsightsDrawer({
           </div>
 
           <div>
-            <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-slate-500">
+            <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-slate-500 dark:text-slate-500">
               Distortion breakdown
             </p>
             {items.length > 0 ? (
@@ -955,13 +955,13 @@ function DistortionRow({ label, value }: { label: string; value: number }) {
   return (
     <div>
       <div className="flex items-center justify-between ">
-        <p className="text-sm font-medium text-slate-900">{label}</p>
-        <span className="text-sm font-semibold text-slate-500">
+        <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{label}</p>
+        <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">
           {formatPercent(value)}
         </span>
       </div>
 
-      <div className="mt-1 h-1.5 w-full bg-slate-100">
+      <div className="mt-1 h-1.5 w-full bg-slate-100 dark:bg-slate-800">
         <div
           className={`h-full ${barClass}`}
           style={{ width: `${normalizePercent(value)}%` }}
@@ -974,14 +974,14 @@ function DistortionRow({ label, value }: { label: string; value: number }) {
 function SavedFeedItem({ item }: { item: SavedReframe }) {
   const badge =
     item.reframeType === "logical"
-      ? "text-violet-700"
+      ? "text-violet-700 dark:text-violet-300"
       : item.reframeType === "compassionate"
-        ? "text-pink-700"
-        : "text-orange-700";
+        ? "text-pink-700 dark:text-pink-300"
+        : "text-orange-700 dark:text-orange-300";
 
   return (
-    <div className="bg-slate-50 px-4 py-3">
-      <p className="text-sm leading-relaxed text-slate-700">
+    <div className="bg-slate-50 px-4 py-3 dark:bg-slate-800/60">
+      <p className="text-sm leading-relaxed text-slate-700 dark:text-slate-300">
         {'Saved: "'}
         {trimText(item.thoughtText, 30)}
         {'" - '}
@@ -1005,10 +1005,10 @@ function PatternCard({ pattern }: { pattern: DetectedPattern }) {
 
   const iconWrapClass =
     pattern.type === "time"
-      ? "bg-sky-50 text-sky-500"
+      ? "bg-sky-50 text-sky-500 dark:bg-sky-900/20 dark:text-sky-300"
       : pattern.type === "topic"
-        ? "bg-orange-50 text-orange-500"
-        : "bg-violet-50 text-violet-500";
+        ? "bg-orange-50 text-orange-500 dark:bg-orange-900/20 dark:text-orange-300"
+        : "bg-violet-50 text-violet-500 dark:bg-violet-900/20 dark:text-violet-300";
 
   const barClass =
     pattern.type === "time"
@@ -1025,7 +1025,7 @@ function PatternCard({ pattern }: { pattern: DetectedPattern }) {
         : `${pattern.severity ? `${capitalize(pattern.severity)} pattern` : "Pattern"} - ${pattern.count} entries analyzed`;
 
   return (
-    <article className="border border-slate-200 bg-white p-3 shadow-sm">
+    <article className="border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <div className="flex items-start gap-3">
         <div
           className={`flex h-10 w-10 shrink-0 items-center justify-center ${iconWrapClass}`}
@@ -1036,18 +1036,18 @@ function PatternCard({ pattern }: { pattern: DetectedPattern }) {
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="truncate text-sm font-medium text-slate-900">
+              <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">
                 {pattern.title}
               </p>
-              <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{subtitle}</p>
             </div>
 
-            <span className="shrink-0 text-sm font-semibold text-slate-500">
+            <span className="shrink-0 text-sm font-semibold text-slate-500 dark:text-slate-400">
               {percent}%
             </span>
           </div>
 
-          <div className="mt-2 h-1.5 w-full bg-slate-100">
+          <div className="mt-2 h-1.5 w-full bg-slate-100 dark:bg-slate-800">
             <div
               className={`h-full ${barClass}`}
               style={{ width: `${percent}%` }}
@@ -1071,14 +1071,14 @@ function EmptyState({
   description: string;
 }) {
   return (
-    <div className="border border-dashed border-slate-200 bg-slate-50/70 px-6 py-14 text-center">
-      <div className="mx-auto flex h-14 w-14 items-center justify-center bg-white text-slate-400 shadow-sm">
+    <div className="border border-dashed border-slate-200 bg-slate-50/70 px-6 py-14 text-center dark:border-slate-700 dark:bg-slate-800/50">
+      <div className="mx-auto flex h-14 w-14 items-center justify-center bg-white text-slate-400 shadow-sm dark:bg-slate-900 dark:text-slate-500">
         <Brain className="h-6 w-6" />
       </div>
-      <p className="mx-auto mt-5 max-w-md text-lg font-semibold leading-relaxed text-slate-800">
+      <p className="mx-auto mt-5 max-w-md text-lg font-semibold leading-relaxed text-slate-800 dark:text-slate-100">
         {title}
       </p>
-      <p className="mx-auto mt-2 max-w-lg text-sm leading-7 text-slate-500">
+      <p className="mx-auto mt-2 max-w-lg text-sm leading-7 text-slate-500 dark:text-slate-400">
         {description}
       </p>
     </div>
@@ -1087,15 +1087,15 @@ function EmptyState({
 
 function EmptyThoughtsState() {
   return (
-    <div className="flex h-full min-h-[240px] items-center justify-center border border-dashed border-slate-200 bg-slate-50/70 px-6 py-10 text-center">
+    <div className="flex h-full min-h-[240px] items-center justify-center border border-dashed border-slate-200 bg-slate-50/70 px-6 py-10 text-center dark:border-slate-700 dark:bg-slate-800/50">
       <div className="max-w-lg">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center bg-white text-slate-400 shadow-sm">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center bg-white text-slate-400 shadow-sm dark:bg-slate-900 dark:text-slate-500">
           <WandSparkles className="h-6 w-6" />
         </div>
-        <p className="mt-5 text-xl font-semibold text-slate-800">
+        <p className="mt-5 text-xl font-semibold text-slate-800 dark:text-slate-100">
           No thoughts are ready for reframing yet
         </p>
-        <p className="mt-2 text-sm leading-7 text-slate-500">
+        <p className="mt-2 text-sm leading-7 text-slate-500 dark:text-slate-400">
           This panel fills after journal analysis detects thoughts worth
           reframing. Write or analyze a journal entry first, then return here to
           generate logical, compassionate, and direct alternatives.
@@ -1107,8 +1107,8 @@ function EmptyThoughtsState() {
 
 function DrawerEmptyState({ message }: { message: string }) {
   return (
-    <div className="mt-3 rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 px-4 py-5">
-      <p className="text-sm leading-7 text-slate-500">{message}</p>
+    <div className="mt-3 rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 px-4 py-5 dark:border-slate-700 dark:bg-slate-800/50">
+      <p className="text-sm leading-7 text-slate-500 dark:text-slate-400">{message}</p>
     </div>
   );
 }
@@ -1117,13 +1117,13 @@ function ThoughtListLoadingState() {
   return (
     <div className="space-y-3">
       {Array.from({ length: 3 }).map((_, index) => (
-        <div key={index} className="border border-slate-200 bg-white p-4">
+        <div key={index} className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
           <div className="animate-pulse space-y-3">
-            <div className="h-5 w-4/5 bg-slate-100" />
-            <div className="h-5 w-3/5 bg-slate-100" />
+            <div className="h-5 w-4/5 bg-slate-100 dark:bg-slate-800" />
+            <div className="h-5 w-3/5 bg-slate-100 dark:bg-slate-800" />
             <div className="flex gap-3">
-              <div className="h-4 w-28 bg-slate-100" />
-              <div className="h-4 w-24 bg-slate-100" />
+              <div className="h-4 w-28 bg-slate-100 dark:bg-slate-800" />
+              <div className="h-4 w-24 bg-slate-100 dark:bg-slate-800" />
             </div>
           </div>
         </div>
@@ -1142,7 +1142,7 @@ function InlineRetryState({
   onRetry: () => void;
 }) {
   return (
-    <div className="border border-rose-200 bg-rose-50 px-4 py-4 text-rose-800">
+    <div className="border border-rose-200 bg-rose-50 px-4 py-4 text-rose-800 dark:border-rose-900/30 dark:bg-rose-900/10 dark:text-rose-300">
       <div className="flex items-start gap-3">
         <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
         <div className="min-w-0">
@@ -1151,7 +1151,7 @@ function InlineRetryState({
           <button
             type="button"
             onClick={onRetry}
-            className="mt-3 inline-flex items-center gap-2 border border-rose-200 bg-white px-3 py-2 text-xs font-medium uppercase tracking-[0.18em] text-rose-700 transition-colors hover:bg-rose-100"
+            className="mt-3 inline-flex items-center gap-2 border border-rose-200 bg-white px-3 py-2 text-xs font-medium uppercase tracking-[0.18em] text-rose-700 transition-colors hover:bg-rose-100 dark:border-rose-900/30 dark:bg-rose-900/20 dark:text-rose-300 dark:hover:bg-rose-900/30"
           >
             <RefreshCw className="h-3.5 w-3.5" />
             Retry
@@ -1164,23 +1164,23 @@ function InlineRetryState({
 
 function LoadingState() {
   return (
-    <div className="border border-slate-200 bg-slate-50/70 p-5">
-      <div className="inline-flex items-center gap-2 border border-teal-100 bg-teal-50 px-3 py-1.5 text-xs font-medium text-teal-700">
+    <div className="border border-slate-200 bg-slate-50/70 p-5 dark:border-slate-800 dark:bg-slate-800/50">
+      <div className="inline-flex items-center gap-2 border border-teal-100 bg-teal-50 px-3 py-1.5 text-xs font-medium text-teal-700 dark:border-teal-900/30 dark:bg-teal-900/20 dark:text-teal-300">
         <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
         Generating reframes
       </div>
       <div className="mt-5 grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
         {Array.from({ length: 3 }).map((_, index) => (
-          <div key={index} className="border border-slate-200 bg-white p-5">
+          <div key={index} className="border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
             <div className="animate-pulse space-y-4">
-              <div className="h-3 w-24 bg-slate-200" />
-              <div className="h-3 w-32 bg-slate-100" />
+              <div className="h-3 w-24 bg-slate-200 dark:bg-slate-700" />
+              <div className="h-3 w-32 bg-slate-100 dark:bg-slate-800" />
               <div className="space-y-2">
-                <div className="h-3 bg-slate-100" />
-                <div className="h-3 bg-slate-100" />
-                <div className="h-3 w-4/5 bg-slate-100" />
+                <div className="h-3 bg-slate-100 dark:bg-slate-800" />
+                <div className="h-3 bg-slate-100 dark:bg-slate-800" />
+                <div className="h-3 w-4/5 bg-slate-100 dark:bg-slate-800" />
               </div>
-              <div className="h-11 bg-slate-100" />
+              <div className="h-11 bg-slate-100 dark:bg-slate-800" />
             </div>
           </div>
         ))}
@@ -1191,11 +1191,11 @@ function LoadingState() {
 
 function GenerationSkeleton() {
   return (
-    <div className="mt-4 border border-slate-200 bg-white p-4">
+    <div className="mt-4 border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
       <div className="animate-pulse space-y-2">
-        <div className="h-2.5 w-24 bg-slate-200" />
-        <div className="h-2.5 bg-slate-100" />
-        <div className="h-2.5 w-4/5 bg-slate-100" />
+        <div className="h-2.5 w-24 bg-slate-200 dark:bg-slate-700" />
+        <div className="h-2.5 bg-slate-100 dark:bg-slate-800" />
+        <div className="h-2.5 w-4/5 bg-slate-100 dark:bg-slate-800" />
       </div>
     </div>
   );
@@ -1203,7 +1203,7 @@ function GenerationSkeleton() {
 
 function DistortionBadge({ label }: { label: Distortion }) {
   return (
-    <span className="border border-violet-100 bg-violet-50 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-violet-700">
+    <span className="border border-violet-100 bg-violet-50 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-violet-700 dark:border-violet-900/30 dark:bg-violet-900/20 dark:text-violet-300">
       {label}
     </span>
   );
@@ -1211,7 +1211,7 @@ function DistortionBadge({ label }: { label: Distortion }) {
 
 function InfoPill({ children }: { children: ReactNode }) {
   return (
-    <span className="border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-500">
+    <span className="border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
       {children}
     </span>
   );

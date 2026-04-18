@@ -25,14 +25,14 @@ export function FocusMomentumCard({
 
   return (
     <div
-      className="self-start flex flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:h-[332px]"
+      className="self-start flex flex-col rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm lg:h-[332px]"
       data-testid="focus-momentum-card"
     >
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-xs font-bold tracking-widest text-slate-900 uppercase">
+        <h3 className="text-xs font-bold tracking-widest text-slate-900 dark:text-slate-100 uppercase">
           Focus Momentum
         </h3>
-        <div className="flex items-center gap-2 text-slate-300">
+        <div className="flex items-center gap-2 text-slate-300 dark:text-slate-600">
           {isRefreshing ? (
             <LoaderCircle size={16} className="animate-spin" />
           ) : null}
@@ -49,21 +49,21 @@ export function FocusMomentumCard({
           <div>
             <div className="flex items-baseline gap-2">
               <span
-                className="text-4xl font-black text-slate-900 tracking-tight"
+                className="text-4xl font-black text-slate-900 dark:text-slate-100 tracking-tight"
                 data-testid="focus-momentum-streak"
               >
                 {data.streak_days}
               </span>
-              <span className="text-xs font-bold tracking-widest text-slate-400 uppercase">
+              <span className="text-xs font-bold tracking-widest text-slate-400 dark:text-slate-500 uppercase">
                 Day Streak
               </span>
             </div>
-            <p className="mt-1 flex items-center gap-1 text-[10px] font-bold tracking-wider text-teal-600 uppercase">
+            <p className="mt-1 flex items-center gap-1 text-[10px] font-bold tracking-wider text-teal-600 dark:text-teal-500 uppercase">
               <Zap size={10} />
               Today {Math.round(data.today_percentage)}% / Week Avg{" "}
               {Math.round(data.weekly_average_percentage)}%
             </p>
-            <p className="mt-2 text-[11px] text-slate-400">
+            <p className="mt-2 text-[11px] text-slate-400 dark:text-slate-500">
               Week of {data.week_start} to {data.week_end}
             </p>
           </div>
@@ -74,8 +74,8 @@ export function FocusMomentumCard({
                 const visualPercentage = clampPercentage(day.percentage);
                 const isToday = day.date === getTodayDateKey();
                 const fillClass = isToday
-                  ? "bg-teal-500"
-                  : "bg-teal-200 opacity-70";
+                  ? "bg-teal-500 dark:bg-teal-600"
+                  : "bg-teal-200 dark:bg-teal-900/60 opacity-70";
 
                 return (
                   <div
@@ -83,7 +83,7 @@ export function FocusMomentumCard({
                     className="flex flex-col items-center gap-2 flex-1"
                   >
                     <div
-                      className="relative flex h-20 w-full items-end rounded-sm bg-slate-50"
+                      className="relative flex h-20 w-full items-end rounded-sm bg-slate-50 dark:bg-slate-800/50"
                       title={buildBarTitle(day)}
                       aria-label={buildBarTitle(day)}
                       data-testid={`focus-momentum-bar-${day.date}`}
@@ -95,7 +95,7 @@ export function FocusMomentumCard({
                     </div>
                     <span
                       className={`text-[10px] font-bold ${
-                        isToday ? "text-teal-600" : "text-slate-400"
+                        isToday ? "text-teal-600 dark:text-teal-500" : "text-slate-400 dark:text-slate-500"
                       }`}
                     >
                       {day.day_key || day.day_label}
@@ -110,7 +110,7 @@ export function FocusMomentumCard({
 
           <div className="mt-4 space-y-2">
             {isEmptyState ? (
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 dark:text-slate-400 dark:text-slate-500">
                 Start with a check-in, journal, chat, or reframe to build
                 momentum this week.
               </p>
@@ -122,7 +122,7 @@ export function FocusMomentumCard({
                 snapshot.
               </p>
             ) : (
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 dark:text-slate-400 dark:text-slate-500">
                 {data.weekly_totals.checkins} check-ins /{" "}
                 {data.weekly_totals.chat} chat turns /{" "}
                 {data.weekly_totals.journals} journals /{" "}
@@ -142,17 +142,17 @@ function FocusMomentumSkeleton() {
   return (
     <>
       <div className="animate-pulse">
-        <div className="h-10 w-20 rounded-sm bg-slate-100" />
-        <div className="mt-3 h-3 w-36 rounded-sm bg-slate-100" />
+        <div className="h-10 w-20 rounded-sm bg-slate-100 dark:bg-slate-800" />
+        <div className="mt-3 h-3 w-36 rounded-sm bg-slate-100 dark:bg-slate-800" />
       </div>
 
       <div className="mt-5 flex min-h-[104px] flex-1 items-end justify-between gap-2">
         {Array.from({ length: 7 }).map((_, index) => (
           <div key={index} className="flex flex-col items-center gap-2 flex-1">
-            <div className="relative h-20 w-full overflow-hidden rounded-sm bg-slate-50">
-              <div className="absolute inset-x-0 bottom-0 h-10 animate-pulse bg-slate-100" />
+            <div className="relative h-20 w-full overflow-hidden rounded-sm bg-slate-50 dark:bg-slate-800/50">
+              <div className="absolute inset-x-0 bottom-0 h-10 animate-pulse bg-slate-100 dark:bg-slate-800" />
             </div>
-            <div className="h-2.5 w-3 animate-pulse rounded-sm bg-slate-100" />
+            <div className="h-2.5 w-3 animate-pulse rounded-sm bg-slate-100 dark:bg-slate-800" />
           </div>
         ))}
       </div>
@@ -165,14 +165,14 @@ function FocusMomentumErrorState({ message }: { message: string }) {
     <div className="flex flex-1 flex-col justify-between gap-6">
       <div>
         <div className="flex items-baseline gap-2">
-          <span className="text-4xl font-black text-slate-300 tracking-tight">
+          <span className="text-4xl font-black text-slate-300 dark:text-slate-600 tracking-tight">
             --
           </span>
-          <span className="text-xs font-black uppercase tracking-[0.18em] text-slate-300">
+          <span className="text-xs font-black uppercase tracking-[0.18em] text-slate-300 dark:text-slate-600">
             Day Streak
           </span>
         </div>
-        <p className="mt-3 text-xs text-slate-500">{message}</p>
+        <p className="mt-3 text-xs text-slate-500 dark:text-slate-400 dark:text-slate-500">{message}</p>
       </div>
       <EmptyBars />
     </div>
@@ -187,8 +187,8 @@ function EmptyBars() {
           key={`${label}-${index}`}
           className="flex flex-col items-center gap-2 flex-1"
         >
-          <div className="h-20 w-full rounded-sm bg-slate-100" />
-          <span className="text-[10px] font-black text-slate-300">{label}</span>
+          <div className="h-20 w-full rounded-sm bg-slate-100 dark:bg-slate-800" />
+          <span className="text-[10px] font-black text-slate-300 dark:text-slate-600">{label}</span>
         </div>
       ))}
     </div>

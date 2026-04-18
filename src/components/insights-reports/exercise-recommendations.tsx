@@ -26,7 +26,7 @@ export default function ExerciseRecommendations({
               <Link
                 key={`${item.title}-${index}`}
                 href={item.href || "/exercises"}
-                className="rounded-2xl border border-slate-200 bg-slate-50 p-4 transition-colors hover:bg-slate-100"
+                className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 p-4 transition-colors hover:bg-slate-100"
               >
                 <p
                   className={`text-sm font-semibold uppercase tracking-[0.18em] ${
@@ -41,10 +41,10 @@ export default function ExerciseRecommendations({
                     ? `${Math.round(item.match_score)}% Match`
                     : item.category || "Recommended"}
                 </p>
-                <p className="mt-2 text-xl font-semibold tracking-tight text-slate-950">
+                <p className="mt-2 text-xl font-semibold tracking-tight text-slate-950 dark:text-slate-100">
                   {item.title}
                 </p>
-                <p className="mt-1.5 text-base text-slate-500">
+                <p className="mt-1.5 text-base text-slate-500 dark:text-slate-400">
                   {item.duration || "Flexible"} · {item.category || "Protocol"}
                 </p>
                 {item.reason ? (
@@ -56,7 +56,7 @@ export default function ExerciseRecommendations({
             ))}
           </div>
 
-          <div className="mt-5 border-t border-slate-200 pt-4">
+          <div className="mt-5 border-t border-slate-200 dark:border-slate-800 pt-4">
             <div className="flex flex-wrap gap-2">
               {(exerciseRecommendations?.categories ?? []).map((category) => (
                 <InsightsPill key={category} tone="slate">
@@ -65,7 +65,7 @@ export default function ExerciseRecommendations({
               ))}
             </div>
             {exerciseRecommendations?.score_source ? (
-              <p className="mt-4 text-sm text-slate-500">
+              <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
                 Score source: {exerciseRecommendations.score_source}
               </p>
             ) : null}

@@ -23,7 +23,7 @@ export default function ModuleContribution({
           {modules.map((module, index) => (
             <article
               key={module.key || module.label}
-              className="grid gap-4 border-b border-slate-200 pb-5 last:border-b-0 last:pb-0 lg:grid-cols-[1fr_160px_1fr_110px]"
+              className="grid gap-4 border-b border-slate-200 dark:border-slate-800 pb-5 last:border-b-0 last:pb-0 lg:grid-cols-[1fr_160px_1fr_110px]"
             >
               <div className="flex items-start gap-4">
                 <span
@@ -32,10 +32,10 @@ export default function ModuleContribution({
                   }`}
                 />
                 <div>
-                  <p className="text-2xl font-semibold tracking-tight text-slate-950">
+                  <p className="text-2xl font-semibold tracking-tight text-slate-950 dark:text-slate-100">
                     {module.label}
                   </p>
-                  <p className="mt-1 text-base leading-7 text-slate-500">
+                  <p className="mt-1 text-base leading-7 text-slate-500 dark:text-slate-400">
                     {module.summary || "No summary provided."}
                   </p>
                   {module.deferred ? (
@@ -46,7 +46,7 @@ export default function ModuleContribution({
                 </div>
               </div>
 
-              <p className="text-right text-lg font-semibold text-slate-500 lg:self-center">
+              <p className="text-right text-lg font-semibold text-slate-500 dark:text-slate-400 lg:self-center">
                 {Math.round(module.weight)}% weight
               </p>
 
@@ -57,7 +57,7 @@ export default function ModuleContribution({
                 />
               </div>
 
-              <p className="text-right text-2xl font-semibold text-slate-950 lg:self-center">
+              <p className="text-right text-2xl font-semibold text-slate-950 dark:text-slate-100 lg:self-center">
                 {formatPoints(module.actual_points)} / {formatPoints(module.max_points)} pts
               </p>
             </article>

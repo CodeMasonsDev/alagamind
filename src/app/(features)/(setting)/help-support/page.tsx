@@ -116,46 +116,6 @@ const supportChecklist = [
 export default function HelpSupportPage() {
   return (
     <SettingsPageShell>
-      <SettingsHero
-        badge="Help & Support"
-        title="Clear support routes, safety boundaries, and self-serve help"
-        description="This page gives users a fast path to the right product area, explains what support can help with, and keeps crisis guidance explicit so the app does not over-promise beyond its role."
-        actions={
-          <>
-            <SettingsBadge tone="teal">Support-ready</SettingsBadge>
-            <SettingsBadge tone="amber">Crisis-safe copy</SettingsBadge>
-          </>
-        }
-        metrics={[
-          {
-            label: "Quick paths",
-            value: "4",
-            detail:
-              "Direct entry points into the main product areas users usually need.",
-            tone: "teal",
-          },
-          {
-            label: "Support channels",
-            value: "3",
-            detail: "Product, privacy, and safety boundary guidance.",
-            tone: "violet",
-          },
-          {
-            label: "FAQ answers",
-            value: String(faqItems.length),
-            detail:
-              "Short answers for the questions users are likely to ask first.",
-            tone: "amber",
-          },
-          {
-            label: "Safety posture",
-            value: "Explicit",
-            detail: "The app is supportive, not emergency care.",
-            tone: "rose",
-          },
-        ]}
-      />
-
       <SettingsPanel>
         <SettingsSectionHeading
           eyebrow="Quick paths"
@@ -171,19 +131,19 @@ export default function HelpSupportPage() {
               <Link
                 key={item.title}
                 href={item.href}
-                className="group rounded-2xl border border-slate-200 bg-slate-50/80 p-5 transition-colors hover:border-slate-300 hover:bg-white"
+                className="group rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/50 p-5 transition-colors hover:border-slate-300 dark:hover:border-slate-700 hover:bg-white dark:hover:bg-slate-800/80"
               >
                 <div className="flex items-center justify-between gap-3">
-                  <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-slate-700 shadow-sm">
+                  <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 dark:text-slate-300 shadow-sm dark:shadow-none dark:border dark:border-slate-700">
                     <Icon className="h-5 w-5" />
                   </span>
-                  <ArrowRight className="h-4 w-4 text-slate-400 transition-transform group-hover:translate-x-1" />
+                  <ArrowRight className="h-4 w-4 text-slate-400 dark:text-slate-500 dark:text-slate-400 transition-transform group-hover:translate-x-1" />
                 </div>
 
-                <p className="mt-4 text-lg font-semibold text-slate-950">
+                <p className="mt-4 text-lg font-semibold text-slate-950 dark:text-slate-100">
                   {item.title}
                 </p>
-                <p className="mt-2 text-sm leading-7 text-slate-500">
+                <p className="mt-2 text-sm leading-7 text-slate-500 dark:text-slate-400">
                   {item.description}
                 </p>
               </Link>
@@ -204,17 +164,17 @@ export default function HelpSupportPage() {
             {supportChannels.map((channel) => (
               <article
                 key={channel.title}
-                className="rounded-2xl border border-slate-200 bg-slate-50/80 p-5"
+                className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/50 p-5"
               >
                 <div className="flex items-center gap-3">
                   <SettingsBadge tone={channel.tone}>
                     {channel.title}
                   </SettingsBadge>
                 </div>
-                <p className="mt-4 text-sm leading-7 text-slate-600">
+                <p className="mt-4 text-sm leading-7 text-slate-600 dark:text-slate-400">
                   {channel.detail}
                 </p>
-                <p className="mt-4 text-sm font-semibold text-slate-700">
+                <p className="mt-4 text-sm font-semibold text-slate-700 dark:text-slate-300">
                   {channel.expectation}
                 </p>
               </article>
@@ -233,15 +193,15 @@ export default function HelpSupportPage() {
             {faqItems.map((item) => (
               <details
                 key={item.question}
-                className="group rounded-2xl border border-slate-200 bg-slate-50/80 p-5 open:bg-white"
+                className="group rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/50 p-5 open:bg-white dark:open:bg-slate-800/80"
               >
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
-                  <span className="text-left text-base font-semibold text-slate-950">
+                  <span className="text-left text-base font-semibold text-slate-950 dark:text-slate-100">
                     {item.question}
                   </span>
-                  <HelpCircle className="h-5 w-5 shrink-0 text-slate-400 transition-transform group-open:rotate-45" />
+                  <HelpCircle className="h-5 w-5 shrink-0 text-slate-400 dark:text-slate-500 dark:text-slate-400 transition-transform group-open:rotate-45" />
                 </summary>
-                <p className="mt-4 text-sm leading-7 text-slate-600">
+                <p className="mt-4 text-sm leading-7 text-slate-600 dark:text-slate-400">
                   {item.answer}
                 </p>
               </details>
@@ -249,70 +209,6 @@ export default function HelpSupportPage() {
           </SettingsPanelBody>
         </SettingsPanel>
       </div>
-
-      <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-        {/* <SettingsPanel className="border-rose-200">
-          <SettingsSectionHeading
-            eyebrow="Urgent support"
-            title="Keep crisis guidance unmistakable"
-            description="A supportive mental health app should be helpful without implying emergency coverage."
-          />
-
-          <SettingsPanelBody className="space-y-4">
-            <div className="rounded-2xl border border-rose-200 bg-rose-50/80 p-5">
-              <div className="flex items-start gap-3">
-                <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-rose-600 shadow-sm">
-                  <ShieldAlert className="h-5 w-5" />
-                </span>
-                <div>
-                  <p className="text-lg font-semibold text-slate-950">
-                    Immediate danger needs real-world help
-                  </p>
-                  <p className="mt-2 text-sm leading-7 text-slate-600">
-                    If someone is in immediate danger, they should contact local
-                    emergency services right away. In the U.S. and Canada,
-                    people can call or text 988 for crisis support.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-5">
-              <div className="flex items-start gap-3">
-                <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-slate-700 shadow-sm">
-                  <Stethoscope className="h-5 w-5" />
-                </span>
-                <div>
-                  <p className="text-lg font-semibold text-slate-950">
-                    Rule of thumb
-                  </p>
-                  <p className="mt-2 text-sm leading-7 text-slate-600">
-                    Supportive AI can guide reflection and coping exercises, but
-                    it should always defer urgent safety, diagnosis, and crisis
-                    decisions to qualified human services.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap gap-3">
-              <Link
-                href="/exercises/grounding"
-                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
-              >
-                <LifeBuoy className="h-4 w-4" />
-                Open grounding exercise
-              </Link>
-              <Link
-                href="/exercises/box-breathing/session"
-                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
-              >
-                <HeartHandshake className="h-4 w-4" />
-                Open box breathing
-              </Link>
-            </div>
-          </SettingsPanelBody>
-        </SettingsPanel> */}
 
         <SettingsPanel>
           <SettingsSectionHeading
@@ -325,20 +221,20 @@ export default function HelpSupportPage() {
             {supportChecklist.map((item, index) => (
               <div
                 key={item}
-                className="flex gap-4 rounded-2xl border border-slate-200 bg-slate-50/80 p-4"
+                className="flex gap-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/50 p-4"
               >
-                <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-sm font-bold text-slate-700 shadow-sm">
+                <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white dark:bg-slate-800 text-sm font-bold text-slate-700 dark:text-slate-300 shadow-sm dark:shadow-none dark:border dark:border-slate-700">
                   {String(index + 1).padStart(2, "0")}
                 </span>
-                <p className="text-sm leading-7 text-slate-600">{item}</p>
+                <p className="text-sm leading-7 text-slate-600 dark:text-slate-400">{item}</p>
               </div>
             ))}
 
-            <div className="rounded-2xl border border-teal-100 bg-teal-50/80 p-5">
-              <p className="text-lg font-semibold text-slate-950">
+            <div className="rounded-2xl border border-teal-100 dark:border-teal-900/30 bg-teal-50/80 dark:bg-teal-900/10 p-5">
+              <p className="text-lg font-semibold text-slate-950 dark:text-slate-100">
                 Reusable rule of thumb
               </p>
-              <p className="mt-2 text-sm leading-7 text-slate-600">
+              <p className="mt-2 text-sm leading-7 text-slate-600 dark:text-slate-400">
                 Help pages work best when they reduce support demand in two ways
                 at once: route users to the right place immediately, and teach
                 them the minimum context needed for a useful request.
@@ -346,7 +242,6 @@ export default function HelpSupportPage() {
             </div>
           </SettingsPanelBody>
         </SettingsPanel>
-      </div>
     </SettingsPageShell>
   );
 }

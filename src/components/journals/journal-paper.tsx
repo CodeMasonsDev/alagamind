@@ -32,7 +32,7 @@ export default function JournalPaper({
   );
 
   return (
-    <section className="p-4 sm:p-6 lg:p-10">
+    <section className="p-4 text-slate-900 dark:text-slate-100 sm:p-6 lg:p-10">
       <header>
         <h1 className="text-2xl sm:text-4xl lg:text-[45px]">{journal?.title}</h1>
       </header>
@@ -43,6 +43,14 @@ export default function JournalPaper({
         dangerouslySetInnerHTML={{ __html: formattedContent }}
       />
       <style>{`
+        .journal-highlight-content {
+          color: inherit;
+        }
+        .journal-highlight-content p,
+        .journal-highlight-content li,
+        .journal-highlight-content blockquote {
+          color: inherit;
+        }
         .journal-highlight-content [data-sentiment-highlight] {
           border-radius: 0.35rem;
           padding: 0.08rem 0.18rem;
@@ -63,6 +71,18 @@ export default function JournalPaper({
         .journal-highlight-content [data-sentiment-highlight="negative"] {
           background: rgba(248, 113, 113, 0.18);
           box-shadow: inset 0 0 0 1px rgba(239, 68, 68, 0.18);
+        }
+        .dark .journal-highlight-content [data-sentiment-highlight="positive"] {
+          background: rgba(20, 184, 166, 0.22);
+          box-shadow: inset 0 0 0 1px rgba(45, 212, 191, 0.25);
+        }
+        .dark .journal-highlight-content [data-sentiment-highlight="neutral"] {
+          background: rgba(59, 130, 246, 0.2);
+          box-shadow: inset 0 0 0 1px rgba(96, 165, 250, 0.24);
+        }
+        .dark .journal-highlight-content [data-sentiment-highlight="negative"] {
+          background: rgba(248, 113, 113, 0.22);
+          box-shadow: inset 0 0 0 1px rgba(252, 165, 165, 0.22);
         }
       `}</style>
     </section>

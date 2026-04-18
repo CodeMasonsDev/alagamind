@@ -5,14 +5,11 @@ import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
   Camera,
-  Languages,
   LoaderCircle,
   LogOut,
   Mail,
   Save,
-  ShieldCheck,
   Trash2,
-  UserRound,
 } from "lucide-react";
 import {
   getMe,
@@ -26,6 +23,7 @@ import LanguagePreferenceSelector, {
   getSupportedLanguageLabel,
   getSupportedLanguagePreview,
 } from "@/components/settings/language-preference-selector";
+import ThemePreferenceSelector from "@/components/settings/theme-preference-selector";
 import { useLanguage } from "@/components/providers/language-provider";
 import ProfileAvatar from "@/components/shared/profile-avatar";
 import {
@@ -165,7 +163,7 @@ export default function SettingsPage() {
       : "Authenticated session";
   const hasCustomProfilePicture = Boolean(
     profile?.profileImageUrl &&
-      !profile.profileImageUrl.startsWith(DEFAULT_PROFILE_PICTURE_URL),
+    !profile.profileImageUrl.startsWith(DEFAULT_PROFILE_PICTURE_URL),
   );
 
   function broadcastProfileUpdate() {
@@ -251,59 +249,42 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-full w-full bg-[linear-gradient(180deg,#fffdf4_0%,#f6f7fb_100%)]">
+    <div className="min-h-full w-full bg-[linear-gradient(180deg,#fffdf4_0%,#f6f7fb_100%)] dark:bg-[radial-gradient(circle_at_top_right,#17324d_0%,#0f172a_24%,#020617_100%)]">
       <main className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
-        <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <section className="overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
           <div className="grid gap-6 px-6 py-6 lg:grid-cols-[1.45fr_0.95fr]">
             <div className="space-y-4">
-              <span className="inline-flex items-center gap-2 rounded-full border border-teal-100 bg-teal-50 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.2em] text-teal-700">
-                <span className="h-2 w-2 rounded-full bg-teal-500" />
+              <span className="inline-flex items-center gap-2 rounded-full border border-teal-100 dark:border-teal-900/50 bg-teal-50 dark:bg-teal-900/20 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.2em] text-teal-700 dark:text-teal-400">
+                <span className="h-2 w-2 rounded-full bg-teal-500 dark:bg-teal-400" />
                 Profile Settings
               </span>
 
               <div>
-                <h1 className="text-3xl font-bold tracking-tight text-slate-950">
+                <h1 className="text-3xl font-bold tracking-tight text-slate-950 dark:text-white">
                   Account & Preferences
                 </h1>
-                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-500">
+                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-500 dark:text-slate-400 dark:text-slate-500">
                   Keep your profile details current, choose your preferred
                   language, and manage privacy controls from one calm settings
                   surface.
                 </p>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-3">
-                <MetricCard
-                  label="View account"
-                  value={isLoadingProfile ? "..." : "Ready"}
-                  detail="Live profile connected"
-                  icon={<UserRound className="h-5 w-5" />}
-                />
-                <MetricCard
-                  label="Language preference"
-                  value={getSupportedLanguageLabel(preferences.language)}
-                  detail="English, Tagalog, or Bisaya"
-                  icon={<Languages className="h-5 w-5" />}
-                />
-                <MetricCard
-                  label="Privacy & consent"
-                  value={preferences.anonymizedInsights ? "Custom" : "Standard"}
-                  detail="Local preference controls"
-                  icon={<ShieldCheck className="h-5 w-5" />}
-                />
+              <div className="mt-5 flex items-center gap-4">
+                <ThemePreferenceSelector />
               </div>
             </div>
 
-            <section className="rounded-3xl border border-slate-200 bg-slate-50/80 p-5">
-              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">
+            <section className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/50 p-5">
+              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
                 Account Snapshot
               </p>
 
               <div className="mt-4 flex items-start gap-4">
                 <div className="relative">
                   {isLoadingProfile ? (
-                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-slate-900 text-xl font-bold text-white">
-                      <LoaderCircle className="h-5 w-5 animate-spin text-slate-300" />
+                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-slate-900 dark:bg-slate-800 text-xl font-bold text-white">
+                      <LoaderCircle className="h-5 w-5 animate-spin text-slate-300 dark:text-slate-500" />
                     </div>
                   ) : (
                     <ProfileAvatar
@@ -317,15 +298,15 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="min-w-0">
-                  <h2 className="text-xl font-semibold tracking-tight text-slate-950">
+                  <h2 className="text-xl font-semibold tracking-tight text-slate-950 dark:text-white">
                     {isLoadingProfile
                       ? "Loading profile..."
                       : `${firstName} ${lastName}`.trim() || "Your profile"}
                   </h2>
-                  <p className="mt-1 truncate text-sm text-slate-500">
+                  <p className="mt-1 truncate text-sm text-slate-500 dark:text-slate-400 dark:text-slate-500">
                     {email || "No email loaded"}
                   </p>
-                  <p className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                  <p className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">
                     {roleSummary}
                   </p>
                 </div>
@@ -340,19 +321,19 @@ export default function SettingsPage() {
                 <SnapshotRow label="Roles" value={roleSummary} />
               </div>
 
-              <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4">
+              <div className="mt-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">
                       Profile picture
                     </p>
-                    <p className="mt-1 text-sm text-slate-500">
+                    <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 dark:text-slate-500">
                       Upload a square photo. We store it locally using your user
                       ID as the filename.
                     </p>
                   </div>
 
-                  <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-slate-800">
+                  <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 dark:border-transparent bg-slate-900 dark:bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-slate-800 dark:hover:bg-teal-500">
                     {isUploadingAvatar ? (
                       <>
                         <LoaderCircle className="h-4 w-4 animate-spin" />
@@ -455,7 +436,7 @@ export default function SettingsPage() {
                         }
                       })();
                     }}
-                    className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex items-center gap-2 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 transition-colors hover:bg-slate-50 dark:hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {isRemovingAvatar ? (
                       <>
@@ -472,19 +453,19 @@ export default function SettingsPage() {
                 </div>
 
                 {avatarError ? (
-                  <p className="mt-3 rounded-2xl border border-rose-100 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+                  <p className="mt-3 rounded-2xl border border-rose-100 dark:border-rose-900/30 bg-rose-50 dark:bg-rose-900/10 px-3 py-2 text-sm text-rose-700 dark:text-rose-400">
                     {avatarError}
                   </p>
                 ) : null}
                 {avatarStatus ? (
-                  <p className="mt-3 rounded-2xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+                  <p className="mt-3 rounded-2xl border border-emerald-100 dark:border-emerald-900/30 bg-emerald-50 dark:bg-emerald-900/10 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-400">
                     {avatarStatus}
                   </p>
                 ) : null}
               </div>
 
               {profileError ? (
-                <p className="mt-4 rounded-2xl border border-rose-100 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+                <p className="mt-4 rounded-2xl border border-rose-100 dark:border-rose-900/30 bg-rose-50 dark:bg-rose-900/10 px-3 py-2 text-sm text-rose-700 dark:text-rose-400">
                   {profileError}
                 </p>
               ) : null}
@@ -493,15 +474,15 @@ export default function SettingsPage() {
         </section>
 
         <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-          <section className="rounded-3xl border border-slate-200 bg-white shadow-sm">
-            <div className="border-b border-slate-200 px-6 py-5">
-              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">
+          <section className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+            <div className="border-b border-slate-200 dark:border-slate-800 px-6 py-5">
+              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
                 Update account
               </p>
-              <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950">
+              <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950 dark:text-white">
                 Profile details
               </h2>
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 dark:text-slate-500">
                 Update your first name, last name, and password with the live
                 profile endpoint. Email stays read-only because the current
                 backend update flow still uses it as the account lookup key.
@@ -559,15 +540,15 @@ export default function SettingsPage() {
                 <StatusBanner tone="success" message={profileSuccess} />
               ) : null}
 
-              <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-3">
-                <p className="text-sm text-slate-500">
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50/70 dark:bg-slate-800/50 px-4 py-3">
+                <p className="text-sm text-slate-500 dark:text-slate-400 dark:text-slate-500">
                   Saving applies your profile update immediately and replaces
                   your password with the new value above.
                 </p>
                 <button
                   type="submit"
                   disabled={isSavingProfile || isLoadingProfile}
-                  className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="inline-flex items-center gap-2 rounded-xl bg-slate-900 dark:bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-slate-800 dark:hover:bg-teal-500 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isSavingProfile ? (
                     <>
@@ -586,15 +567,15 @@ export default function SettingsPage() {
           </section>
 
           <div className="space-y-6">
-            <section className="rounded-3xl border border-slate-200 bg-white shadow-sm">
-              <div className="border-b border-slate-200 px-6 py-5">
-                <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">
+            <section className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+              <div className="border-b border-slate-200 dark:border-slate-800 px-6 py-5">
+                <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
                   Language preferences
                 </p>
-                <h2 className="mt-2 text-xl font-bold tracking-tight text-slate-950">
+                <h2 className="mt-2 text-xl font-bold tracking-tight text-slate-950 dark:text-white">
                   Choose your interface language
                 </h2>
-                <p className="mt-1 text-sm text-slate-500">
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 dark:text-slate-500">
                   Select the language you want AlagaMind to prioritize on this
                   device.
                 </p>
@@ -613,14 +594,14 @@ export default function SettingsPage() {
                   }}
                 />
 
-                <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50 p-4">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">
                     Preview copy
                   </p>
-                  <p className="mt-2 text-sm font-semibold text-slate-900">
+                  <p className="mt-2 text-sm font-semibold text-slate-900 dark:text-slate-100">
                     {getSupportedLanguageLabel(preferences.language)}
                   </p>
-                  <p className="mt-1 text-sm text-slate-500">
+                  <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 dark:text-slate-500">
                     {getSupportedLanguagePreview(preferences.language)}
                   </p>
                 </div>
@@ -633,7 +614,7 @@ export default function SettingsPage() {
                   type="button"
                   onClick={() => void handlePreferencesSave()}
                   disabled={isSavingPreferences}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-transparent bg-slate-900 dark:bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-slate-800 dark:hover:bg-teal-500 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isSavingPreferences ? (
                     <>
@@ -652,27 +633,27 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        <section className="rounded-3xl border border-rose-200 bg-white shadow-sm">
-          <div className="border-b border-rose-100 px-6 py-5">
-            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-rose-500">
+        <section className="rounded-3xl border border-rose-200 dark:border-rose-900/30 bg-white dark:bg-slate-900 shadow-sm">
+          <div className="border-b border-rose-100 dark:border-rose-900/30 px-6 py-5">
+            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-rose-500 dark:text-rose-400">
               Danger zone
             </p>
-            <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950">
+            <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950 dark:text-white">
               Session and account actions
             </h2>
           </div>
 
           <div className="grid gap-4 px-6 py-6 lg:grid-cols-2">
-            <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5">
+            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50 p-5">
               <div className="flex items-start gap-3">
-                <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-slate-600 shadow-sm">
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 shadow-sm dark:border dark:border-slate-700">
                   <LogOut className="h-5 w-5" />
                 </span>
                 <div>
-                  <h3 className="text-lg font-semibold text-slate-900">
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                     Sign out
                   </h3>
-                  <p className="mt-1 text-sm leading-relaxed text-slate-500">
+                  <p className="mt-1 text-sm leading-relaxed text-slate-500 dark:text-slate-400 dark:text-slate-500">
                     End the current session and return to the login screen.
                   </p>
                 </div>
@@ -682,7 +663,7 @@ export default function SettingsPage() {
                 type="button"
                 onClick={() => void handleLogout()}
                 disabled={isLoggingOut}
-                className="mt-5 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                className="mt-5 inline-flex items-center gap-2 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 transition-colors hover:bg-slate-50 dark:hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isLoggingOut ? (
                   <>
@@ -698,16 +679,16 @@ export default function SettingsPage() {
               </button>
             </div>
 
-            <div className="rounded-2xl border border-rose-200 bg-rose-50/70 p-5">
+            <div className="rounded-2xl border border-rose-200 dark:border-rose-900/30 bg-rose-50/70 dark:bg-rose-900/10 p-5">
               <div className="flex items-start gap-3">
-                <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-rose-600 shadow-sm">
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-white dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 shadow-sm dark:border dark:border-rose-800">
                   <Trash2 className="h-5 w-5" />
                 </span>
                 <div>
-                  <h3 className="text-lg font-semibold text-slate-900">
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                     Delete account
                   </h3>
-                  <p className="mt-1 text-sm leading-relaxed text-slate-600">
+                  <p className="mt-1 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
                     The current backend still has no delete-account endpoint, so
                     this action stays locked rather than faking a destructive
                     flow in the client.
@@ -715,7 +696,7 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <div className="mt-4 flex items-start gap-2 rounded-2xl border border-rose-100 bg-white px-3 py-3 text-sm text-rose-700">
+              <div className="mt-4 flex items-start gap-2 rounded-2xl border border-rose-100 dark:border-rose-900/30 bg-white dark:bg-rose-900/20 px-3 py-3 text-sm text-rose-700 dark:text-rose-400">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
                 <span>
                   Wire this area only after the backend exposes a real account
@@ -726,7 +707,7 @@ export default function SettingsPage() {
               <button
                 type="button"
                 disabled
-                className="mt-5 inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-white px-4 py-2.5 text-sm font-semibold text-rose-400"
+                className="mt-5 inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-white dark:bg-rose-900/20 px-4 py-2.5 text-sm font-semibold text-rose-400 dark:text-rose-500"
               >
                 <Trash2 className="h-4 w-4" />
                 Delete account unavailable
@@ -739,42 +720,13 @@ export default function SettingsPage() {
   );
 }
 
-function MetricCard({
-  label,
-  value,
-  detail,
-  icon,
-}: {
-  label: string;
-  value: string;
-  detail: string;
-  icon: ReactNode;
-}) {
-  return (
-    <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
-      <div className="flex items-center justify-between gap-3">
-        <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-slate-600 shadow-sm">
-          {icon}
-        </span>
-        <span className="text-right text-lg font-semibold tracking-tight text-slate-950">
-          {value}
-        </span>
-      </div>
-      <p className="mt-4 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
-        {label}
-      </p>
-      <p className="mt-1 text-sm text-slate-500">{detail}</p>
-    </div>
-  );
-}
-
 function SnapshotRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-      <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
+    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-3">
+      <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">
         {label}
       </p>
-      <p className="mt-1 break-all text-sm font-medium text-slate-900">
+      <p className="mt-1 break-all text-sm font-medium text-slate-900 dark:text-slate-100">
         {value}
       </p>
     </div>
@@ -802,12 +754,12 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
+      <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">
         {label}
       </span>
       <div className="relative mt-2">
         {icon ? (
-          <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+          <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500">
             {icon}
           </span>
         ) : null}
@@ -817,7 +769,7 @@ function Field({
           onChange={(event) => onChange(event.target.value)}
           autoComplete={autoComplete}
           disabled={disabled}
-          className={`h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/70 px-4 text-sm text-slate-900 outline-none transition-colors focus:border-teal-200 focus:bg-white ${
+          className={`h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/70 dark:bg-slate-800/50 px-4 text-sm text-slate-900 dark:text-slate-100 outline-none transition-colors focus:border-teal-200 dark:focus:border-teal-400/50 focus:bg-white dark:focus:bg-slate-800 ${
             icon ? "pl-11" : ""
           } ${disabled ? "cursor-not-allowed text-slate-400" : ""}`}
         />
@@ -836,8 +788,8 @@ function StatusBanner({
 }) {
   const styles =
     tone === "success"
-      ? "border-emerald-100 bg-emerald-50 text-emerald-700"
-      : "border-rose-100 bg-rose-50 text-rose-700";
+      ? "border-emerald-100 dark:border-emerald-900/30 bg-emerald-50 dark:bg-emerald-900/10 text-emerald-700 dark:text-emerald-400"
+      : "border-rose-100 dark:border-rose-900/30 bg-rose-50 dark:bg-rose-900/10 text-rose-700 dark:text-rose-400";
 
   return (
     <p className={`rounded-2xl border px-4 py-3 text-sm ${styles}`}>

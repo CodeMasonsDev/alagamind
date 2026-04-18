@@ -1,6 +1,28 @@
 import axiosInstance from "@/lib/axios";
 import { BASEURL } from "@/lib/base";
 import { isAxiosError } from "axios";
+import { CognitiveReframingOverviewSummary } from "@/components/features/cognitive-reframing/types";
+
+export type CognitiveReframingOverviewPayload = {
+  automatic_thought: string;
+  cognitive_distortion: string;
+  distress_intensity: number;
+  evidence_supporting_thought: string;
+  evidence_against_thought: string;
+  balanced_thought: string;
+};
+
+export type GroundingSensoryAnchorPayload = {
+  see: string[];
+  touch: string[];
+  hear: string[];
+  smell: string[];
+  taste: string[];
+};
+
+export type GroundingSensoryAnchorResponse = {
+  grounding_summarry: string;
+};
 
 export type AnalyzeJournalPayload = {
   userId: string;
@@ -151,6 +173,28 @@ export async function getInsights(userId: string) {
         user_id: userId,
       },
     },
+  );
+
+  return response.data;
+}
+
+export async function getCognitiveReframingOverview(
+  payload: CognitiveReframingOverviewPayload,
+) {
+  const response = await axiosInstance.post<CognitiveReframingOverviewSummary>(
+    `${BASEURL}cognitive_reframing_overview`,
+    payload,
+  );
+
+  return response.data;
+}
+
+export async function getGroundingSensoryAnchor(
+  payload: GroundingSensoryAnchorPayload,
+) {
+  const response = await axiosInstance.post<GroundingSensoryAnchorResponse>(
+    `${BASEURL}grounding_sensory_anchor`,
+    payload,
   );
 
   return response.data;

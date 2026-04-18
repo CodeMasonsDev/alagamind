@@ -66,7 +66,6 @@ const STEPS: GuidedStep[] = [
 
 export function useGuidedCbtWorkflow() {
   const reframing = useCognitiveReframing();
-  const [assistantEnabled, setAssistantEnabled] = useState(false);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [hasDistortionSelection, setHasDistortionSelection] = useState(false);
 
@@ -87,9 +86,6 @@ export function useGuidedCbtWorkflow() {
     return Math.round(((currentStepIndex + 1) / STEPS.length) * 100);
   }, [currentStepIndex]);
 
-  const toggleAssistant = () => {
-    setAssistantEnabled((current) => !current);
-  };
 
   const nextStep = () => {
     if (isFinalStep || !canMoveNext) return;
@@ -110,8 +106,6 @@ export function useGuidedCbtWorkflow() {
     canMoveNext,
     validationHint,
     progressPercent,
-    assistantEnabled,
-    toggleAssistant,
     nextStep,
     previousStep,
     setDistortion: (key: (typeof DISTORTIONS)[number]["key"]) => {

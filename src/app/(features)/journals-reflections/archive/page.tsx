@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronDown, Grid2x2, List, Plus, Search, Shield } from "lucide-react";
+import { ChevronDown, Grid2x2, List, Plus, Search } from "lucide-react";
 import LongMenu from "@/components/ui/long-menu";
 import { GetUserJournals } from "@/api/journal";
 import {
@@ -243,11 +243,11 @@ export default function JournalsArchivePage() {
   };
 
   return (
-    <div className="flex min-h-full w-full flex-col  bg-[linear-gradient(180deg,#fffdf4_0%,#f6f7fb_100%)]">
-      <header className="flex sticky top-0 z-10 items-center justify-between pb-4 border-b bg-white border-slate-200 px-4 py-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-2 text-xs font-bold tracking-widest text-slate-500 uppercase">
-          <span className="text-slate-300">/</span>
-          <span className="text-slate-900">Journal-reflections</span>
+    <div className="flex min-h-full w-full flex-col bg-[linear-gradient(180deg,#fffdf4_0%,#f6f7fb_100%)] dark:bg-[radial-gradient(circle_at_top_right,#17324d_0%,#0f172a_24%,#020617_100%)]">
+      <header className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-4 dark:border-slate-800 dark:bg-slate-900 sm:px-6 lg:px-8">
+        <div className="flex items-center gap-2 text-xs font-bold tracking-widest text-slate-500 uppercase dark:text-slate-400">
+          <span className="text-slate-300 dark:text-slate-600">/</span>
+          <span className="text-slate-900 dark:text-slate-100">Journal-reflections</span>
         </div>
       </header>
       <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
@@ -269,7 +269,7 @@ export default function JournalsArchivePage() {
         />
 
         {isLoading ? (
-          <section className="rounded-2xl border border-slate-200 bg-white p-10 text-center text-sm text-slate-500 shadow-sm">
+          <section className="rounded-2xl border border-slate-200 bg-white p-10 text-center text-sm text-slate-500 shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
             Loading journals...
           </section>
         ) : viewMode === "card" ? (
@@ -298,10 +298,10 @@ function HeaderSection({
   return (
     <section className="flex flex-wrap items-end justify-between gap-4">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+        <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
           Journal &amp; Reflections
         </h1>
-        <p className="mt-2 text-sm text-slate-500">
+        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
           Archived insights from your personal health intelligence journey.
         </p>
       </div>
@@ -310,10 +310,10 @@ function HeaderSection({
         <button
           type="button"
           onClick={() => setViewMode("card")}
-          className={`inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 transition-all ${
+          className={`inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 transition-all dark:border-slate-700 ${
             viewMode === "card"
-              ? "bg-white text-slate-900 shadow-sm"
-              : "bg-slate-50 text-slate-400 hover:text-slate-700"
+              ? "bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-slate-100"
+              : "bg-slate-50 text-slate-400 hover:text-slate-700 dark:bg-slate-900 dark:text-slate-500 dark:hover:text-slate-300"
           }`}
           aria-label="Card view"
         >
@@ -323,10 +323,10 @@ function HeaderSection({
         <button
           type="button"
           onClick={() => setViewMode("list")}
-          className={`inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 transition-all ${
+          className={`inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 transition-all dark:border-slate-700 ${
             viewMode === "list"
-              ? "bg-white text-slate-900 shadow-sm"
-              : "bg-slate-50 text-slate-400 hover:text-slate-700"
+              ? "bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-slate-100"
+              : "bg-slate-50 text-slate-400 hover:text-slate-700 dark:bg-slate-900 dark:text-slate-500 dark:hover:text-slate-300"
           }`}
           aria-label="List view"
         >
@@ -390,21 +390,21 @@ function FilterToolbar({
   }));
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+    <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <label className="relative block w-full lg:max-w-xl">
-          <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
           <input
             type="text"
             value={searchQuery}
             onChange={(event) => onSearchQueryChange(event.target.value)}
             placeholder="Search entries, keywords, or sentiments..."
-            className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50/60 pl-10 pr-4 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:border-teal-200 focus:bg-white"
+            className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50/60 pl-10 pr-4 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:border-teal-200 focus:bg-white dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-200 dark:placeholder:text-slate-500 dark:focus:border-teal-400/50 dark:focus:bg-slate-800"
           />
         </label>
 
-        <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-          <span className="mr-1 text-slate-400">Filters:</span>
+        <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+          <span className="mr-1 text-slate-400 dark:text-slate-500">Filters:</span>
 
           <FilterSelect
             prefix="Mood"
@@ -436,8 +436,8 @@ function FilterToolbar({
             onClick={onClearFilters}
             className={`rounded-md px-2 py-1 transition-colors ${
               canClearFilters
-                ? "text-teal-700 hover:bg-teal-50"
-                : "cursor-not-allowed text-slate-300"
+                ? "text-teal-700 hover:bg-teal-50 dark:text-teal-400 dark:hover:bg-teal-900/20"
+                : "cursor-not-allowed text-slate-300 dark:text-slate-600"
             }`}
           >
             Clear All
@@ -470,8 +470,8 @@ function FilterSelect({
     <label
       className={`relative inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 ${
         active
-          ? "border-teal-100 bg-teal-50 text-teal-700"
-          : "border-slate-200 bg-white text-slate-600"
+          ? "border-teal-100 bg-teal-50 text-teal-700 dark:border-teal-900/30 dark:bg-teal-900/20 dark:text-teal-300"
+          : "border-slate-200 bg-white text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
       }`}
     >
       <span>
@@ -521,10 +521,10 @@ function JournalGrid({ entries, onDelete, onUpdate }: Params) {
 
 function ListView({ entries }: { entries: JournalEntri[] }) {
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <section className="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <div className="overflow-x-auto">
         <div className="min-w-[980px]">
-          <div className="grid grid-cols-[130px_190px_minmax(280px,1fr)_130px_100px] gap-4 border-b border-slate-200 px-5 py-4 text-xs font-bold uppercase tracking-widest text-slate-400">
+          <div className="grid grid-cols-[130px_190px_minmax(280px,1fr)_130px_100px] gap-4 border-b border-slate-200 px-5 py-4 text-xs font-bold uppercase tracking-widest text-slate-400 dark:border-slate-800 dark:text-slate-500">
             <span>Mood</span>
             <span>Date &amp; Time</span>
             <span>Entry Details</span>
@@ -535,7 +535,7 @@ function ListView({ entries }: { entries: JournalEntri[] }) {
           {entries.length > 0 ? (
             entries.map((entry) => <ListRow key={entry.id} entry={entry} />)
           ) : (
-            <div className="px-5 py-10 text-center text-sm font-medium text-slate-500">
+            <div className="px-5 py-10 text-center text-sm font-medium text-slate-500 dark:text-slate-400">
               No entries matched your current filters.
             </div>
           )}
@@ -549,29 +549,29 @@ function ListRow({ entry }: { entry: JournalEntri }) {
   return (
     <Link
       href={`/journals-reflections/my-journal/${entry.userId}/${entry.id}`}
-      className="grid grid-cols-[130px_190px_minmax(280px,1fr)_130px_100px] items-center gap-4 border-b border-slate-100 px-5 py-4 transition-colors hover:bg-slate-50 last:border-b-0"
+      className="grid grid-cols-[130px_190px_minmax(280px,1fr)_130px_100px] items-center gap-4 border-b border-slate-100 px-5 py-4 transition-colors hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/50 last:border-b-0"
     >
       <div>
-        <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-medium uppercase text-slate-700">
+        <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-medium uppercase text-slate-700 dark:bg-slate-800 dark:text-slate-300">
           {entry.mood}
         </span>
       </div>
 
-      <p className="text-sm text-slate-500">
+      <p className="text-sm text-slate-500 dark:text-slate-400">
         {formatReadableDate(entry.createdAt)}
       </p>
 
       <div>
-        <p className="font-semibold text-slate-900">{entry.title}</p>
-        <p className="mt-1 truncate text-sm text-slate-500">{entry.preview}</p>
+        <p className="font-semibold text-slate-900 dark:text-slate-100">{entry.title}</p>
+        <p className="mt-1 truncate text-sm text-slate-500 dark:text-slate-400">{entry.preview}</p>
       </div>
 
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
         {entry.wordCount}
       </p>
       <div className="flex items-center gap-2">
         <span className={`h-2 w-2 rounded-full ${entry.dotClass}`} />
-        <span className="text-xs uppercase tracking-wider text-slate-400">
+        <span className="text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500">
           Active
         </span>
       </div>
@@ -589,9 +589,9 @@ function JournalCard({ entries, onDelete, onUpdate }: Props) {
     <Link
       href={`/journals-reflections/my-journal/${entries.userId}/${entries.id}`}
     >
-      <article className="flex min-h-[260px] flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
+      <article className="flex min-h-[260px] flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700">
         <div className="mb-4 flex items-start justify-between gap-2">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">
             {formatCardDate(entries.createdAt)}
           </p>
 
@@ -616,14 +616,14 @@ function JournalCard({ entries, onDelete, onUpdate }: Props) {
           </section>
         </div>
 
-        <h3 className="text-lg font-bold text-slate-900">{entries.title}</h3>
+        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">{entries.title}</h3>
 
-        <p className="mt-2 line-clamp-4 text-sm leading-relaxed text-slate-500">
+        <p className="mt-2 line-clamp-4 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
           {entries.preview}
         </p>
 
         <div className="mt-auto flex items-center justify-between pt-5">
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+          <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
             <span className={`h-2 w-2 rounded-full ${entries.dotClass}`} />
             {getEstimatedReadTime(entries.content)}
           </div>
@@ -637,9 +637,9 @@ function AddCard() {
   return (
     <Link
       href="/journals-reflections/write"
-      className="hidden sm:flex min-h-[260px] flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white/70 p-5 text-slate-500 transition-colors hover:border-teal-200 hover:bg-teal-50/40 hover:text-teal-700"
+      className="hidden sm:flex min-h-[260px] flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white/70 p-5 text-slate-500 transition-colors hover:border-teal-200 hover:bg-teal-50/40 hover:text-teal-700 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-400 dark:hover:border-teal-700 dark:hover:bg-teal-900/10 dark:hover:text-teal-300"
     >
-      <span className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white">
+      <span className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
         <Plus size={18} />
       </span>
       <span className="text-xs font-bold uppercase tracking-widest">
@@ -651,11 +651,11 @@ function AddCard() {
 
 function EmptyStateCard() {
   return (
-    <article className="flex min-h-[260px] flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm">
-      <p className="text-sm font-semibold text-slate-700">
+    <article className="flex min-h-[260px] flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
         No entries matched your filters.
       </p>
-      <p className="mt-2 text-xs text-slate-500">
+      <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
         Try adjusting search, mood, date, or tag.
       </p>
     </article>
@@ -664,8 +664,8 @@ function EmptyStateCard() {
 
 function FooterStrip() {
   return (
-    <footer className="border-t border-slate-200 bg-white px-4 py-3 sm:px-6 lg:px-8">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-400 sm:flex-row sm:items-center sm:justify-between"></div>
+    <footer className="border-t border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900 sm:px-6 lg:px-8">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 sm:flex-row sm:items-center sm:justify-between"></div>
     </footer>
   );
 }
@@ -855,22 +855,22 @@ function getMoodClass(mood: string) {
   const value = mood.toLowerCase();
 
   if (value.includes("positive")) {
-    return "border-emerald-200 bg-emerald-50 text-emerald-700";
+    return "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/30 dark:bg-emerald-900/10 dark:text-emerald-300";
   }
   if (value.includes("low")) {
-    return "border-rose-200 bg-rose-50 text-rose-700";
+    return "border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900/30 dark:bg-rose-900/10 dark:text-rose-300";
   }
   if (value.includes("stressed")) {
-    return "border-amber-200 bg-amber-50 text-amber-700";
+    return "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/30 dark:bg-amber-900/10 dark:text-amber-300";
   }
   if (value.includes("negative") || value.includes("low")) {
-    return "border-rose-200 bg-rose-50 text-rose-700";
+    return "border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900/30 dark:bg-rose-900/10 dark:text-rose-300";
   }
   if (value.includes("neutral")) {
-    return "border-slate-200 bg-slate-50 text-slate-700";
+    return "border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300";
   }
 
-  return "border-slate-200 bg-white text-slate-700";
+  return "border-slate-200 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300";
 }
 
 function getMoodDotClass(mood: string) {

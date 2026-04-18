@@ -291,12 +291,12 @@ export default function ReflectionEditor() {
   };
 
   return (
-    <div className="min-h-screen bg-[linear-gradient(180deg,#fffdf4_0%,#f6f7fb_100%)] font-sans text-gray-900">
-      <header className="flex items-center justify-between px-8 py-4 border-b border-gray-100">
-        <div className="flex items-center space-x-6 text-sm font-medium text-gray-500">
+    <div className="min-h-screen bg-[linear-gradient(180deg,#fffdf4_0%,#f6f7fb_100%)] font-sans text-gray-900 dark:bg-[radial-gradient(circle_at_top_right,#17324d_0%,#0f172a_24%,#020617_100%)] dark:text-slate-100">
+      <header className="flex items-center justify-between border-b border-gray-100 px-8 py-4 dark:border-slate-800 dark:bg-slate-900/80">
+        <div className="flex items-center space-x-6 text-sm font-medium text-gray-500 dark:text-slate-400">
           <Link
             href="/journals-reflections/archive"
-            className="flex items-center hover:text-gray-900 transition-colors"
+            className="flex items-center transition-colors hover:text-gray-900 dark:hover:text-slate-100"
           >
             <svg
               className="w-4 h-4 mr-2"
@@ -319,7 +319,7 @@ export default function ReflectionEditor() {
           <button
             onClick={handleSaveReflection}
             disabled={isSaveDisabled}
-            className="flex items-center px-4 py-1.5 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mx-2"
+            className="mx-2 flex items-center rounded-md bg-teal-600 px-4 py-1.5 text-white transition-colors hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isSaving ? (
               <span className="flex items-center">
@@ -364,25 +364,25 @@ export default function ReflectionEditor() {
             )}
           </button>
 
-          <button className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-md transition-colors">
+          <button className="rounded-md p-1.5 text-gray-400 transition-colors hover:bg-gray-50 hover:text-gray-600 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300">
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
               <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
             </svg>
           </button>
         </div>
       </header>
-      <main className="max-w-6xl mx-auto px-8 py-12">
+      <main className="mx-auto max-w-6xl px-8 py-12">
         <div className="mb-10">
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="text-4xl font-bold tracking-tight text-gray-900 mb-6 w-full border-none outline-none bg-transparent placeholder-gray-300 focus:ring-0"
+            className="mb-6 w-full border-none bg-transparent text-4xl font-bold tracking-tight text-gray-900 outline-none placeholder-gray-300 focus:ring-0 dark:text-slate-100 dark:placeholder:text-slate-600"
             placeholder="Entry Title..."
           />
 
           <div className="grid grid-cols-[120px_1fr] gap-y-4 text-sm">
-            <div className="flex items-center text-gray-400">
+            <div className="flex items-center text-gray-400 dark:text-slate-500">
               <svg
                 className="w-4 h-4 mr-2"
                 fill="none"
@@ -398,11 +398,11 @@ export default function ReflectionEditor() {
               </svg>
               Date
             </div>
-            <div className="font-medium text-gray-700">
+            <div className="font-medium text-gray-700 dark:text-slate-200">
               {formatJournalCalendarDate(displayTimestampMs)}
             </div>
 
-            <div className="flex items-center text-gray-400">
+            <div className="flex items-center text-gray-400 dark:text-slate-500">
               <svg
                 className="w-4 h-4 mr-2"
                 fill="none"
@@ -418,7 +418,7 @@ export default function ReflectionEditor() {
               </svg>
               Time
             </div>
-            <div className="font-medium text-gray-700">
+            <div className="font-medium text-gray-700 dark:text-slate-200">
               {formatJournalClockTime(displayTimestampMs)}
             </div>
           </div>
@@ -426,42 +426,42 @@ export default function ReflectionEditor() {
 
         <div
           id="custom-toolbar"
-          className="flex items-center space-x-3 px-4 py-2 mb-8 bg-white border border-gray-100 rounded-xl shadow-[0_2px_8px_rgb(0,0,0,0.04)]"
+          className="mb-8 flex items-center space-x-3 rounded-xl border border-gray-100 bg-white px-4 py-2 shadow-[0_2px_8px_rgb(0,0,0,0.04)] dark:border-slate-800 dark:bg-slate-900"
         >
           <span className="ql-formats flex space-x-1">
             <button className="ql-bold"></button>
             <button className="ql-italic"></button>
             <button className="ql-underline"></button>
           </span>
-          <div className="w-px h-5 bg-gray-200"></div>
+          <div className="h-5 w-px bg-gray-200 dark:bg-slate-700"></div>
           <span className="ql-formats flex items-center space-x-2">
             <button
-              className="ql-header text-gray-500 font-bold text-sm"
+              className="ql-header text-sm font-bold text-gray-500 dark:text-slate-400"
               value="1"
             >
               H1
             </button>
             <button
-              className="ql-header text-gray-500 font-bold text-sm"
+              className="ql-header text-sm font-bold text-gray-500 dark:text-slate-400"
               value="2"
             >
               H2
             </button>
             <button
-              className="ql-header text-gray-500 font-bold text-sm"
+              className="ql-header text-sm font-bold text-gray-500 dark:text-slate-400"
               value="3"
             >
               H3
             </button>
           </span>
 
-          <div className="w-px h-5 bg-gray-200"></div>
+          <div className="h-5 w-px bg-gray-200 dark:bg-slate-700"></div>
           <span className="ql-formats flex space-x-1">
             <button className="ql-list" value="bullet"></button>
             <button className="ql-list" value="ordered"></button>
             <button className="ql-blockquote"></button>
           </span>
-          <div className="w-px h-5 bg-gray-200"></div>
+          <div className="h-5 w-px bg-gray-200 dark:bg-slate-700"></div>
           <span className="ql-formats flex space-x-1">
             <button className="ql-code-block"></button>
             <button className="ql-link"></button>
@@ -482,6 +482,14 @@ export default function ReflectionEditor() {
         #custom-toolbar button.ql-active { color: #0d9488 !important; }
         #custom-toolbar button.ql-active .ql-stroke { stroke: #0d9488 !important; }
         #custom-toolbar button.ql-active .ql-fill { fill: #0d9488 !important; }
+        .dark .ql-toolbar.ql-snow .ql-stroke { stroke: #94a3b8; }
+        .dark .ql-toolbar.ql-snow .ql-fill { fill: #94a3b8; }
+        .dark .ql-toolbar.ql-snow .ql-picker { color: #94a3b8; }
+        .dark #custom-toolbar button:hover { background-color: #1e293b; }
+        .dark .ql-editor { color: #cbd5e1; }
+        .dark .ql-editor.ql-blank::before { color: #64748b; }
+        .dark .ql-editor blockquote { color: #94a3b8; border-left-color: rgba(45, 212, 191, 0.55); }
+        .dark .ql-editor h1, .dark .ql-editor h2, .dark .ql-editor h3 { color: #f8fafc; }
       `,
         }}
       />

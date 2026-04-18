@@ -230,7 +230,7 @@ export default function MyJournal({ params }: MyJournalProps) {
   };
 
   return (
-    <div className="flex min-h-full w-full flex-col bg-[linear-gradient(180deg,#fffdf4_0%,#f6f7fb_100%)]">
+    <div className="flex min-h-full w-full flex-col bg-[linear-gradient(180deg,#fffdf4_0%,#f6f7fb_100%)] dark:bg-[radial-gradient(circle_at_top_right,#17324d_0%,#0f172a_24%,#020617_100%)]">
       <TopBar
         title={journal?.title}
         createdAt={journal?.createdAt ?? null}
@@ -241,7 +241,7 @@ export default function MyJournal({ params }: MyJournalProps) {
         onUpdate={() => handleUpdate(user_id, journal_id)}
       />
 
-      <main className="flex w-full flex-1 flex:flex-row relative">
+      <main className="relative flex w-full flex-1 flex:flex-row">
         <div
           className={`w-full transition-all duration-300 ${
             isInsightsOpen ? "lg:w-[72%]" : "lg:w-full"
@@ -270,7 +270,7 @@ export default function MyJournal({ params }: MyJournalProps) {
         {/* Insights drawer: slide-over on mobile, inline on desktop */}
         <aside
           className={`
-            fixed right-0 top-0 z-40 h-full w-[85%] max-w-[400px] transform border-l border-slate-200 bg-white shadow-xl transition-transform duration-300 ease-in-out
+            fixed right-0 top-0 z-40 h-full w-[85%] max-w-[400px] transform border-l border-slate-200 bg-white shadow-xl transition-transform duration-300 ease-in-out dark:border-slate-800 dark:bg-slate-900 dark:shadow-black/40
             lg:static lg:z-auto lg:h-auto lg:max-w-none lg:transform-none lg:shadow-none lg:transition-none
             ${isInsightsOpen
               ? "translate-x-0 lg:w-[40%] lg:border-l lg:block"
@@ -346,11 +346,11 @@ function TopBar({
     : "Unknown time";
 
   return (
-    <header className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white pl-14 pr-4 py-3 sm:px-4">
+    <header className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white pl-14 pr-4 py-3 dark:border-slate-800 dark:bg-slate-900 sm:px-4">
       <div className="flex w-full gap-2">
         <Link
           href="/journals-reflections/archive"
-          className="flex items-center transition-colors hover:text-gray-900"
+          className="flex items-center text-slate-700 transition-colors hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100"
         >
           <svg
             className="mr-2 h-4 w-4"
@@ -369,10 +369,10 @@ function TopBar({
         </Link>
 
         <div className="ml-5 min-w-0">
-          <h3 className="truncate text-lg font-semibold text-slate-900">
+          <h3 className="truncate text-lg font-semibold text-slate-900 dark:text-slate-100">
             {isLoading ? "Loading journal..." : title || "Untitled Reflection"}
           </h3>
-          <p className="text-[12px] text-gray-400">
+          <p className="text-[12px] text-gray-400 dark:text-slate-500">
             {isLoading
               ? "Fetching journal details"
               : `${dateLabel} at ${timeLabel}`}
@@ -387,7 +387,7 @@ function TopBar({
       <button
         type="button"
         onClick={onToggleInsights}
-        className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-600 transition-colors hover:border-teal-200 hover:bg-teal-50 hover:text-teal-700"
+        className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-600 transition-colors hover:border-teal-200 hover:bg-teal-50 hover:text-teal-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-teal-700 dark:hover:bg-teal-900/20 dark:hover:text-teal-300"
       >
         <Sparkles size={13} />
         {isInsightsOpen ? "Hide Insights" : "Open Insights"}
@@ -501,10 +501,10 @@ function AiInsightsSidebar({
     effectiveState.percentages?.recommended_protocol ?? null;
 
   return (
-    <section className="h-full px-6 py-7 lg:sticky lg:top-[73px] lg:h-[calc(100vh-73px)] lg:overflow-y-auto bg-[linear-gradient(180deg,#fffdf4_0%,#f6f7fb_100%)]">
+    <section className="h-full bg-[linear-gradient(180deg,#fffdf4_0%,#f6f7fb_100%)] px-6 py-7 dark:bg-[radial-gradient(circle_at_top_right,#17324d_0%,#0f172a_24%,#020617_100%)] lg:sticky lg:top-[73px] lg:h-[calc(100vh-73px)] lg:overflow-y-auto">
       <div className="space-y-6">
-        <header className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-slate-700">
-          <Sparkles size={13} className="text-teal-500" />
+        <header className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-slate-700 dark:text-slate-200">
+          <Sparkles size={13} className="text-teal-500 dark:text-teal-400" />
           Insights
         </header>
 
@@ -522,12 +522,12 @@ function AiInsightsSidebar({
 
         {effectiveState.status === "success" ? (
           <>
-            <section className="space-y-4 border-b border-slate-200 pb-6">
+            <section className="space-y-4 border-b border-slate-200 pb-6 dark:border-slate-800">
               <div className="flex items-center justify-between gap-3">
-                <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
+                <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400 dark:text-slate-500">
                   Sentiment Analysis
                 </h2>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400 dark:text-slate-500">
                   {segmentCount} segments analyzed
                 </p>
               </div>
@@ -550,19 +550,19 @@ function AiInsightsSidebar({
               </div>
             </section>
 
-            <section className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4">
-              <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em] text-teal-700">
+            <section className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4 dark:border-slate-800 dark:bg-slate-800/50">
+              <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em] text-teal-700 dark:text-teal-300">
                 <Lightbulb size={14} />
                 Suggested Reframe
               </div>
 
-              <p className="mt-3 text-sm leading-relaxed text-slate-600">
+              <p className="mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
                 {suggestedReframe}
               </p>
             </section>
 
-            <section className="space-y-3 border-b border-slate-200 pb-6">
-              <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
+            <section className="space-y-3 border-b border-slate-200 pb-6 dark:border-slate-800">
+              <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400 dark:text-slate-500">
                 Recommended Protocol
               </h2>
 
@@ -571,7 +571,7 @@ function AiInsightsSidebar({
           </>
         ) : null}
 
-        <footer className="flex items-start gap-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400">
+        <footer className="flex items-start gap-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400 dark:text-slate-500">
           <Lock size={12} className="mt-0.5 shrink-0" />
           <p>
             Private entry. Your data is safe and remains under your control at
@@ -586,27 +586,27 @@ function AiInsightsSidebar({
 function InsightsLoadingState() {
   return (
     <section className="space-y-4">
-      <div className="space-y-3 border-b border-slate-200 pb-6">
-        <div className="h-3 w-28 rounded bg-slate-100" />
+      <div className="space-y-3 border-b border-slate-200 pb-6 dark:border-slate-800">
+        <div className="h-3 w-28 rounded bg-slate-100 dark:bg-slate-800" />
         <div className="space-y-3">
           {[1, 2, 3].map((item) => (
             <div key={item} className="space-y-2">
               <div className="flex items-center justify-between">
-                <div className="h-4 w-20 rounded bg-slate-100" />
-                <div className="h-4 w-10 rounded bg-slate-100" />
+                <div className="h-4 w-20 rounded bg-slate-100 dark:bg-slate-800" />
+                <div className="h-4 w-10 rounded bg-slate-100 dark:bg-slate-800" />
               </div>
-              <div className="h-1.5 rounded-full bg-slate-100" />
+              <div className="h-1.5 rounded-full bg-slate-100 dark:bg-slate-800" />
             </div>
           ))}
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4">
-        <div className="h-4 w-36 rounded bg-slate-100" />
+      <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4 dark:border-slate-800 dark:bg-slate-800/50">
+        <div className="h-4 w-36 rounded bg-slate-100 dark:bg-slate-800" />
         <div className="mt-3 space-y-2">
-          <div className="h-4 rounded bg-slate-100" />
-          <div className="h-4 rounded bg-slate-100" />
-          <div className="h-4 w-4/5 rounded bg-slate-100" />
+          <div className="h-4 rounded bg-slate-100 dark:bg-slate-800" />
+          <div className="h-4 rounded bg-slate-100 dark:bg-slate-800" />
+          <div className="h-4 w-4/5 rounded bg-slate-100 dark:bg-slate-800" />
         </div>
       </div>
     </section>
@@ -621,7 +621,7 @@ function InsightsErrorState({
   onRetry: () => void;
 }) {
   return (
-    <section className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-rose-800">
+    <section className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-rose-800 dark:border-rose-900/30 dark:bg-rose-900/10 dark:text-rose-300">
       <div className="flex items-start gap-3">
         <AlertCircle size={16} className="mt-0.5 shrink-0" />
         <div>
@@ -632,7 +632,7 @@ function InsightsErrorState({
           <button
             type="button"
             onClick={onRetry}
-            className="mt-3 inline-flex items-center gap-2 rounded-lg border border-rose-200 bg-white px-3 py-2 text-xs font-bold uppercase tracking-wider text-rose-700 transition-colors hover:bg-rose-100"
+            className="mt-3 inline-flex items-center gap-2 rounded-lg border border-rose-200 bg-white px-3 py-2 text-xs font-bold uppercase tracking-wider text-rose-700 transition-colors hover:bg-rose-100 dark:border-rose-900/30 dark:bg-rose-900/20 dark:text-rose-300 dark:hover:bg-rose-900/30"
           >
             <RefreshCw size={12} />
             Retry
@@ -650,30 +650,30 @@ function RecommendedProtocolCard({
 }) {
   if (!protocol) {
     return (
-      <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/60 p-3 text-sm text-slate-500">
+      <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/60 p-3 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-400">
         No protocol recommendation is available yet.
       </div>
     );
   }
 
   const cardContent = (
-    <div className="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50/60 p-3 transition-colors hover:border-teal-100 hover:bg-teal-50/50">
-      <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-teal-100 text-teal-700">
+    <div className="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50/60 p-3 transition-colors hover:border-teal-100 hover:bg-teal-50/50 dark:border-slate-800 dark:bg-slate-800/50 dark:hover:border-teal-900/40 dark:hover:bg-teal-900/10">
+      <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300">
         <Wind size={16} />
       </span>
 
       <div className="min-w-0">
-        <p className="text-sm font-semibold text-slate-700">{protocol.title}</p>
-        <p className="mt-1 text-xs leading-relaxed text-slate-500">
+        <p className="text-sm font-semibold text-slate-700 dark:text-slate-100">{protocol.title}</p>
+        <p className="mt-1 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
           {protocol.description}
         </p>
         {protocol.duration ? (
-          <p className="mt-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+          <p className="mt-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
             Duration: {protocol.duration}
           </p>
         ) : null}
         {protocol.reason ? (
-          <p className="mt-2 text-xs leading-relaxed text-slate-500">
+          <p className="mt-2 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
             {protocol.reason}
           </p>
         ) : null}
@@ -706,18 +706,18 @@ function InsightMeter({
       onClick={onClick}
       className={`block w-full rounded-xl border px-3 py-2 text-left transition-colors ${
         isActive
-          ? "border-slate-300 bg-slate-50"
-          : "border-transparent hover:border-slate-200 hover:bg-slate-50/70"
+          ? "border-slate-300 bg-slate-50 dark:border-slate-700 dark:bg-slate-800"
+          : "border-transparent hover:border-slate-200 hover:bg-slate-50/70 dark:hover:border-slate-800 dark:hover:bg-slate-800/50"
       }`}
       aria-pressed={isActive}
       aria-label={`Highlight ${sentimentKey} sections in journal`}
     >
       <div className="mb-1 flex items-center justify-between text-sm">
-        <p className="font-semibold text-slate-500">{label}</p>
+        <p className="font-semibold text-slate-500 dark:text-slate-300">{label}</p>
         <p className={`text-sm font-bold ${valueClassName}`}>{value}%</p>
       </div>
 
-      <div className="h-1.5 overflow-hidden rounded-full bg-slate-200">
+      <div className="h-1.5 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
         <span
           className={`block h-full rounded-full ${barClassName}`}
           style={{ width: `${Math.max(0, Math.min(value, 100))}%` }}
@@ -766,21 +766,21 @@ function buildSentimentMetrics(
       sentimentKey: "positive",
       value: roundPercentage(percentages?.percentages.positive),
       barClassName: "bg-teal-500",
-      valueClassName: "text-teal-600",
+      valueClassName: "text-teal-600 dark:text-teal-300",
     },
     {
       label: "Neutral",
       sentimentKey: "neutral",
       value: roundPercentage(percentages?.percentages.neutral),
       barClassName: "bg-blue-500",
-      valueClassName: "text-blue-600",
+      valueClassName: "text-blue-600 dark:text-blue-300",
     },
     {
       label: "Negativity",
       sentimentKey: "negative",
       value: roundPercentage(percentages?.percentages.negative),
       barClassName: "bg-red-400",
-      valueClassName: "text-slate-500",
+      valueClassName: "text-slate-500 dark:text-rose-300",
     },
   ];
 }

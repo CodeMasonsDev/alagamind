@@ -82,27 +82,27 @@ export function CheckInModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-md p-4"
       onClick={handleBackdropClick}
       role="dialog"
       aria-modal="true"
       aria-labelledby="check-in-modal-title"
     >
       <div
-        className="w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-xl p-6"
+        className="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[32px] shadow-[0_30px_80px_rgba(15,23,42,0.28)] p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-6">
           <h2
             id="check-in-modal-title"
-            className="text-xs font-bold tracking-widest text-slate-900 uppercase"
+            className="text-xs font-bold tracking-[0.2em] text-slate-900 dark:text-slate-100 uppercase"
           >
             Quick Check-In
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-slate-700 transition-colors rounded-lg"
+            className="p-1.5 text-slate-400 hover:text-slate-700 dark:text-slate-300 transition-colors rounded-lg"
             aria-label="Close modal"
           >
             <X size={20} />
@@ -111,7 +111,7 @@ export function CheckInModal({
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           <div>
-            <p className="text-xs font-bold tracking-wider text-slate-400 uppercase mb-3">
+            <p className="text-xs font-bold tracking-wider text-slate-400 dark:text-slate-500 uppercase mb-3">
               Current Emotional State
             </p>
             <div className="grid grid-cols-5 gap-2">
@@ -123,8 +123,8 @@ export function CheckInModal({
                   aria-pressed={state === s}
                   className={`flex flex-col items-center justify-center gap-2 py-4 rounded-xl border transition-all ${
                     state === s
-                      ? "border-teal-400 bg-teal-50 text-teal-600 shadow-sm"
-                      : "border-slate-100 bg-white text-slate-400 hover:bg-slate-50"
+                      ? "border-teal-400 dark:border-teal-900/50 bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400 shadow-sm"
+                      : "border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-800/40 text-slate-400 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800"
                   }`}
                 >
                   <Image
@@ -144,7 +144,7 @@ export function CheckInModal({
 
           <div>
             <div className="flex justify-between items-end mb-2">
-              <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+              <span className="text-[10px] font-bold tracking-wider text-slate-400 dark:text-slate-500 uppercase">
                 Intensity
               </span>
               <span className="text-sm font-bold text-teal-500">
@@ -157,7 +157,7 @@ export function CheckInModal({
               max={10}
               value={intensity}
               onChange={(e) => setIntensity(Number(e.target.value))}
-              className="w-full h-2 bg-slate-100 rounded-full appearance-none cursor-pointer accent-teal-500"
+              className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full appearance-none cursor-pointer accent-teal-500"
             />
           </div>
 
@@ -170,7 +170,7 @@ export function CheckInModal({
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-3.5 rounded-xl text-xs font-bold tracking-widest uppercase bg-teal-500 text-white hover:bg-teal-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            className="w-full py-3.5 rounded-xl text-xs font-bold tracking-widest uppercase bg-teal-500 dark:bg-teal-600 text-white hover:bg-teal-600 dark:hover:bg-teal-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             {isSubmitting ? "Saving..." : "Submit Check-In"}
           </button>
