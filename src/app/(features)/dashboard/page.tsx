@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import {
   Check,
   Shield,
@@ -12,7 +11,6 @@ import {
   BookOpen,
   Dumbbell,
   MessageSquare,
-  Lock,
   LayoutGrid,
   PenLine,
 } from "lucide-react";
@@ -29,42 +27,18 @@ import {
   type ResilienceQuotientResponse,
 } from "@/api/resilience-quitient";
 import { getMe, SessionUser } from "@/api/auth/auth";
-
-// ----------------------------------------------------------------------
-// MAIN DASHBOARD COMPONENT
-// ----------------------------------------------------------------------
+import { useRouter } from "next/navigation";
 
 export default function Dashboard() {
   return (
-    <div className="flex w-full min-h-full flex-col bg-[linear-gradient(180deg,#fffdf4_0%,#f6f7fb_100%)] pb-10">
-      <TopBar />
-
-      <div className="mx-auto flex max-w-7xl flex-col gap-10 px-4 py-6 sm:px-6 lg:px-8 2xl:max-w-[1600px]">
+    <div className="flex w-full min-h-full flex-col bg-[linear-gradient(180deg,#fffdf4_0%,#f6f7fb_100%)] dark:bg-[radial-gradient(circle_at_top_right,#17324d_0%,#0f172a_24%,#020617_100%)]">
+      <div className="mx-auto flex max-w-7xl flex-col gap-10 px-4 py-6 sm:px-6 lg:px-8 2xl:max-w-[1600px] overflow-visible">
         <WellnessIntelligence />
         <IntegratedWellnessSuite />
       </div>
     </div>
   );
 }
-
-// ----------------------------------------------------------------------
-// SUB-COMPONENTS: HEADER & LAYOUT
-// ----------------------------------------------------------------------
-
-function TopBar() {
-  return (
-    <header className="sticky top-0 z-10 flex items-center justify-between border-b bg-white pl-14 pr-4 py-4 sm:pr-6 lg:pl-8 lg:pr-8">
-      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500">
-        <span className="text-slate-300">/</span>
-        <span className="text-slate-900">Dashboard</span>
-      </div>
-    </header>
-  );
-}
-
-// ----------------------------------------------------------------------
-// SECTION 1: WELLNESS INTELLIGENCE
-// ----------------------------------------------------------------------
 
 function WellnessIntelligence() {
   const emotions = [
@@ -192,7 +166,7 @@ function WellnessIntelligence() {
 
   return (
     <>
-      <section className="flex flex-col gap-6">
+      <section className="flex flex-col gap-6 ">
         <div>
           <div className="flex items-center gap-4 sm:gap-5">
             <div className="shrink-0">
@@ -206,14 +180,14 @@ function WellnessIntelligence() {
               />
             </div>
             <div className="min-w-0">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-400">
                 {formatGreetingDate()}
               </p>
-              <h1 className="mt-1 text-xl font-semibold leading-tight tracking-tight text-slate-950 sm:mt-2 sm:text-[2rem] lg:text-[2.4rem]">
+              <h1 className="mt-1 text-xl font-semibold leading-tight tracking-tight text-slate-950 dark:text-slate-100 sm:mt-2 sm:text-[2rem] lg:text-[2.4rem]">
                 Good {greeting.toLowerCase()}
                 {profile?.firstname ? `, ${profile.firstname}` : ""}!
               </h1>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 sm:mt-3">
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-400">
                 Here&apos;s your current wellbeing snapshot across check-ins,
                 resilience, and focus momentum.
               </p>
@@ -233,16 +207,16 @@ function WellnessIntelligence() {
                 setShowCheckInModal(true);
               }
             }}
-            className="col-span-1 lg:col-span-2 flex cursor-pointer flex-col rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm transition-colors hover:border-teal-200"
+            className="col-span-1 lg:col-span-2 flex cursor-pointer flex-col rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-sm transition-colors hover:border-teal-200"
           >
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xs font-bold tracking-widest text-slate-900 uppercase">
+              <h3 className="text-xs font-bold tracking-widest text-slate-900 dark:text-slate-100 uppercase">
                 Quick Check-In
               </h3>
             </div>
 
             <div className="flex flex-col gap-4 flex-1 justify-center">
-              <p className="mb-2 text-center text-xs font-bold uppercase tracking-wider text-slate-400">
+              <p className="mb-2 text-center text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-400">
                 Current Emotional State
               </p>
               <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
@@ -258,14 +232,14 @@ function WellnessIntelligence() {
 
               <div className="mt-6">
                 <div className="flex justify-between items-end mb-2">
-                  <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+                  <span className="text-[10px] font-bold tracking-wider text-slate-400 dark:text-slate-400 uppercase">
                     Intensity
                   </span>
                   <span className="text-sm font-bold text-teal-500">
                     {displayIntensity.toFixed(1)}
                   </span>
                 </div>
-                <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
                   <div
                     className="h-full rounded-full bg-teal-400 transition-all duration-300"
                     style={{ width: intensityProgress }}
@@ -277,10 +251,10 @@ function WellnessIntelligence() {
 
           {/* Card 2: Resilience Quotient */}
           <div
-            className={`flex flex-col rounded-2xl border bg-white p-6 shadow-sm ${resilienceTier.surface}`}
+            className={`flex flex-col rounded-2xl border bg-white dark:bg-slate-900 p-6 shadow-sm ${resilienceTier.surface}`}
           >
             <div className="flex justify-between items-center mb-2">
-              <h3 className="text-xs font-bold tracking-widest text-slate-900 uppercase">
+              <h3 className="text-xs font-bold tracking-widest text-slate-900 dark:text-slate-100 uppercase">
                 Resilience Quotient
               </h3>
               <Shield size={16} className={resilienceTier.icon} />
@@ -313,10 +287,10 @@ function WellnessIntelligence() {
                 />
               </svg>
               <div className="absolute flex flex-col items-center justify-center">
-                <span className="text-4xl font-black text-slate-900 tracking-tight">
+                <span className="text-4xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
                   {resilienceScore}
                 </span>
-                <span className="mt-1 text-[10px] font-bold tracking-widest text-slate-400 uppercase">
+                <span className="mt-1 text-[10px] font-bold tracking-widest text-slate-400 dark:text-slate-400 uppercase">
                   Score
                 </span>
                 <span
@@ -329,20 +303,20 @@ function WellnessIntelligence() {
 
             <div className="space-y-3">
               <div className="flex justify-between items-end mb-2">
-                <span className="text-xs font-semibold text-slate-400">
+                <span className="text-xs font-semibold text-slate-400 dark:text-slate-400">
                   Adaptive Capacity
                 </span>
-                <span className="text-xs font-bold text-slate-900">
+                <span className="text-xs font-bold text-slate-900 dark:text-slate-100">
                   {resilienceProgress}%
                 </span>
               </div>
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
                 <div
                   className={`h-full rounded-full ${resilienceTier.accent}`}
                   style={{ width: `${resilienceProgress}%` }}
                 ></div>
               </div>
-              <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-400">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-400 dark:text-slate-500">
                 <span>{resilienceUpdatedLabel}</span>
                 {hasDeferredExercises ? <span></span> : null}
               </div>
@@ -380,7 +354,7 @@ function WellnessIntelligence() {
             </div>
             <div className="flex-1">
               <p className="text-sm font-bold text-teal-800">Success</p>
-              <p className="mt-0.5 text-sm text-slate-600">
+              <p className="mt-0.5 text-sm text-slate-600 dark:text-slate-400 dark:text-slate-500">
                 Mood log saved successfully. Your dashboard metrics are
                 refreshing.
               </p>
@@ -418,8 +392,8 @@ function EmotionBtn({
       aria-pressed={isActive}
       className={`flex flex-col items-center justify-center gap-2 rounded-xl border py-4 transition-all ${
         isActive
-          ? "border-teal-400 bg-teal-50 text-teal-600 shadow-sm"
-          : "border-slate-100 bg-white text-slate-400 hover:bg-slate-50"
+          ? "border-teal-400 dark:border-teal-900/50 bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400 shadow-sm"
+          : "border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-400 dark:text-slate-500 hover:bg-slate-50 dark:bg-slate-800/50 dark:hover:bg-slate-800"
       }`}
     >
       {emotionAsset ? (
@@ -448,10 +422,6 @@ const EMOTION_IMAGE_MAP: Record<string, { src: string; alt: string }> = {
   Energized: { src: "/energized_emoji.png", alt: "Energized emotion" },
 };
 
-// ----------------------------------------------------------------------
-// SECTION 2: INTEGRATED WELLNESS SUITE
-// ----------------------------------------------------------------------
-
 const SUITE_DATA = [
   {
     title: "AI Companion",
@@ -459,8 +429,9 @@ const SUITE_DATA = [
       "Continue your supportive session with AlagaMind AI for real-time guidance.",
     icon: Bot,
     badge: "AI-LIVE",
-    badgeColor: "bg-teal-50 text-teal-600 border-teal-100",
-    iconBg: "bg-teal-50 text-teal-500",
+    badgeColor:
+      "bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400 border-teal-100 dark:border-teal-900/50",
+    iconBg: "bg-teal-50 dark:bg-teal-900/20 text-teal-500 dark:text-teal-400",
     stats: [
       { label: "Mode", value: "Empathetic" },
       { label: "Support", value: "Emotional" },
@@ -469,7 +440,8 @@ const SUITE_DATA = [
     btnText: "CHAT NOW",
     href: "/ai-companion",
     btnIcon: MessageSquare,
-    btnStyle: "bg-slate-900 text-white hover:bg-slate-800",
+    btnStyle:
+      "bg-slate-900 dark:bg-teal-600 text-white hover:bg-slate-800 dark:hover:bg-teal-500",
   },
   {
     title: "Journal & Reflections",
@@ -477,8 +449,9 @@ const SUITE_DATA = [
       "Review your insights or start a new reflection session to offload cognitive load.",
     icon: BookOpen,
     badge: "REFLECT",
-    badgeColor: "bg-slate-100 text-slate-500 border-slate-200",
-    iconBg: "bg-blue-50 text-blue-500",
+    badgeColor:
+      "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-800",
+    iconBg: "bg-blue-50 dark:bg-blue-900/20 text-blue-500 dark:text-blue-400",
     stats: [
       { label: "Sentiment", value: "Auto-Analyzed" },
       { label: "Analysis", value: "Sentiment" },
@@ -488,7 +461,7 @@ const SUITE_DATA = [
     href: "/journals-reflections/write",
     btnIcon: PenLine,
     btnStyle:
-      "bg-white text-slate-900 border border-slate-200 hover:bg-slate-50",
+      "bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:bg-slate-800/50 dark:hover:bg-slate-800",
   },
   {
     title: "Exercises",
@@ -496,45 +469,72 @@ const SUITE_DATA = [
       "Browse the full library of mindfulness and grounding tools for nervous system care.",
     icon: Dumbbell,
     badge: "WELLNESS",
-    badgeColor: "bg-slate-100 text-slate-500 border-slate-200",
-    iconBg: "bg-purple-50 text-purple-500",
+    badgeColor:
+      "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-800",
+    iconBg:
+      "bg-purple-50 dark:bg-purple-900/20 text-purple-500 dark:text-purple-400",
     stats: [
       { label: "Available", value: "Grounding & More" },
       { label: "Duration", value: "5–15 min" },
       { label: "Difficulty", value: "All Levels" },
     ],
     btnText: "EXPLORE LIBRARY",
+    href: "/exercises",
     btnIcon: LayoutGrid,
     btnStyle:
-      "bg-white text-slate-900 border border-slate-200 hover:bg-slate-50",
+      "bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:bg-slate-800/50 dark:hover:bg-slate-800",
   },
 ];
 
 function IntegratedWellnessSuite() {
+  const router = useRouter();
+
   return (
     <section className="flex flex-col gap-6">
       <div className="flex items-end justify-between">
         <div>
-          <h2 className="text-2xl font-black tracking-tight text-slate-900">
+          <h2 className="text-2xl font-black tracking-tight text-slate-900 dark:text-slate-100">
             Integrated Wellness Suite
           </h2>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Core clinical pathways for personalized mental optimization.
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
         {SUITE_DATA.map((card, idx) => {
           const Icon = card.icon;
           const BtnIcon = card.btnIcon;
+          const handleNavigate = () => {
+            if (card.href) {
+              router.push(card.href);
+            }
+          };
 
           return (
-            <div
+            <article
               key={idx}
-              className="flex flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+              role={card.href ? "link" : undefined}
+              tabIndex={card.href ? 0 : undefined}
+              onClick={card.href ? handleNavigate : undefined}
+              onKeyDown={
+                card.href
+                  ? (event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        handleNavigate();
+                      }
+                    }
+                  : undefined
+              }
+              className={`flex h-full min-h-[320px] flex-col rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm transition-colors ${
+                card.href
+                  ? "cursor-pointer hover:border-teal-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300 focus-visible:ring-offset-2"
+                  : ""
+              }`}
             >
-              <div className="flex justify-between items-start mb-6">
+              <div className="mb-6 flex items-start justify-between">
                 <div
                   className={`flex h-12 w-12 items-center justify-center rounded-xl ${card.iconBg}`}
                 >
@@ -547,46 +547,35 @@ function IntegratedWellnessSuite() {
                 </span>
               </div>
 
-              <h3 className="mb-2 text-lg font-bold text-slate-900">
+              <h3 className="mb-2 text-lg font-bold text-slate-900 dark:text-slate-100">
                 {card.title}
               </h3>
-              <p className="mb-8 flex-1 text-sm leading-relaxed text-slate-500">
+
+              <p className="mb-8 flex-1 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
                 {card.description}
               </p>
 
-              <div className="grid grid-cols-3 gap-4 mb-8">
+              <div className="mb-8 grid grid-cols-3 gap-4">
                 {card.stats.map((stat, sIdx) => (
-                  <div key={sIdx} className="flex flex-col gap-1">
+                  <div key={sIdx} className="flex min-w-0 flex-col gap-1">
                     <span className="text-[9px] font-bold tracking-widest text-slate-400 uppercase">
                       {stat.label}
                     </span>
-                    <span
-                      className={`text-xs font-semibold flex items-center gap-1  "text-slate-900"`}
-                    >
+                    <span className="text-xs font-semibold text-slate-900 dark:text-slate-100">
                       {stat.value}
                     </span>
                   </div>
                 ))}
               </div>
 
-              {card.href ? (
-                <Link
-                  href={card.href}
-                  className={`flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-xs font-bold tracking-widest uppercase transition-all ${card.btnStyle}`}
-                >
-                  {card.btnText}
-                  <BtnIcon size={16} />
-                </Link>
-              ) : (
-                <button
-                  type="button"
-                  className={`flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-xs font-bold tracking-widest uppercase transition-all ${card.btnStyle}`}
-                >
-                  {card.btnText}
-                  <BtnIcon size={16} />
-                </button>
-              )}
-            </div>
+              <div
+                aria-hidden="true"
+                className={`mt-auto flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-xs font-bold tracking-widest uppercase pointer-events-none select-none ${card.btnStyle}`}
+              >
+                {card.btnText}
+                <BtnIcon size={16} />
+              </div>
+            </article>
           );
         })}
       </div>

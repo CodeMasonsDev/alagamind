@@ -7,7 +7,9 @@ export default function AssistantTextCard({
 }) {
   return (
     <AssistantCard>
-      <p className="text-[15px] leading-relaxed text-slate-600">{text}</p>
+      <p className="text-[15px] leading-relaxed text-slate-600 dark:text-slate-200">
+        {text}
+      </p>
     </AssistantCard>
   );
 }

@@ -247,11 +247,7 @@ export default function AiCompanionPage() {
     [selectedSessionId, sessions],
   );
   const greetingLanguage = useMemo(
-    () =>
-      resolveSessionGreetingLanguage(
-        languagePreference,
-        interfaceLanguage,
-      ),
+    () => resolveSessionGreetingLanguage(languagePreference, interfaceLanguage),
     [interfaceLanguage, languagePreference],
   );
   const emptySessionGreeting = useMemo(
@@ -977,7 +973,7 @@ export default function AiCompanionPage() {
   }
 
   return (
-    <div className="flex h-screen w-full bg-slate-50/60">
+    <div className="flex h-screen w-full bg-slate-50/60 dark:bg-slate-950">
       <SessionSidebar
         sessions={sessions}
         activeSessionId={selectedSessionId}
@@ -992,7 +988,7 @@ export default function AiCompanionPage() {
         onRetry={handleRetry}
       />
 
-      <div className="flex min-w-0 flex-1 flex-col bg-[linear-gradient(180deg,#fffdf4_0%,#f6f7fb_100%)]">
+      <div className="flex min-w-0 flex-1 flex-col bg-[linear-gradient(180deg,#fffdf4_0%,#f6f7fb_100%)] dark:bg-[radial-gradient(circle_at_top,#17324d_0%,#0f172a_24%,#020617_100%)]">
         <TopBar onToggleSidebar={() => setIsSidebarOpen((open) => !open)} />
 
         <main
@@ -1003,27 +999,29 @@ export default function AiCompanionPage() {
             <ConversationPanelSkeleton />
           ) : sessionsError && !profile ? (
             <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
-              <p className="text-sm text-red-500">
+              <p className="text-sm text-red-500 dark:text-rose-400">
                 Unable to load your account session.
               </p>
             </div>
           ) : sessionsError && sessions.length === 0 ? (
             <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
-              <p className="text-sm text-red-500">{sessionsError}</p>
+              <p className="text-sm text-red-500 dark:text-rose-400">
+                {sessionsError}
+              </p>
               <button
                 type="button"
                 onClick={handleRetry}
-                className="rounded-lg bg-slate-900 px-4 py-2 text-xs font-bold uppercase tracking-wider text-white transition-colors hover:bg-slate-800"
+                className="rounded-lg bg-slate-900 px-4 py-2 text-xs font-bold uppercase tracking-wider text-white transition-colors hover:bg-slate-800 dark:border dark:border-white/10 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100"
               >
                 Retry
               </button>
             </div>
           ) : hasNoSessions ? (
             <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
-              <p className="text-lg font-semibold text-slate-500">
+              <p className="text-lg font-semibold text-slate-500 dark:text-slate-300">
                 No conversations yet
               </p>
-              <p className="max-w-md text-sm leading-relaxed text-slate-400">
+              <p className="max-w-md text-sm leading-relaxed text-slate-400 dark:text-slate-500">
                 Start a new conversation to begin chatting with your AI
                 companion.
               </p>
@@ -1031,17 +1029,17 @@ export default function AiCompanionPage() {
                 type="button"
                 onClick={handleNewSession}
                 disabled={isCreatingSession}
-                className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+                className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400 dark:border dark:border-white/10 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
               >
                 {isCreatingSession ? "Creating..." : "Start a conversation"}
               </button>
             </div>
           ) : messages.length === 0 && !isTyping && selectedSession ? (
             <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
-              <p className="text-lg font-semibold text-slate-500">
+              <p className="text-lg font-semibold text-slate-500 dark:text-slate-300">
                 This conversation is empty
               </p>
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-slate-400 dark:text-slate-500">
                 Send a message to start chatting in this session.
               </p>
             </div>
@@ -1105,11 +1103,11 @@ function ConversationPanelSkeleton() {
           className={`flex ${index % 2 === 0 ? "justify-end" : "justify-start"}`}
         >
           <div className="w-full max-w-3xl animate-pulse space-y-3">
-            <div className="h-3 w-24 rounded-full bg-slate-200" />
-            <div className="space-y-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="h-4 w-2/3 rounded-full bg-slate-200" />
-              <div className="h-4 w-full rounded-full bg-slate-100" />
-              <div className="h-4 w-4/5 rounded-full bg-slate-100" />
+            <div className="h-3 w-24 rounded-full bg-slate-200 dark:bg-slate-800" />
+            <div className="space-y-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/80 dark:shadow-black/20">
+              <div className="h-4 w-2/3 rounded-full bg-slate-200 dark:bg-slate-700" />
+              <div className="h-4 w-full rounded-full bg-slate-100 dark:bg-slate-800" />
+              <div className="h-4 w-4/5 rounded-full bg-slate-100 dark:bg-slate-800" />
             </div>
           </div>
         </div>

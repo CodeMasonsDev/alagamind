@@ -34,6 +34,14 @@ export type ReframeSuggestion = {
   confidence: number;
 };
 
+export type CognitiveReframingOverviewSummary = {
+  distortion_pattern: string;
+  pattern_summary: string;
+  reframed_thought: string;
+  confidence_nudge: string;
+  suggested_action: string;
+};
+
 export type SavedReframe = CognitiveReframingDraft & {
   savedAt: string;
 };

@@ -87,14 +87,14 @@ export default function Composer({
             : "Tap the mic to record a voice note.";
 
   const statusTone = micError
-    ? "text-rose-600"
+      ? "text-rose-600 dark:text-rose-400"
     : isBusy
-      ? "text-sky-600"
+      ? "text-sky-600 dark:text-sky-400"
       : isRecording
-        ? "text-slate-700"
+        ? "text-slate-700 dark:text-slate-200"
         : statusMessage
-          ? "text-teal-700"
-          : "text-slate-400";
+          ? "text-teal-700 dark:text-teal-300"
+          : "text-slate-400 dark:text-slate-500";
 
   const resetWaveform = useCallback(() => {
     if (waveformFrameRef.current !== null) {
@@ -360,9 +360,9 @@ export default function Composer({
   }, [isBusy, isDisabled, isRecording, isTyping, startRecording, stopRecording]);
 
   return (
-    <section className="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/90">
+    <section className="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/90 dark:border-slate-800 dark:bg-slate-950/90 dark:supports-[backdrop-filter]:bg-slate-950/85">
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-3 px-4 py-4 sm:px-6 lg:px-8">
-        <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_22px_60px_rgba(15,23,42,0.08)]">
+        <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_22px_60px_rgba(15,23,42,0.08)] dark:border-slate-800 dark:bg-slate-900/95 dark:shadow-[0_22px_60px_rgba(0,0,0,0.45)]">
           <div
             className={`px-5 transition-[padding] duration-300 ease-out ${
               isVoiceRailVisible ? "pt-5" : "pt-3"
@@ -386,18 +386,18 @@ export default function Composer({
                 }
               }}
               placeholder={placeholder}
-              className={`w-full resize-none bg-transparent text-[16px] leading-7 text-slate-700 outline-none transition-[min-height] duration-300 ease-out placeholder:text-slate-300 disabled:cursor-not-allowed disabled:text-slate-400 ${
+              className={`w-full resize-none bg-transparent text-[16px] leading-7 text-slate-700 outline-none transition-[min-height] duration-300 ease-out placeholder:text-slate-300 disabled:cursor-not-allowed disabled:text-slate-400 dark:text-slate-100 dark:placeholder:text-slate-500 dark:disabled:text-slate-500 ${
                 isVoiceRailVisible ? "min-h-[108px]" : "min-h-[64px]"
               }`}
             />
           </div>
 
           <div
-            className={`flex flex-wrap items-center gap-3 border-t border-slate-100 px-4 sm:px-5 sm:flex-nowrap sm:gap-4 transition-[padding] duration-300 ease-out ${
+              className={`flex flex-wrap items-center gap-3 border-t border-slate-100 px-4 sm:px-5 sm:flex-nowrap sm:gap-4 transition-[padding] duration-300 ease-out dark:border-slate-800 ${
               isVoiceRailVisible ? "py-4" : "py-3"
             }`}
           >
-            <span className="hidden sm:inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-500">
+            <span className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-500 sm:inline-flex dark:border-slate-800 dark:bg-slate-800 dark:text-slate-400">
               <Bot className="h-5 w-5" />
             </span>
 
@@ -410,8 +410,8 @@ export default function Composer({
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <div className="relative h-11 min-w-0 flex-1 overflow-hidden rounded-full bg-slate-50 px-3">
-                    <div className="absolute inset-x-3 top-1/2 border-t border-dashed border-slate-300" />
+                  <div className="relative h-11 min-w-0 flex-1 overflow-hidden rounded-full bg-slate-50 px-3 dark:bg-slate-800">
+                    <div className="absolute inset-x-3 top-1/2 border-t border-dashed border-slate-300 dark:border-slate-700" />
                     <div
                       className="relative z-10 grid h-full items-center gap-x-px"
                       style={{
@@ -421,7 +421,7 @@ export default function Composer({
                       {waveformBars.map((barHeight, index) => (
                         <span key={index} className="flex justify-center">
                           <span
-                            className="w-[3px] rounded-full bg-slate-900 transition-[height,opacity] duration-100"
+                            className="w-[3px] rounded-full bg-slate-900 transition-[height,opacity] duration-100 dark:bg-slate-100"
                             style={{
                               height: `${Math.max(3, barHeight)}px`,
                               opacity: barHeight > 0 ? 1 : 0,
@@ -433,7 +433,7 @@ export default function Composer({
                   </div>
 
                   {timerLabel ? (
-                    <span className="w-11 shrink-0 text-right text-[13px] font-medium text-slate-500">
+                    <span className="w-11 shrink-0 text-right text-[13px] font-medium text-slate-500 dark:text-slate-400">
                       {timerLabel}
                     </span>
                   ) : null}
@@ -445,7 +445,7 @@ export default function Composer({
               </p>
             </div>
 
-            <label className="flex shrink-0 items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+            <label className="flex shrink-0 items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-400">
               <span className="hidden sm:inline">Language</span>
               <select
                 value={languagePreference}
@@ -455,7 +455,7 @@ export default function Composer({
                   )
                 }
                 disabled={isDisabled || isTyping || isBusy}
-                className="min-w-[72px] sm:min-w-[96px] bg-transparent text-[12px] font-semibold normal-case tracking-normal text-slate-700 outline-none disabled:cursor-not-allowed disabled:text-slate-300"
+                className="min-w-[72px] bg-transparent text-[12px] font-semibold normal-case tracking-normal text-slate-700 outline-none disabled:cursor-not-allowed disabled:text-slate-300 sm:min-w-[96px] dark:text-slate-100 dark:disabled:text-slate-500"
                 aria-label="Language"
               >
                 <option value="auto">Auto</option>
@@ -471,9 +471,9 @@ export default function Composer({
               onClick={handleMicToggle}
               className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border transition-colors ${
                 isRecording
-                  ? "border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100"
-                  : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700"
-              } disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-300`}
+                  ? "border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300 dark:hover:bg-rose-500/15"
+                  : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+              } disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-300 dark:disabled:border-slate-800 dark:disabled:bg-slate-900 dark:disabled:text-slate-600`}
               aria-label={isRecording ? "Stop voice recording" : "Start voice recording"}
               title={isRecording ? "Stop voice recording" : "Start voice recording"}
             >
@@ -490,7 +490,7 @@ export default function Composer({
               type="button"
               disabled={!canSend}
               onClick={() => onSend(input)}
-              className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-950 text-white transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+              className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-950 text-white transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300 dark:bg-teal-500 dark:text-slate-950 dark:hover:bg-teal-400 dark:disabled:bg-slate-700 dark:disabled:text-slate-500"
               aria-label="Send message"
               title="Send message"
             >
@@ -500,7 +500,7 @@ export default function Composer({
         </div>
 
         {!isMediaRecorderSupported ? (
-          <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-2 text-[11px] font-semibold text-amber-700">
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-2 text-[11px] font-semibold text-amber-700 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300">
             Voice input is not supported in this browser.
           </div>
         ) : null}

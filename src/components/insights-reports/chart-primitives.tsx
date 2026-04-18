@@ -60,10 +60,10 @@ export function InsightsLineChart({
         >
           {points.map((point) => (
             <div key={`${point.label}-${point.value}`} className="min-w-0">
-              <p className="text-sm font-semibold text-slate-900">
+              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                 {point.label}
               </p>
-              <p className="text-sm text-slate-500">{point.value}</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">{point.value}</p>
               {point.caption ? (
                 <p className="truncate text-xs text-slate-400">
                   {point.caption}
@@ -103,7 +103,7 @@ export function StackedActivityChart({
             key={day.dayKey}
             className="flex flex-1 flex-col items-center gap-3"
           >
-            <div className="flex h-32 w-full flex-col justify-end gap-1 rounded-2xl bg-slate-50 px-2 py-2">
+            <div className="flex h-32 w-full flex-col justify-end gap-1 rounded-2xl bg-slate-50 dark:bg-slate-800/50 px-2 py-2">
               {day.total > 0 ? (
                 <>
                   <div
@@ -135,14 +135,14 @@ export function StackedActivityChart({
                 <div className="h-1 rounded-full bg-slate-200" />
               )}
             </div>
-            <span className="text-sm font-semibold text-slate-500">
+            <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">
               {day.dayLabel}
             </span>
           </div>
         ))}
       </div>
 
-      <div className="mt-5 flex flex-wrap gap-4 text-sm text-slate-500">
+      <div className="mt-5 flex flex-wrap gap-4 text-sm text-slate-500 dark:text-slate-400">
         <LegendDot colorClass="bg-[#28a37a]" label="Companion" />
         <LegendDot colorClass="bg-[#5ccca6]" label="Journal" />
         <LegendDot colorClass="bg-[#9edbc6]" label="Reframing" />

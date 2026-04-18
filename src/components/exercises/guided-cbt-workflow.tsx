@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   AlertCircle,
   ArrowLeft,
@@ -9,13 +10,16 @@ import {
   ChevronLeft,
   ChevronRight,
   CircleDashed,
+  Lightbulb,
+  ShieldCheck,
   Save,
-} from "lucide-react";
+  Sparkles,
+  X,
+  } from "lucide-react";
 import Link from "next/link";
-import CbtChatAssistantPanel from "./cbt-chat-assistant-panel";
 import { DISTORTIONS } from "@/components/features/cognitive-reframing/constants";
 import { useGuidedCbtWorkflow } from "@/components/features/cognitive-reframing/use-guided-cbt-workflow";
-import { useCbtChatAssistant } from "@/components/features/cognitive-reframing/use-cbt-chat-assistant";
+import { CognitiveReframingOverviewSummary } from "@/components/features/cognitive-reframing/types";
 
 type StepId =
   | "automaticThought"
@@ -38,6 +42,9 @@ const STEP_EXAMPLES: Record<StepId, string> = {
 };
 
 export default function GuidedCbtWorkflow() {
+  const [overviewSummary, setOverviewSummary] =
+    useState<CognitiveReframingOverviewSummary | null>(null);
+  const [isOverviewModalOpen, setIsOverviewModalOpen] = useState(false);
   const {
     draft,
     suggestion,
@@ -53,8 +60,6 @@ export default function GuidedCbtWorkflow() {
     canMoveNext,
     validationHint,
     progressPercent,
-    assistantEnabled,
-    toggleAssistant,
     nextStep,
     previousStep,
     updateDraft,
@@ -64,12 +69,6 @@ export default function GuidedCbtWorkflow() {
     setDistress,
     lastSavedAt,
   } = useGuidedCbtWorkflow();
-  const chatAssistant = useCbtChatAssistant({
-    isOpen: assistantEnabled,
-    currentStep,
-    draft,
-    suggestion,
-  });
   const stepRequirementMessage = isFinalStep
     ? canMoveNext
       ? "Balanced thought and behavioral experiment are ready to save."
@@ -79,9 +78,7 @@ export default function GuidedCbtWorkflow() {
       : validationHint;
 
   return (
-    <div
-      className={`relative transition-all duration-300 ${assistantEnabled ? "lg:pr-[370px]" : ""}`}
-    >
+    <div className="relative transition-all duration-300">
       <section className="rounded-b-3xl border border-slate-200 bg-white shadow-sm">
         <header className="border-b border-slate-200 bg-white px-5 py-6 sm:px-7 sm:py-8">
           {/* Top nav row */}
@@ -126,8 +123,9 @@ export default function GuidedCbtWorkflow() {
                 Cognitive Reframing Session
               </h1>
               <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-slate-500">
-                Step-by-step worksheet with optional AI copilot chat on the
-                right. Your input leads each step before moving forward.
+                Step-by-step worksheet to guide you through the cognitive
+                reframing process. Your input leads each step before moving
+                forward.
               </p>
             </div>
           </div>
@@ -157,18 +155,6 @@ export default function GuidedCbtWorkflow() {
             <p className="text-xs text-slate-500">
               Complete this step first, then continue to the next one.
             </p>
-            <button
-              type="button"
-              onClick={toggleAssistant}
-              className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-[11px] font-bold uppercase tracking-wider transition-colors ${
-                assistantEnabled
-                  ? "border-teal-300 bg-teal-500 text-white hover:bg-teal-600"
-                  : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
-              }`}
-            >
-              <Bot size={13} />
-              {assistantEnabled ? "Hide ReframeAI" : "ReframeAI"}
-            </button>
           </div>
 
           <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
@@ -265,7 +251,15 @@ export default function GuidedCbtWorkflow() {
               {isFinalStep ? (
                 <button
                   type="button"
-                  onClick={() => void saveReframe()}
+                  onClick={() => {
+                    setIsOverviewModalOpen(true);
+                    void (async () => {
+                      const summary = await saveReframe();
+                      if (summary) {
+                        setOverviewSummary(summary);
+                      }
+                    })();
+                  }}
                   disabled={!canSave}
                   className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-white transition-colors hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-40"
                 >
@@ -295,23 +289,261 @@ export default function GuidedCbtWorkflow() {
         </div>
       </section>
 
-      <CbtChatAssistantPanel
-        isOpen={assistantEnabled}
-        currentStepTitle={currentStep.title}
-        currentStepIndex={currentStepIndex}
-        isFinalStep={isFinalStep}
-        canGenerate={canGenerate}
-        isGenerating={isGenerating}
-        isReplying={chatAssistant.isReplying}
-        messages={chatAssistant.messages}
-        input={chatAssistant.input}
-        quickPrompts={chatAssistant.quickPrompts}
-        onClose={toggleAssistant}
-        onInputChange={chatAssistant.setInput}
-        onSendMessage={(value) => void chatAssistant.sendMessage(value)}
-        onGenerate={() => void generateReframe()}
+      <CbtOverviewSummaryModal
+        isOpen={isOverviewModalOpen}
+        isLoading={isSaving && !overviewSummary}
+        summary={overviewSummary}
+        onClose={() => {
+          setIsOverviewModalOpen(false);
+          setOverviewSummary(null);
+        }}
       />
     </div>
+  );
+}
+
+function CbtOverviewSummaryModal({
+  isOpen,
+  isLoading,
+  summary,
+  onClose,
+}: {
+  isOpen: boolean;
+  isLoading: boolean;
+  summary: CognitiveReframingOverviewSummary | null;
+  onClose: () => void;
+}) {
+  const [expandedId, setExpandedId] = useState<string | null>("distortion");
+
+  if (!isOpen) return null;
+
+  const togglePanel = (id: string) => {
+    setExpandedId(expandedId === id ? null : id);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 ">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-slate-950/60 backdrop-blur-md transition-opacity duration-500"
+        onClick={onClose}
+      />
+
+      {/* Modal Dashboard Panel */}
+      <div className="relative w-full max-w-2xl max-h-[95vh] overflow-hidden rounded-[2.5rem] border border-slate-200 bg-white shadow-[0_32px_120px_-32px_rgba(15,23,42,0.5)] animate-in fade-in zoom-in-95 duration-300">
+        <div className="flex flex-col h-full max-h-[95vh]">
+          {/* SaaS Header - High Contrast */}
+          <header className="relative border-b border-slate-200 bg-slate-900 px-8 py-8 sm:px-10">
+            {/* Background Decorative Element */}
+            <div className="absolute inset-0 overflow-hidden opacity-20">
+              <div className="absolute -left-10 -top-10 h-40 w-40 rounded-full bg-teal-500 blur-3xl" />
+              <div className="absolute -right-10 -bottom-10 h-40 w-40 rounded-full bg-violet-500 blur-3xl" />
+            </div>
+
+            <div className="relative flex items-center justify-between gap-4">
+              <div>
+                <div className="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-800/50 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-teal-400">
+                  <BrainCircuit size={13} />
+                  Clinical Insight Generated
+                </div>
+                <h3 className="mt-4 text-3xl font-bold tracking-tight text-white sm:text-4xl">
+                  Session Overview
+                </h3>
+                <p className="mt-3 max-w-xl text-sm leading-relaxed text-slate-400">
+                  {isLoading
+                    ? "Our engine is processing your cognitive shift. One moment..."
+                    : "Deep analysis of your thought reframe. Use these insights to anchor your new perspective."}
+                </p>
+              </div>
+              <button
+                onClick={onClose}
+                className="rounded-full border border-slate-700 bg-slate-800 p-2 text-slate-400 transition-colors hover:bg-slate-700 hover:text-white"
+              >
+                <X size={22} />
+              </button>
+            </div>
+          </header>
+
+          {/* Dashboard Body - Accordion Toggle List */}
+          <div className="flex-1 overflow-y-auto bg-[linear-gradient(180deg,#fffdf4_0%,#f6f7fb_100%)] p-6 sm:p-10">
+            <div className="mx-auto max-w-2xl space-y-3">
+              <SummaryPanel
+                id="distortion"
+                isOpen={expandedId === "distortion"}
+                onToggle={togglePanel}
+                eyebrow="1. Cognitive Distortion"
+                title="distortion_pattern"
+                body={summary?.distortion_pattern || ""}
+                tone="teal"
+                icon={<Sparkles size={18} />}
+                isLoading={isLoading}
+              />
+
+              <SummaryPanel
+                id="analysis"
+                isOpen={expandedId === "analysis"}
+                onToggle={togglePanel}
+                eyebrow="2. Clinical Analysis"
+                title="pattern_summary"
+                body={summary?.pattern_summary || ""}
+                tone="violet"
+                icon={<Bot size={18} />}
+                isLoading={isLoading}
+              />
+
+              <SummaryPanel
+                id="reframe"
+                isOpen={expandedId === "reframe"}
+                onToggle={togglePanel}
+                eyebrow="3. Balanced Perspective"
+                title="reframed_thought"
+                body={summary?.reframed_thought || ""}
+                tone="emerald"
+                icon={<CheckCircle2 size={18} />}
+                isLoading={isLoading}
+              />
+
+              <SummaryPanel
+                id="confidence"
+                isOpen={expandedId === "confidence"}
+                onToggle={togglePanel}
+                eyebrow="4. Clinical Confidence"
+                title="confidence_nudge"
+                body={summary?.confidence_nudge || ""}
+                tone="violet"
+                icon={<ShieldCheck size={18} />}
+                isLoading={isLoading}
+              />
+
+              <SummaryPanel
+                id="action"
+                isOpen={expandedId === "action"}
+                onToggle={togglePanel}
+                eyebrow="5. Behavioral Step"
+                title="suggested_action"
+                body={summary?.suggested_action || ""}
+                tone="amber"
+                icon={<Lightbulb size={18} />}
+                isLoading={isLoading}
+              />
+            </div>
+          </div>
+
+          {/* SaaS Footer */}
+          <footer className="border-t border-slate-200 bg-white px-8 py-6 sm:px-10 flex flex-wrap items-center justify-between gap-4">
+             <div className="flex items-center gap-6">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Status</p>
+                  <p className="text-xs font-bold text-slate-900">Finalized</p>
+                </div>
+                <div className="h-8 w-px bg-slate-200" />
+               
+             </div>
+            <button
+              onClick={onClose}
+              className="rounded-2xl bg-slate-900 px-8 py-3.5 text-xs font-bold uppercase tracking-[0.15em] text-white transition-all hover:bg-slate-800 hover:shadow-lg active:scale-[0.98]"
+            >
+              Continue to Dashboard
+            </button>
+          </footer>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SummaryPanel({
+  id,
+  isOpen,
+  onToggle,
+  eyebrow,
+  title,
+  body,
+  tone,
+  icon,
+  isLoading,
+  variant = "normal",
+  jsonKey,
+}: {
+  id: string;
+  isOpen: boolean;
+  onToggle: (id: string) => void;
+  eyebrow: string;
+  title: string;
+  body: string;
+  tone: "teal" | "violet" | "emerald" | "amber";
+  icon: React.ReactNode;
+  isLoading?: boolean;
+  variant?: "normal" | "large";
+  jsonKey?: string;
+}) {
+  const palette =
+    tone === "teal"
+      ? "border-4 border-teal-100 bg-teal-50/70 text-teal-700"
+      : tone === "violet"
+        ? "border-4 border-violet-100 bg-violet-50/70 text-violet-700"
+        : tone === "emerald"
+          ? "border-4 border-emerald-100 bg-emerald-50/70 text-emerald-700"
+          : "border-4 border-amber-100 bg-amber-50/70 text-amber-700";
+
+  return (
+    <section
+      className={`relative cursor-pointer overflow-hidden rounded-[1.5rem] border-4 transition-all duration-300 ${
+        isOpen
+          ? "border-slate-400 bg-white shadow-lg p-6 sm:p-8"
+          : "border-slate-200 bg-white p-5 hover:bg-slate-50/80 hover:shadow-sm"
+      }`}
+      onClick={() => onToggle(id)}
+    >
+      <div className={`flex items-start ${isOpen ? "gap-5" : "gap-4"}`}>
+        <div
+          className={`flex shrink-0 items-center justify-center rounded-2xl border transition-all duration-300 ${palette} ${
+            isOpen ? "h-12 w-12" : "h-10 w-10 opacitiy-80"
+          }`}
+        >
+          {icon}
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center justify-between">
+            <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-slate-500">
+               {eyebrow}
+            </p>
+            <div className="text-slate-400">
+               <AlertCircle size={14} className={`transition-transform duration-300 ${isOpen ? "rotate-180 text-slate-500" : ""}`} />
+            </div>
+          </div>
+          <div className={`mt-2 transition-all duration-300 ${isOpen ? "min-h-[2rem]" : "min-h-0"}`}>
+            {isLoading ? (
+              <div
+                className={`animate-pulse rounded bg-slate-100 ${isOpen ? "h-8 w-1/2" : "h-6 w-3/4"}`}
+              />
+            ) : (
+              <h4
+                className={`font-bold tracking-tight text-slate-900 transition-all ${
+                  isOpen ? "text-xl sm:text-2xl" : "text-sm sm:text-base leading-tight"
+                }`}
+              >
+                {title === "distortion_pattern" && !isOpen ? (
+                   <span className="text-slate-500 font-semibold italic">Show Analysis</span>
+                ) : (
+                   title === "distortion_pattern" ? body : title
+                )}
+              </h4>
+            )}
+          </div>
+
+          <div
+            className={`overflow-hidden transition-all duration-500 ease-in-out ${
+              isOpen ? "mt-4 max-h-[300px] opacity-100" : "max-h-0 opacity-0"
+            }`}
+          >
+            <p className="text-sm font-medium leading-8 text-slate-600">
+              {title === "distortion_pattern" ? "Our clinical engine has analyzed your input." : body}
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -441,8 +673,8 @@ function StepContent({
   return (
     <div className="space-y-4">
       <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-        Use the top AI Companion button to chat step-by-step. Generate balanced
-        thought and behavioral experiment inside the right panel.
+        Review your evidence and generate a balanced thought and behavioral
+        experiment to test your new perspective.
       </div>
 
       {suggestion ? (

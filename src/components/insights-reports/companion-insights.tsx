@@ -32,14 +32,14 @@ export default function CompanionInsights({
                   key={language.label}
                   className="grid items-center gap-4 sm:grid-cols-[140px_1fr_auto]"
                 >
-                  <p className="text-base font-medium text-slate-700">
+                  <p className="text-base font-medium text-slate-700 dark:text-slate-300">
                     {language.label}
                   </p>
                   <DistributionBar
                     value={language.percentage}
                     colorClass={LANGUAGE_COLORS[index % LANGUAGE_COLORS.length]}
                   />
-                  <p className="text-right text-base font-semibold text-slate-700">
+                  <p className="text-right text-base font-semibold text-slate-700 dark:text-slate-300">
                     {Math.round(language.percentage)}%
                   </p>
                 </article>
@@ -48,7 +48,7 @@ export default function CompanionInsights({
           </div>
 
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
               Frequent tags
             </p>
             <div className="mt-3 flex flex-wrap gap-2">

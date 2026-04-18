@@ -67,9 +67,9 @@ function AssistantAudioButton({
       disabled={!onPlayMessage || audioStatus === "generating"}
       className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
         isPlaying
-          ? "border-teal-200 bg-teal-50 text-teal-700"
-          : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50"
-      }`}
+          ? "border-teal-200 bg-teal-50 text-teal-700 dark:border-teal-500/40 dark:bg-teal-500/15 dark:text-teal-300"
+          : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900/90 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:bg-slate-800"
+        }`}
     >
       {audioStatus === "generating" ? (
         <Loader2 size={14} className="animate-spin" />
@@ -118,7 +118,7 @@ export default function ConversationArea({
                 initials={userInitials}
               />
               {timestampLabel ? (
-                <p className="mr-10 text-[11px] text-slate-400">
+                <p className="mr-10 text-[11px] text-slate-400 dark:text-slate-500">
                   {timestampLabel}
                 </p>
               ) : null}
@@ -146,7 +146,7 @@ export default function ConversationArea({
               message.emotion ||
               message.problem ||
               messageAudio?.[message.id]?.error ? (
-              <div className="ml-14 flex flex-wrap items-center gap-2 text-[11px] text-slate-400">
+              <div className="ml-14 flex flex-wrap items-center gap-2 text-[11px] text-slate-400 dark:text-slate-500">
                 <AssistantAudioButton
                   messageId={message.id}
                   audioStatus={messageAudio?.[message.id]?.status ?? "idle"}
@@ -155,17 +155,17 @@ export default function ConversationArea({
                 />
                 {timestampLabel ? <span>{timestampLabel}</span> : null}
                 {message.emotion ? (
-                  <span className="rounded-full border border-sky-100 bg-sky-50 px-2.5 py-1 font-medium text-sky-700">
+                  <span className="rounded-full border border-sky-100 bg-sky-50 px-2.5 py-1 font-medium text-sky-700 dark:border-sky-500/20 dark:bg-sky-500/10 dark:text-sky-300">
                     {insightLabels.emotion}: {message.emotion}
                   </span>
                 ) : null}
                 {message.problem ? (
-                  <span className="rounded-full border border-orange-100 bg-orange-50 px-2.5 py-1 font-medium text-orange-700">
+                  <span className="rounded-full border border-orange-100 bg-orange-50 px-2.5 py-1 font-medium text-orange-700 dark:border-orange-500/20 dark:bg-orange-500/10 dark:text-orange-300">
                     {insightLabels.focus}: {message.problem}
                   </span>
                 ) : null}
                 {messageAudio?.[message.id]?.error ? (
-                  <span className="text-rose-500">
+                  <span className="text-rose-500 dark:text-rose-400">
                     {messageAudio[message.id]?.error}
                   </span>
                 ) : null}

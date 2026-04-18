@@ -41,14 +41,14 @@ export default function DistortionAnalysis({
               key={item.label}
               className="grid items-center gap-4 sm:grid-cols-[180px_1fr_auto]"
             >
-              <p className="text-lg font-medium text-slate-700">{item.label}</p>
+              <p className="text-lg font-medium text-slate-700 dark:text-slate-300">{item.label}</p>
               <DistributionBar
                 value={item.percentage}
                 colorClass={BAR_COLORS[index % BAR_COLORS.length]}
               />
               <p
                 className={`text-right text-lg font-semibold ${
-                  index === 0 ? "text-amber-600" : "text-slate-700"
+                  index === 0 ? "text-amber-600" : "text-slate-700 dark:text-slate-300"
                 }`}
               >
                 {Math.round(item.percentage)}%

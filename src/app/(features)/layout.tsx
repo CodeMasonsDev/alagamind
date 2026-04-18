@@ -20,7 +20,7 @@ export default async function FeaturesLayout({
   return (
     <ReflectionsProvider>
       <DashboardMetricsProvider>
-        <div className="flex h-screen bg-white">
+        <div className="flex h-screen bg-white dark:bg-slate-950">
           <SidebarShell />
 
           <main className="flex-1 h-full overflow-y-auto">{children}</main>

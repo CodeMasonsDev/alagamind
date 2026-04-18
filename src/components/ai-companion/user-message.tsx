@@ -11,7 +11,7 @@ export default function UserMessage({
 }) {
   return (
     <div className="ml-auto flex max-w-2xl items-end gap-2">
-      <p className="rounded-2xl rounded-br-md bg-slate-900 px-4 py-3 text-sm leading-relaxed text-white shadow-sm">
+      <p className="rounded-2xl rounded-br-md bg-slate-900 px-4 py-3 text-sm leading-relaxed text-white shadow-sm dark:border dark:border-teal-400/40 dark:bg-teal-500/18 dark:shadow-lg dark:shadow-teal-950/20 dark:backdrop-blur-sm">
         {text}
       </p>
       <ProfileAvatar

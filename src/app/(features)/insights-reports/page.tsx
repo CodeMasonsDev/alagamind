@@ -93,7 +93,7 @@ export default function InsightsReportsPage() {
     : (distortionsSummary?.patterns ?? []);
 
   return (
-    <div className="min-h-full bg-[linear-gradient(180deg,#fffdf4_0%,#f6f7fb_100%)]">
+    <div className="min-h-full bg-[linear-gradient(180deg,#fffdf4_0%,#f6f7fb_100%)]  dark:bg-[radial-gradient(circle_at_top_right,#17324d_0%,#0f172a_24%,#020617_100%)]">
       <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         <PageHeader
           eyebrow="Insights & Reports"
@@ -118,7 +118,7 @@ export default function InsightsReportsPage() {
                 type="button"
                 onClick={() => void refetch()}
                 disabled={isLoadingProfile || isRefreshing}
-                className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex items-center gap-2 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-300 transition-colors hover:bg-slate-50 dark:hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isRefreshing ? (
                   <LoaderCircle className="h-4 w-4 animate-spin" />

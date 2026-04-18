@@ -103,10 +103,11 @@ export function getResilienceTier(score: number) {
     return {
       ring: "text-teal-500",
       accent: "bg-teal-400",
-      soft: "bg-teal-50 text-teal-700",
-      glow: "bg-teal-100",
-      surface: "border-teal-100 bg-gradient-to-b from-teal-50/70 via-white to-white",
-      icon: "text-teal-300",
+      soft: "bg-teal-50   text-teal-700 dark:text-teal-900",
+      glow: "bg-teal-100 dark:bg-teal-900/20",
+      surface:
+        "border-teal-100 dark:border-teal-900/30 bg-gradient-to-b from-teal-50/70 dark:from-teal-950/40 via-white dark:via-slate-900 to-white dark:to-slate-900",
+      icon: "text-teal-300 dark:text-teal-400",
       label: "High Resilience",
     };
   }
@@ -115,11 +116,11 @@ export function getResilienceTier(score: number) {
     return {
       ring: "text-emerald-500",
       accent: "bg-emerald-400",
-      soft: "bg-emerald-50 text-emerald-700",
-      glow: "bg-emerald-100",
+      soft: "bg-emerald-50   text-emerald-700 dark:text-emerald-900",
+      glow: "bg-emerald-100 dark:bg-emerald-900/20",
       surface:
-        "border-emerald-100 bg-gradient-to-b from-emerald-50/70 via-white to-white",
-      icon: "text-emerald-300",
+        "border-emerald-100 dark:border-emerald-900/30 bg-gradient-to-b from-emerald-50/70 dark:from-emerald-950/40 via-white dark:via-slate-900 to-white dark:to-slate-900",
+      icon: "text-emerald-300 dark:text-emerald-400",
       label: "Steady Capacity",
     };
   }
@@ -128,10 +129,11 @@ export function getResilienceTier(score: number) {
     return {
       ring: "text-amber-500",
       accent: "bg-amber-400",
-      soft: "bg-amber-50 text-amber-700",
-      glow: "bg-amber-100",
-      surface: "border-amber-100 bg-gradient-to-b from-amber-50/70 via-white to-white",
-      icon: "text-amber-300",
+      soft: "bg-amber-50   text-amber-700 dark:text-amber-900",
+      glow: "bg-amber-100 dark:bg-amber-900/20",
+      surface:
+        "border-amber-100 dark:border-amber-900/30 bg-gradient-to-b from-amber-50/70 dark:from-amber-950/40 via-white dark:via-slate-900 to-white dark:to-slate-900",
+      icon: "text-amber-300 dark:text-amber-400",
       label: "Building Capacity",
     };
   }
@@ -139,10 +141,11 @@ export function getResilienceTier(score: number) {
   return {
     ring: "text-rose-500",
     accent: "bg-rose-400",
-    soft: "bg-rose-50 text-rose-700",
-    glow: "bg-rose-100",
-    surface: "border-rose-100 bg-gradient-to-b from-rose-50/70 via-white to-white",
-    icon: "text-rose-300",
+    soft: "bg-rose-50  text-rose-700 dark:text-rose-900",
+    glow: "bg-rose-100 dark:bg-rose-900/20",
+    surface:
+      "border-rose-100 dark:border-rose-900/30 bg-gradient-to-b from-rose-50/70 dark:from-rose-950/40 via-white dark:via-slate-900 to-white dark:to-slate-900",
+    icon: "text-rose-300 dark:text-rose-400",
     label: "Needs Reinforcement",
   };
 }

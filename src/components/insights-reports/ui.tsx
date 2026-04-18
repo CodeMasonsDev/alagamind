@@ -17,16 +17,16 @@ export function InsightsReportsSection({
 }) {
   return (
     <section className={className}>
-      <p className="px-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+      <p className="px-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
         {eyebrow}
       </p>
-      <div className="mt-2.5 overflow-hidden rounded-[24px] border border-slate-200 bg-white text-slate-900 shadow-sm">
-        <div className="flex flex-col gap-3 border-b border-slate-200 px-5 py-5 lg:flex-row lg:items-start lg:justify-between">
+      <div className="mt-2.5 overflow-hidden rounded-[24px] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-sm">
+        <div className="flex flex-col gap-3 border-b border-slate-200 dark:border-slate-800 px-5 py-5 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <h2 className="text-xl font-semibold tracking-tight text-slate-950">
+            <h2 className="text-xl font-semibold tracking-tight text-slate-950 dark:text-slate-100">
               {title}
             </h2>
-            <p className="mt-1.5 text-sm leading-6 text-slate-500">
+            <p className="mt-1.5 text-sm leading-6 text-slate-500 dark:text-slate-400">
               {description}
             </p>
           </div>
@@ -46,7 +46,7 @@ export function InsightsPill({
   tone?: "slate" | "teal" | "amber" | "rose" | "blue";
 }) {
   const toneStyles = {
-    slate: "border-slate-200 bg-slate-100 text-slate-700",
+    slate: "border-slate-200 dark:border-slate-800 bg-slate-100 text-slate-700 dark:text-slate-300",
     teal: "border-teal-200 bg-teal-50 text-teal-700",
     amber: "border-amber-200 bg-amber-50 text-amber-700",
     rose: "border-rose-200 bg-rose-50 text-rose-700",
@@ -72,21 +72,21 @@ export function InsightsMetricTile({
   detail: string;
 }) {
   return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm">
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+    <article className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3.5 shadow-sm">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
         {label}
       </p>
-      <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
+      <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950 dark:text-slate-100">
         {value}
       </p>
-      <p className="mt-1.5 text-sm leading-6 text-slate-500">{detail}</p>
+      <p className="mt-1.5 text-sm leading-6 text-slate-500 dark:text-slate-400">{detail}</p>
     </article>
   );
 }
 
 export function EmptySectionCopy({ message }: { message: string }) {
   return (
-    <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-5 py-8 text-sm leading-7 text-slate-500">
+    <div className="rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 px-5 py-8 text-sm leading-7 text-slate-500 dark:text-slate-400">
       {message}
     </div>
   );
