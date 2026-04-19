@@ -1,5 +1,7 @@
-import { ArrowUp, Bot, Loader2, Mic, Square } from "lucide-react";
-import {
+"use client";
+
+import { ArrowUp, Bot, ChevronDown, Loader2, Mic, Square } from "lucide-react";
+import React, {
   useCallback,
   useEffect,
   useRef,
@@ -48,9 +50,7 @@ export default function Composer({
   const [recordingPhase, setRecordingPhase] = useState<RecordingPhase>("idle");
   const [micError, setMicError] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
-  const [waveformBars, setWaveformBars] = useState<number[]>(
-    EMPTY_WAVEFORM_BARS,
-  );
+  const [waveformBars, setWaveformBars] = useState<number[]>(EMPTY_WAVEFORM_BARS);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
 
   const isClientReady = useSyncExternalStore(
@@ -71,8 +71,7 @@ export default function Composer({
   const isVoiceRailVisible = isRecording || isBusy;
   const isComposerLocked = isDisabled || isTyping || isBusy;
   const canSend = input.trim().length > 0 && !isComposerLocked && !isRecording;
-  const timerLabel =
-    isRecording || isBusy ? formatDuration(recordingSeconds) : null;
+  const timerLabel = isRecording || isBusy ? formatDuration(recordingSeconds) : null;
 
   const statusLabel = micError
     ? micError
@@ -87,7 +86,7 @@ export default function Composer({
             : "Tap the mic to record a voice note.";
 
   const statusTone = micError
-      ? "text-rose-600 dark:text-rose-400"
+    ? "text-rose-600 dark:text-rose-400"
     : isBusy
       ? "text-sky-600 dark:text-sky-400"
       : isRecording
@@ -393,7 +392,7 @@ export default function Composer({
           </div>
 
           <div
-              className={`flex flex-wrap items-center gap-3 border-t border-slate-100 px-4 sm:px-5 sm:flex-nowrap sm:gap-4 transition-[padding] duration-300 ease-out dark:border-slate-800 ${
+            className={`flex items-center gap-3 border-t border-slate-100 px-4 sm:px-5 transition-[padding] duration-300 ease-out dark:border-slate-800 ${
               isVoiceRailVisible ? "py-4" : "py-3"
             }`}
           >
@@ -401,7 +400,8 @@ export default function Composer({
               <Bot className="h-5 w-5" />
             </span>
 
-            <div className="min-w-0 w-full sm:w-auto sm:flex-1 order-first sm:order-none">
+            {/* Status + waveform — grows to fill available space */}
+            <div className="min-w-0 flex-1">
               <div
                 className={`overflow-hidden transition-[max-height,opacity,margin] duration-300 ease-out ${
                   isVoiceRailVisible
@@ -445,57 +445,46 @@ export default function Composer({
               </p>
             </div>
 
-            <label className="flex shrink-0 items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-400">
-              <span className="hidden sm:inline">Language</span>
-              <select
+            {/* Right-side controls always pushed to the far right */}
+            <div className="ml-auto flex shrink-0 items-center gap-2">
+              <LanguageSelect
                 value={languagePreference}
-                onChange={(event) =>
-                  onLanguagePreferenceChange(
-                    event.target.value as LanguagePreference,
-                  )
-                }
+                onChange={onLanguagePreferenceChange}
                 disabled={isDisabled || isTyping || isBusy}
-                className="min-w-[72px] bg-transparent text-[12px] font-semibold normal-case tracking-normal text-slate-700 outline-none disabled:cursor-not-allowed disabled:text-slate-300 sm:min-w-[96px] dark:text-slate-100 dark:disabled:text-slate-500"
-                aria-label="Language"
+              />
+
+              <button
+                type="button"
+                disabled={isDisabled || isTyping || !isMediaRecorderSupported || isBusy}
+                onClick={handleMicToggle}
+                className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border transition-colors ${
+                  isRecording
+                    ? "border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300 dark:hover:bg-rose-500/15"
+                    : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                } disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-300 dark:disabled:border-slate-800 dark:disabled:bg-slate-900 dark:disabled:text-slate-600`}
+                aria-label={isRecording ? "Stop voice recording" : "Start voice recording"}
+                title={isRecording ? "Stop voice recording" : "Start voice recording"}
               >
-                <option value="auto">Auto</option>
-                <option value="english">English</option>
-                <option value="bisaya">Bisaya</option>
-                <option value="tagalog">Tagalog</option>
-              </select>
-            </label>
+                {isBusy ? (
+                  <Loader2 size={18} className="animate-spin" />
+                ) : isRecording ? (
+                  <Square size={16} />
+                ) : (
+                  <Mic size={18} />
+                )}
+              </button>
 
-            <button
-              type="button"
-              disabled={isDisabled || isTyping || !isMediaRecorderSupported || isBusy}
-              onClick={handleMicToggle}
-              className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border transition-colors ${
-                isRecording
-                  ? "border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300 dark:hover:bg-rose-500/15"
-                  : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-              } disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-300 dark:disabled:border-slate-800 dark:disabled:bg-slate-900 dark:disabled:text-slate-600`}
-              aria-label={isRecording ? "Stop voice recording" : "Start voice recording"}
-              title={isRecording ? "Stop voice recording" : "Start voice recording"}
-            >
-              {isBusy ? (
-                <Loader2 size={18} className="animate-spin" />
-              ) : isRecording ? (
-                <Square size={16} />
-              ) : (
-                <Mic size={18} />
-              )}
-            </button>
-
-            <button
-              type="button"
-              disabled={!canSend}
-              onClick={() => onSend(input)}
-              className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-950 text-white transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300 dark:bg-teal-500 dark:text-slate-950 dark:hover:bg-teal-400 dark:disabled:bg-slate-700 dark:disabled:text-slate-500"
-              aria-label="Send message"
-              title="Send message"
-            >
-              <ArrowUp size={18} />
-            </button>
+              <button
+                type="button"
+                disabled={!canSend}
+                onClick={() => onSend(input)}
+                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-950 text-white transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300 dark:bg-teal-500 dark:text-slate-950 dark:hover:bg-teal-400 dark:disabled:bg-slate-700 dark:disabled:text-slate-500"
+                aria-label="Send message"
+                title="Send message"
+              >
+                <ArrowUp size={18} />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -508,6 +497,8 @@ export default function Composer({
     </section>
   );
 }
+
+/* ── Utility functions ─────────────────────────────────────── */
 
 function getSupportedRecordingMimeType() {
   if (typeof window === "undefined" || typeof MediaRecorder === "undefined") {
@@ -566,4 +557,128 @@ function formatDuration(totalSeconds: number) {
   const seconds = totalSeconds % 60;
 
   return `${minutes}:${String(seconds).padStart(2, "0")}`;
+}
+
+/* ── Custom Language Dropdown ──────────────────────────────── */
+
+const LANGUAGE_OPTIONS: { value: LanguagePreference; label: string }[] = [
+  { value: "auto", label: "Auto" },
+  { value: "english", label: "English" },
+  { value: "bisaya", label: "Bisaya" },
+  { value: "tagalog", label: "Tagalog" },
+];
+
+function LanguageSelect({
+  value,
+  onChange,
+  disabled,
+}: {
+  value: LanguagePreference;
+  onChange: (v: LanguagePreference) => void;
+  disabled: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
+  const listRef = useRef<HTMLUListElement | null>(null);
+  const selectedLabel =
+    LANGUAGE_OPTIONS.find((o) => o.value === value)?.label ?? "Auto";
+
+  function handleToggle() {
+    if (disabled) return;
+    if (!open && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setDropdownStyle({
+        position: "fixed",
+        bottom: window.innerHeight - rect.top + 6,
+        right: window.innerWidth - rect.right,
+        minWidth: rect.width,
+        zIndex: 9999,
+      });
+    }
+    setOpen((prev) => !prev);
+  }
+
+  // Close on outside click
+  useEffect(() => {
+    if (!open) return;
+    function handler(e: MouseEvent) {
+      const target = e.target as Node;
+      if (
+        !buttonRef.current?.contains(target) &&
+        !listRef.current?.contains(target)
+      ) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  // Close on scroll/resize
+  useEffect(() => {
+    if (!open) return;
+    const close = () => setOpen(false);
+    window.addEventListener("scroll", close, true);
+    window.addEventListener("resize", close);
+    return () => {
+      window.removeEventListener("scroll", close, true);
+      window.removeEventListener("resize", close);
+    };
+  }, [open]);
+
+  return (
+    <>
+      <button
+        ref={buttonRef}
+        type="button"
+        disabled={disabled}
+        onClick={handleToggle}
+        className="flex shrink-0 items-center gap-1.5 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label="Language"
+      >
+        <span className="hidden sm:inline">Language</span>
+        <span className="font-bold normal-case text-slate-700 dark:text-slate-100">
+          {selectedLabel}
+        </span>
+        <ChevronDown
+          size={12}
+          className={`shrink-0 transition-transform duration-200 ${
+            open ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+
+      {open && (
+        <ul
+          ref={listRef}
+          role="listbox"
+          aria-label="Language options"
+          style={dropdownStyle}
+          className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-800"
+        >
+          {LANGUAGE_OPTIONS.map((option) => (
+            <li key={option.value} role="option" aria-selected={value === option.value}>
+              <button
+                type="button"
+                onClick={() => {
+                  onChange(option.value);
+                  setOpen(false);
+                }}
+                className={`w-full px-4 py-2.5 text-left text-[12px] font-semibold transition-colors ${
+                  value === option.value
+                    ? "bg-teal-50 text-teal-700 dark:bg-teal-500/20 dark:text-teal-300"
+                    : "text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-700"
+                }`}
+              >
+                {option.label}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </>
+  );
 }

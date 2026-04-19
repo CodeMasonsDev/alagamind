@@ -1,43 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import { X } from "lucide-react";
 import Sidebar from "./sidebar";
+import { useSidebar } from "./sidebar-context";
 
 export default function SidebarShell() {
-  const [open, setOpen] = useState(false);
-  const pathname = usePathname();
-
-  // Auto-close sidebar on route change (mobile navigation)
-  useEffect(() => {
-    setOpen(false);
-  }, [pathname]);
-
-  // Lock body scroll when sidebar overlay is open
-  useEffect(() => {
-    if (open) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [open]);
+  const { open, setOpen } = useSidebar();
 
   return (
     <>
-      {/* ── Mobile hamburger trigger ── */}
-      <button
-        type="button"
-        aria-label="Open navigation"
-        onClick={() => setOpen(true)}
-        className="fixed left-4 top-4 z-50 flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm transition-colors hover:bg-slate-50 lg:hidden"
-      >
-        <Menu className="h-5 w-5" />
-      </button>
-
       {/* ── Mobile backdrop ── */}
       <div
         className={`fixed inset-0 z-40 bg-slate-950/20 backdrop-blur-[2px] transition-opacity duration-300 lg:hidden ${
