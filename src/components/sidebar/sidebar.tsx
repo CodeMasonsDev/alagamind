@@ -179,7 +179,7 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="flex h-screen w-60 flex-col border-r border-slate-200 dark:border-white/5 dark:bg-[radial-gradient(circle_at_top_left,#17324d_0%,#0f172a_24%,#020617_100%)]">
+    <aside className="flex h-screen w-60 flex-col border-r bg-[linear-gradient(180deg,#fffdf4_0%,#f6f7fb_100%)]  border-slate-200 dark:border-white/5 dark:bg-[radial-gradient(circle_at_top_left,#17324d_0%,#0f172a_24%,#020617_100%)]">
       <div className="p-6 pb-4">
         <div className="mb-2 flex items-center gap-3">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 dark:bg-teal-500/20 text-teal-400 dark:text-teal-400">
