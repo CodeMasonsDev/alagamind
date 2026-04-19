@@ -1,4 +1,6 @@
 import SidebarShell from "@/components/sidebar/sidebar-shell";
+import MobileTopBar from "@/components/sidebar/mobile-top-bar";
+import { SidebarProvider } from "@/components/sidebar/sidebar-context";
 import { DashboardMetricsProvider } from "@/components/providers/dashboard-metrics-provider";
 import { ReflectionsProvider } from "@/components/providers/reflections-provider";
 import { cookies } from "next/headers";
@@ -20,13 +22,18 @@ export default async function FeaturesLayout({
   return (
     <ReflectionsProvider>
       <DashboardMetricsProvider>
-        <div className="flex h-screen bg-white dark:bg-slate-950">
-          <SidebarShell />
+        <SidebarProvider>
+          <div className="flex h-screen bg-white dark:bg-slate-950">
+            <SidebarShell />
 
-          <main className="flex-1 h-full overflow-y-auto">{children}</main>
-        </div>
+            {/* Main column: top bar on mobile + scrollable content */}
+            <div className="flex flex-1 flex-col overflow-hidden">
+              <MobileTopBar />
+              <main className="flex-1 overflow-y-auto">{children}</main>
+            </div>
+          </div>
+        </SidebarProvider>
       </DashboardMetricsProvider>
     </ReflectionsProvider>
   );
 }
-

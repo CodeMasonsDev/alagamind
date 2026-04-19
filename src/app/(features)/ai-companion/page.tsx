@@ -257,6 +257,13 @@ export default function AiCompanionPage() {
     }),
     [greetingLanguage, profile?.firstname],
   );
+  // Keep a ref so callbacks can always read the latest greeting without
+  // being listed as a dependency (prevents refetchSessions from re-firing
+  // every time the user changes the language selector).
+  const emptySessionGreetingRef = useRef(emptySessionGreeting);
+  useEffect(() => {
+    emptySessionGreetingRef.current = emptySessionGreeting;
+  }, [emptySessionGreeting]);
   const userInitials = useMemo(() => getInitials(profile), [profile]);
 
   const hasNoSessions =
@@ -364,7 +371,7 @@ export default function AiCompanionPage() {
   const setMessagesFromSession = useCallback(
     (session: UserSession | null | undefined) => {
       if (session && session.history.length === 0) {
-        streamEmptySessionGreeting(session, emptySessionGreeting);
+        streamEmptySessionGreeting(session, emptySessionGreetingRef.current);
         return;
       }
 
@@ -382,7 +389,10 @@ export default function AiCompanionPage() {
       resetConversationState();
       setIsTyping(false);
     },
-    [emptySessionGreeting, resetConversationState, streamEmptySessionGreeting],
+    // emptySessionGreeting intentionally omitted — read from ref at call time
+    // to keep this callback stable across language changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [resetConversationState, streamEmptySessionGreeting],
   );
 
   const syncSessionSelection = useCallback(
@@ -523,13 +533,11 @@ export default function AiCompanionPage() {
     selectedSessionIdRef.current = selectedSessionId;
   }, [selectedSessionId]);
 
-  useEffect(() => {
-    if (!selectedSession || selectedSession.history.length > 0) {
-      return;
-    }
-
-    setMessagesFromSession(selectedSession);
-  }, [selectedSession, setMessagesFromSession]);
+  // NOTE: We intentionally do NOT re-run setMessagesFromSession when
+  // selectedSession changes after initial load. Language updates change
+  // emptySessionGreeting (a dep of setMessagesFromSession) which would
+  // wipe the chat. Instead, language is applied only via the greeting
+  // at session-creation time.
 
   useEffect(() => {
     const container = scrollContainerRef.current;
@@ -918,7 +926,7 @@ export default function AiCompanionPage() {
       setSessions(nextSessions);
       syncSessionSelection(nextSessions, nextSession.session_id);
       setInput("");
-      setIsSidebarOpen(true);
+      // Do NOT auto-open the session sidebar on mobile — user controls that
     } catch (error) {
       console.error("Failed to create session:", error);
       setSessionsError(
@@ -973,7 +981,7 @@ export default function AiCompanionPage() {
   }
 
   return (
-    <div className="flex h-screen w-full bg-slate-50/60 dark:bg-slate-950">
+    <div className="flex h-full w-full bg-slate-50/60 dark:bg-slate-950">
       <SessionSidebar
         sessions={sessions}
         activeSessionId={selectedSessionId}
