@@ -160,10 +160,12 @@ const durationFilters: DurationFilter[] = [
 ];
 
 const categoryClasses: Record<Protocol["category"], string> = {
-  CBT: "bg-teal-50 text-teal-700 border-teal-100",
-  DBT: "bg-sky-50 text-sky-700 border-sky-100",
-  Mindfulness: "bg-slate-100 text-slate-700 border-slate-200",
-  Regulation: "bg-emerald-50 text-emerald-700 border-emerald-100",
+  CBT: "bg-teal-50 text-teal-700 border-teal-100 dark:bg-teal-900/20 dark:text-teal-400 dark:border-teal-900/50",
+  DBT: "bg-sky-50 text-sky-700 border-sky-100 dark:bg-sky-900/20 dark:text-sky-400 dark:border-sky-900/50",
+  Mindfulness:
+    "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-800",
+  Regulation:
+    "bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-900/50",
 };
 
 export default function ExercisesPage() {
@@ -205,8 +207,8 @@ export default function ExercisesPage() {
     selectedDuration !== "All Durations";
 
   return (
-    <div className="flex min-h-full w-full flex-col bg-[linear-gradient(180deg,#fffdf4_0%,#f6f7fb_100%)]">
-      <TopBar />
+    <div className="flex min-h-full w-full flex-col bg-[linear-gradient(180deg,#fffdf4_0%,#f6f7fb_100%)] dark:bg-[radial-gradient(circle_at_top_right,#17324d_0%,#0f172a_24%,#020617_100%)]">
+      {/* <TopBar /> */}
 
       <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         <HeroSection />
@@ -235,10 +237,12 @@ export default function ExercisesPage() {
 
 function TopBar() {
   return (
-    <header className="flex sticky top-0 z-10 items-center justify-between pb-4 border-b bg-white border-slate-200 pl-14 pr-4 py-4 sm:pr-6 lg:pl-8 lg:pr-8">
-      <div className="flex items-center gap-2 text-xs font-bold tracking-widest text-slate-500 uppercase">
-        <span className="text-slate-300">/</span>
-        <span className="text-slate-900">Exercises & Protocols</span>
+    <header className="flex sticky top-0 z-10 items-center justify-between pb-4 border-b bg-white dark:bg-slate-950/50 dark:backdrop-blur-md border-slate-200 dark:border-slate-800 pl-14 pr-4 py-4 sm:pr-6 lg:pl-8 lg:pr-8">
+      <div className="flex items-center gap-2 text-xs font-bold tracking-widest text-slate-500 dark:text-slate-400 uppercase">
+        <span className="text-slate-300 dark:text-slate-700">/</span>
+        <span className="text-slate-900 dark:text-slate-100">
+          Exercises & Protocols
+        </span>
       </div>
     </header>
   );
@@ -247,13 +251,13 @@ function TopBar() {
 function HeroSection() {
   return (
     <section className="py-1">
-      <p className="text-[11px] font-bold uppercase tracking-widest text-teal-600">
+      <p className="text-[11px] font-bold uppercase tracking-widest text-teal-600 dark:text-teal-400">
         Evidence-Based Care
       </p>
-      <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+      <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100 sm:text-4xl">
         Personalized Recommendations
       </h1>
-      <p className="mt-3 max-w-3xl text-sm leading-relaxed text-slate-500 sm:text-base">
+      <p className="mt-3 max-w-3xl text-sm leading-relaxed text-slate-500 dark:text-slate-400 sm:text-base">
         Strategic interventions optimized for your current state of regulation.
       </p>
     </section>
@@ -326,29 +330,29 @@ function FeaturedProtocolCard({ protocol }: { protocol: FeaturedProtocol }) {
   return (
     <Link
       href={protocol.href as string}
-      className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-colors hover:border-teal-100"
+      className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm transition-colors hover:border-teal-100 dark:hover:border-teal-900/50"
     >
       <div className="mb-5 flex items-start justify-between gap-3">
-        <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-teal-50 text-teal-600">
+        <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400">
           <Icon size={18} />
         </span>
-        <span className="rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-600">
+        <span className="rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
           {protocol.badge}
         </span>
       </div>
 
-      <h2 className="text-xl font-bold tracking-tight text-slate-900">
+      <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
         {protocol.title}
       </h2>
-      <p className="mt-3 text-sm leading-relaxed text-slate-500">
+      <p className="mt-3 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
         {protocol.description}
       </p>
 
       <div className="mt-6 flex items-center justify-between">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">
           {protocol.duration}
         </p>
-        <ArrowRight size={18} className="text-slate-400" />
+        <ArrowRight size={18} className="text-slate-400 dark:text-slate-500" />
       </div>
     </Link>
   );
@@ -370,25 +374,25 @@ function SearchFilters({
   onDurationChange: (value: string) => void;
 }) {
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+    <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm sm:p-5">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
         <label className="relative block flex-1">
           <Search
             size={16}
-            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600"
           />
           <input
             type="search"
             value={searchQuery}
             onChange={(event) => onSearchChange(event.target.value)}
             placeholder="Search therapeutic protocols..."
-            className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-16 text-sm text-slate-700 placeholder:text-slate-400 focus:border-teal-300 focus:outline-none focus:ring-2 focus:ring-teal-100"
+            className="w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 py-2.5 pl-10 pr-16 text-sm text-slate-700 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-700 focus:border-teal-300 focus:outline-none focus:ring-2 focus:ring-teal-100 dark:focus:ring-teal-900/30"
           />
           {searchQuery ? (
             <button
               type="button"
               onClick={() => onSearchChange("")}
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-200"
             >
               Clear
             </button>
@@ -403,7 +407,7 @@ function SearchFilters({
             id="duration-filter"
             value={selectedDuration}
             onChange={(event) => onDurationChange(event.target.value)}
-            className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] font-bold uppercase tracking-widest text-slate-600 focus:border-teal-300 focus:outline-none focus:ring-2 focus:ring-teal-100"
+            className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-[11px] font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400 focus:border-teal-300 focus:outline-none focus:ring-2 focus:ring-teal-100 dark:focus:ring-teal-900/30"
           >
             {durationFilters.map((duration) => (
               <option key={duration} value={duration}>
@@ -442,8 +446,8 @@ function FilterPill({
       onClick={onClick}
       className={`rounded-xl border px-3 py-2 text-[11px] font-bold uppercase tracking-widest transition-colors ${
         active
-          ? "border-teal-200 bg-teal-50 text-teal-700"
-          : "border-slate-200 bg-white text-slate-500 hover:border-slate-300"
+          ? "border-teal-200 dark:border-teal-900/50 bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-400"
+          : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-500 hover:border-slate-300 dark:hover:border-slate-600"
       }`}
     >
       {children}
@@ -462,18 +466,18 @@ function LibraryGrid({
 }) {
   return (
     <section>
-      <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-slate-500">
+      <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-500">
         {hasActiveFilters
           ? `${items.length} protocols matching your filters`
           : `${totalCount} protocols available`}
       </p>
 
       {items.length === 0 ? (
-        <div className="rounded-2xl border border-slate-200 bg-white px-6 py-14 text-center shadow-sm">
-          <h3 className="text-lg font-bold text-slate-900">
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-6 py-14 text-center shadow-sm">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
             No matching protocols found
           </h3>
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
             Try adjusting your search, focus filter, or duration range.
           </p>
         </div>
@@ -495,7 +499,7 @@ function ProtocolCard({ protocol }: { protocol: Protocol }) {
   const content = (
     <>
       <div className="mb-4 flex items-start justify-between gap-3">
-        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
           <Icon size={17} />
         </span>
         <span
@@ -505,22 +509,24 @@ function ProtocolCard({ protocol }: { protocol: Protocol }) {
         </span>
       </div>
 
-      <h3 className="text-lg font-bold text-slate-900">{protocol.title}</h3>
-      <p className="mt-2 line-clamp-4 text-sm leading-relaxed text-slate-500">
+      <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+        {protocol.title}
+      </h3>
+      <p className="mt-2 line-clamp-4 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
         {protocol.description}
       </p>
 
-      <div className="mt-5 flex items-end justify-between border-t border-slate-200 pt-4">
+      <div className="mt-5 flex items-end justify-between border-t border-slate-200 dark:border-slate-800 pt-4">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">
             Focus
           </p>
-          <p className="mt-1 text-sm font-semibold text-slate-700">
+          <p className="mt-1 text-sm font-semibold text-slate-700 dark:text-slate-300">
             {protocol.focus}
           </p>
         </div>
 
-        <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-slate-500">
+        <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
           <Clock3 size={13} />
           {protocol.duration}M
         </span>
@@ -529,7 +535,7 @@ function ProtocolCard({ protocol }: { protocol: Protocol }) {
   );
 
   const cardClasses =
-    "flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-colors hover:border-teal-100";
+    "flex h-full flex-col rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm transition-colors hover:border-teal-100 dark:hover:border-teal-900/50";
 
   if (protocol.href) {
     return (
@@ -544,15 +550,15 @@ function ProtocolCard({ protocol }: { protocol: Protocol }) {
 
 function BrowseLibraryCard() {
   return (
-    <article className="grid h-full min-h-[230px] place-items-center rounded-2xl border border-dashed border-slate-300 bg-slate-50/70 p-5 text-center shadow-sm">
+    <article className="grid h-full min-h-[230px] place-items-center rounded-2xl border border-dashed border-slate-300 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/50 p-5 text-center shadow-sm">
       <div>
-        <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-500">
+        <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-500">
           <Plus size={20} />
         </span>
-        <h3 className="mt-4 text-lg font-bold text-slate-900">
+        <h3 className="mt-4 text-lg font-bold text-slate-900 dark:text-slate-100">
           Browse Library
         </h3>
-        <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+        <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-500">
           View 40+ Additional Protocols
         </p>
       </div>
@@ -562,8 +568,8 @@ function BrowseLibraryCard() {
 
 function FooterStrip() {
   return (
-    <footer className="border-t border-slate-200 bg-white px-4 py-3 sm:px-6 lg:px-8">
-      <div className="mx-auto flex max-w-7xl items-center justify-center gap-2 text-center text-[10px] font-bold uppercase tracking-widest text-slate-400">
+    <footer className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-transparent px-4 py-3 sm:px-6 lg:px-8">
+      <div className="mx-auto flex max-w-7xl items-center justify-center gap-2 text-center text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">
         <Shield size={12} />
         <span>
           Enterprise Security Core • End-to-End Encryption • HIPAA Compliant

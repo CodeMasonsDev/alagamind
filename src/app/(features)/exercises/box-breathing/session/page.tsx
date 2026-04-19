@@ -258,33 +258,33 @@ export default function BoxBreathingSessionPage() {
   }
 
   return (
-    <div className="flex min-h-full w-full flex-col bg-slate-50/60">
+    <div className="flex min-h-full w-full flex-col bg-[linear-gradient(180deg,#fffdf4_0%,#f6f7fb_100%)] dark:bg-[radial-gradient(circle_at_top_right,#17324d_0%,#0f172a_24%,#020617_100%)]">
       {/* ── Header ── */}
-      <header className="border-b border-slate-200 bg-white px-4 py-6 sm:px-6 lg:px-8">
+      <header className="border-b border-slate-200 dark:border-slate-800  dark:bg-slate-950/50 dark:backdrop-blur-md px-4 py-6 sm:px-6 lg:px-8">
         <div className="mx-auto w-full max-w-7xl">
           {/* Top nav row */}
           <div className="flex flex-wrap items-center justify-between gap-3">
             <Link
               href="/exercises"
-              className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400 transition-colors hover:text-slate-700"
+              className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 transition-colors hover:text-slate-700 dark:hover:text-slate-200"
             >
               <ArrowLeft size={12} />
               Exercises
             </Link>
 
             <div className="flex items-center gap-2">
-              <span className="rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+              <span className="rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
                 Regulation
               </span>
-              <span className="rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+              <span className="rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
                 4 Min
               </span>
               {isActive && (
                 <span
                   className={`rounded-md border px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest ${
                     isPaused
-                      ? "border-amber-200 bg-amber-50 text-amber-600"
-                      : "border-emerald-200 bg-emerald-50 text-emerald-600"
+                      ? "border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400"
+                      : "border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400"
                   }`}
                 >
                   {isPaused ? "Paused" : "Live"}
@@ -296,14 +296,14 @@ export default function BoxBreathingSessionPage() {
           {/* Main content row */}
           <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-start gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-900">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-900 dark:bg-teal-600">
                 <Wind size={22} className="text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+                <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
                   Box Breathing
                 </h1>
-                <p className="mt-1 max-w-md text-sm text-slate-500">
+                <p className="mt-1 max-w-md text-sm text-slate-500 dark:text-slate-400">
                   4-second inhale, hold, exhale, rest cycle for nervous system
                   regulation.
                 </p>
@@ -315,7 +315,7 @@ export default function BoxBreathingSessionPage() {
                 <button
                   type="button"
                   onClick={handlePauseResume}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-slate-600 transition-colors hover:bg-slate-50"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800"
                 >
                   {isPaused ? (
                     <>
@@ -341,7 +341,7 @@ export default function BoxBreathingSessionPage() {
                       elapsed: elapsedDisplay,
                     })
                   }
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-white transition-colors hover:bg-slate-800"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 dark:bg-teal-600 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-white transition-colors hover:bg-slate-800 dark:hover:bg-teal-500"
                 >
                   End Session
                 </button>
@@ -349,7 +349,7 @@ export default function BoxBreathingSessionPage() {
                 <button
                   type="button"
                   onClick={handleRestart}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-white transition-colors hover:bg-slate-800"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 dark:bg-teal-600 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-white transition-colors hover:bg-slate-800 dark:hover:bg-teal-500"
                 >
                   <RotateCcw size={14} />
                   Start Over
@@ -363,33 +363,33 @@ export default function BoxBreathingSessionPage() {
       {/* ── Main ── */}
       <main className="mx-auto grid w-full max-w-7xl flex-1 grid-cols-1 gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:px-8">
         {/* Breathing circle */}
-        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-6 shadow-sm sm:p-8">
           <div className="flex h-full min-h-[480px] flex-col items-center justify-center">
             {/* Circle */}
             <div className="relative grid h-72 w-72 place-items-center rounded-full sm:h-80 sm:w-80">
-              <div className="absolute h-[115%] w-[115%] rounded-full border border-slate-200/70" />
-              <div className="absolute h-[92%] w-[92%] rounded-full border border-slate-100" />
+              <div className="absolute h-[115%] w-[115%] rounded-full border border-slate-200/70 dark:border-slate-800" />
+              <div className="absolute h-[92%] w-[92%] rounded-full border border-slate-100 dark:border-slate-900" />
               <div
                 className={`absolute h-56 w-56 rounded-full bg-teal-300/20 blur-2xl transition-all duration-700 ${
                   isRunning && isInhale ? "scale-110" : "scale-95"
                 }`}
               />
               <div
-                className={`relative grid h-52 w-52 place-items-center rounded-full bg-gradient-to-br from-white via-slate-50 to-slate-100 ring-1 ring-slate-200 transition-all duration-700 sm:h-60 sm:w-60 ${
+                className={`relative grid h-52 w-52 place-items-center rounded-full bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 ring-1 ring-slate-200 dark:ring-slate-800 transition-all duration-700 sm:h-60 sm:w-60 ${
                   isRunning && isInhale ? "scale-105" : "scale-95"
                 }`}
               >
                 <div className="text-center">
-                  <p className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+                  <p className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100 sm:text-4xl">
                     {statusLabel}
                   </p>
                   {isRunning && (
-                    <p className="mt-2 text-xs text-slate-500">
+                    <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
                       {currentPhase.cue}
                     </p>
                   )}
                   {isRunning && (
-                    <p className="mt-3 text-2xl font-bold tabular-nums text-teal-600">
+                    <p className="mt-3 text-2xl font-bold tabular-nums text-teal-600 dark:text-teal-400">
                       {phaseSecondsLeft}s
                     </p>
                   )}
@@ -409,12 +409,14 @@ export default function BoxBreathingSessionPage() {
                     <div key={phase.id} className="text-center">
                       <p
                         className={`text-[10px] font-bold uppercase tracking-widest ${
-                          isCurrent ? "text-slate-900" : "text-slate-400"
+                          isCurrent
+                            ? "text-slate-900 dark:text-slate-100"
+                            : "text-slate-400 dark:text-slate-600"
                         }`}
                       >
                         {phase.label}
                       </p>
-                      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-200">
+                      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
                         <div
                           className="h-full rounded-full bg-teal-500 transition-all"
                           style={{
@@ -438,14 +440,14 @@ export default function BoxBreathingSessionPage() {
         {/* Sidebar — session stats */}
         <aside className="space-y-4">
           {/* Timer */}
-          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+          <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">
               Time Remaining
             </p>
-            <p className="mt-2 text-4xl font-black tabular-nums tracking-tight text-slate-900">
+            <p className="mt-2 text-4xl font-black tabular-nums tracking-tight text-slate-900 dark:text-slate-100">
               {timeDisplay}
             </p>
-            <div className="mt-3 h-1.5 rounded-full bg-slate-200">
+            <div className="mt-3 h-1.5 rounded-full bg-slate-200 dark:bg-slate-800">
               <div
                 className="h-full rounded-full bg-teal-500 transition-all"
                 style={{
@@ -456,42 +458,44 @@ export default function BoxBreathingSessionPage() {
           </section>
 
           {/* Stats */}
-          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+          <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">
               Session Stats
             </p>
             <div className="mt-3 space-y-3">
-              <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5">
-                <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+              <div className="flex items-center justify-between rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950 px-3 py-2.5">
+                <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
                   <Repeat size={13} />
                   Cycles
                 </div>
-                <p className="text-lg font-bold text-slate-900">{cycles}</p>
+                <p className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                  {cycles}
+                </p>
               </div>
-              <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5">
-                <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+              <div className="flex items-center justify-between rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950 px-3 py-2.5">
+                <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
                   <Wind size={13} />
                   Breaths
                 </div>
-                <p className="text-lg font-bold text-slate-900">
+                <p className="text-lg font-bold text-slate-900 dark:text-slate-100">
                   {totalBreaths}
                 </p>
               </div>
-              <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5">
-                <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+              <div className="flex items-center justify-between rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950 px-3 py-2.5">
+                <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
                   <Timer size={13} />
                   Elapsed
                 </div>
-                <p className="text-lg font-bold text-slate-900">
+                <p className="text-lg font-bold text-slate-900 dark:text-slate-100">
                   {elapsedDisplay}
                 </p>
               </div>
-              <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2.5">
-                <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+              <div className="flex items-center justify-between rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950 px-3 py-2.5">
+                <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
                   <Activity size={13} />
                   Phase Timer
                 </div>
-                <p className="text-lg font-bold tabular-nums text-teal-600">
+                <p className="text-lg font-bold tabular-nums text-teal-600 dark:text-teal-400">
                   {isRunning ? `${phaseSecondsLeft}s` : "—"}
                 </p>
               </div>
@@ -499,11 +503,11 @@ export default function BoxBreathingSessionPage() {
           </section>
 
           {/* Session note */}
-          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+          <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">
               Guidance
             </p>
-            <p className="mt-3 text-sm leading-relaxed text-slate-600">
+            <p className="mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
               {!isActive
                 ? "Great session. Consistent box breathing activates the parasympathetic nervous system, lowering cortisol and heart rate over time."
                 : isPaused
@@ -515,10 +519,10 @@ export default function BoxBreathingSessionPage() {
       </main>
 
       {/* ── Footer — soundscape controls ── */}
-      <footer className="border-t border-slate-200 bg-white px-4 py-4 sm:px-6 lg:px-8">
+      <footer className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/80 dark:backdrop-blur-md px-4 py-4 sm:px-6 lg:px-8">
         <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">
               Background Soundscape
             </p>
             <div className="mt-2 flex flex-wrap gap-2">
@@ -529,8 +533,8 @@ export default function BoxBreathingSessionPage() {
                   onClick={() => void handleSoundSelect(s.key)}
                   className={`rounded-lg border px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest transition-colors ${
                     selectedSound === s.key
-                      ? "border-teal-200 bg-teal-50 text-teal-700"
-                      : "border-slate-200 bg-white text-slate-500 hover:border-slate-300"
+                      ? "border-teal-200 dark:border-teal-900/50 bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-400"
+                      : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-500 hover:border-slate-300 dark:hover:border-slate-600"
                   }`}
                 >
                   {s.label}
@@ -540,11 +544,14 @@ export default function BoxBreathingSessionPage() {
           </div>
 
           <div className="w-full max-w-xs">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">
               Volume
             </p>
-            <div className="mt-2 flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2">
-              <Volume1 size={16} className="shrink-0 text-slate-400" />
+            <div className="mt-2 flex items-center gap-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950 px-3 py-2">
+              <Volume1
+                size={16}
+                className="shrink-0 text-slate-400 dark:text-slate-600"
+              />
               <input
                 type="range"
                 min={0}
@@ -552,11 +559,14 @@ export default function BoxBreathingSessionPage() {
                 step={0.01}
                 value={volume}
                 onChange={(e) => setVolume(Number(e.target.value))}
-                className="h-1.5 w-full cursor-pointer appearance-none rounded-lg bg-slate-200 accent-teal-600"
+                className="h-1.5 w-full cursor-pointer appearance-none rounded-lg bg-slate-200 dark:bg-slate-800 accent-teal-600 dark:accent-teal-500"
               />
-              <Volume2 size={16} className="shrink-0 text-slate-400" />
+              <Volume2
+                size={16}
+                className="shrink-0 text-slate-400 dark:text-slate-600"
+              />
             </div>
-            <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+            <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">
               {isPlaying ? "Audio Active" : "Tap a soundscape to start"}
             </p>
           </div>

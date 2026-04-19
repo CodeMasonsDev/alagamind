@@ -243,21 +243,12 @@ export default function SignupPage() {
       <div className="relative z-10 hidden w-[55%] flex-col justify-center px-16 lg:flex xl:px-24">
         <motion.div>
           <div className="mb-16 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-slate-800 shadow-sm dark:bg-gradient-to-br dark:from-teal-500/20 dark:to-cyan-500/20 dark:text-teal-400 dark:shadow-[0_0_15px_rgba(20,184,166,0.15)]">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="relative z-10 h-5 w-5"
-              >
-                <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
-                <path d="M19 3v4" />
-                <path d="M21 5h-4" />
-              </svg>
+            <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl  dark:bg-transparent">
+              <img
+                src="/alagamind_logo.png"
+                alt="AlagaMind Icon"
+                className="h-full w-full object-cover"
+              />
             </div>
             <span className="text-xl tracking-tight text-slate-800 drop-shadow-sm dark:text-white/90">
               <span className="font-extrabold">Alaga</span>
@@ -308,21 +299,12 @@ export default function SignupPage() {
       {/* ── Right side — Signup form area ── */}
       <div className="relative z-10 flex w-full flex-col items-center justify-center bg-transparent px-6 py-12 transition-colors duration-700 lg:w-[45%] lg:px-12">
         <div className="mb-10 flex items-center gap-3 lg:hidden">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-500/20 text-teal-600 shadow-[0_0_15px_rgba(20,184,166,0.3)] dark:text-teal-400">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-6 w-6"
-            >
-              <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
-              <path d="M19 3v4" />
-              <path d="M21 5h-4" />
-            </svg>
+          <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl  dark:bg-transparent">
+            <img
+              src="/alagamind_logo.png"
+              alt="AlagaMind Icon"
+              className="h-full w-full object-cover"
+            />
           </div>
           <span className="text-2xl tracking-tight text-slate-900 drop-shadow-sm dark:text-white/90">
             <span className="font-extrabold">Alaga</span>
