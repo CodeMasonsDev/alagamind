@@ -931,7 +931,14 @@ export function subscribeToLanguagePreference(onChange: () => void) {
     return () => undefined;
   }
 
-  const handleChange = () => {
+  const handleChange = (event: Event) => {
+    if (
+      event instanceof StorageEvent &&
+      event.key !== null &&
+      event.key !== LANGUAGE_STORAGE_KEY
+    ) {
+      return;
+    }
     onChange();
   };
 

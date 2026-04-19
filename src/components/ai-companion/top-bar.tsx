@@ -6,7 +6,7 @@ export default function TopBar({
   onToggleSidebar: () => void;
 }) {
   return (
-    <header className="sticky top-0 z-10 flex items-center border-b border-slate-200 bg-white py-3 pl-4 pr-4 sm:pr-6 lg:pl-8 lg:pr-8 dark:border-slate-800/90 dark:bg-slate-950/80 dark:backdrop-blur-xl">
+    <header className="sticky top-0 z-10 flex items-center border-b border-slate-200 bg-white py-3 pl-4 pr-4 sm:pr-6 lg:pl-8 lg:pr-8 dark:border-slate-800/90  dark:bg-[#122238]">
       <button
         type="button"
         onClick={onToggleSidebar}

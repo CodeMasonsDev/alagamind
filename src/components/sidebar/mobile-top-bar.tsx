@@ -38,7 +38,7 @@ export default function MobileTopBar() {
   const label = getRouteLabel(pathname);
 
   return (
-    <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-slate-200 bg-white/90 px-4 py-3 backdrop-blur-md dark:border-slate-800 dark:bg-slate-950/90 lg:hidden">
+    <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-slate-200 bg-white/90 px-4 py-3 backdrop-blur-md dark:border-slate-800 dark:bg-[#122238] lg:hidden">
       <button
         type="button"
         aria-label="Open navigation"

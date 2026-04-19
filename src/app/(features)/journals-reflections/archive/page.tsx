@@ -244,12 +244,12 @@ export default function JournalsArchivePage() {
 
   return (
     <div className="flex min-h-full w-full flex-col bg-[linear-gradient(180deg,#fffdf4_0%,#f6f7fb_100%)] dark:bg-[radial-gradient(circle_at_top_right,#17324d_0%,#0f172a_24%,#020617_100%)]">
-      <header className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-4 dark:border-slate-800 dark:bg-slate-900 sm:px-6 lg:px-8">
+      {/* <header className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-4 dark:border-slate-800 dark:bg-slate-900 sm:px-6 lg:px-8">
         <div className="flex items-center gap-2 text-xs font-bold tracking-widest text-slate-500 uppercase dark:text-slate-400">
           <span className="text-slate-300 dark:text-slate-600">/</span>
           <span className="text-slate-900 dark:text-slate-100">Journal-reflections</span>
         </div>
-      </header>
+      </header> */}
       <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
         <HeaderSection viewMode={viewMode} setViewMode={setViewMode} />
 
@@ -404,7 +404,9 @@ function FilterToolbar({
         </label>
 
         <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-          <span className="mr-1 text-slate-400 dark:text-slate-500">Filters:</span>
+          <span className="mr-1 text-slate-400 dark:text-slate-500">
+            Filters:
+          </span>
 
           <FilterSelect
             prefix="Mood"
@@ -562,8 +564,12 @@ function ListRow({ entry }: { entry: JournalEntri }) {
       </p>
 
       <div>
-        <p className="font-semibold text-slate-900 dark:text-slate-100">{entry.title}</p>
-        <p className="mt-1 truncate text-sm text-slate-500 dark:text-slate-400">{entry.preview}</p>
+        <p className="font-semibold text-slate-900 dark:text-slate-100">
+          {entry.title}
+        </p>
+        <p className="mt-1 truncate text-sm text-slate-500 dark:text-slate-400">
+          {entry.preview}
+        </p>
       </div>
 
       <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
@@ -616,7 +622,9 @@ function JournalCard({ entries, onDelete, onUpdate }: Props) {
           </section>
         </div>
 
-        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">{entries.title}</h3>
+        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+          {entries.title}
+        </h3>
 
         <p className="mt-2 line-clamp-4 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
           {entries.preview}
