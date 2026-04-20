@@ -83,7 +83,7 @@ function ThemeToggle() {
           pointerEvents: isOpen ? "auto" : "none",
         }}
         transition={{ duration: 0.18 }}
-        className="absolute right-0 top-12 w-36 overflow-hidden rounded-2xl border border-slate-200 bg-white/85 p-1.5 shadow-2xl backdrop-blur-2xl dark:border-white/12 dark:bg-slate-950/95"
+        className="absolute right-0 top-12 z-50 w-36 overflow-hidden rounded-2xl border border-slate-200 bg-white/85 p-1.5 shadow-2xl backdrop-blur-2xl dark:border-white/12 dark:bg-slate-950/95"
       >
         {themes.map(({ id, label, Icon }) => (
           <button
@@ -110,7 +110,7 @@ function ThemeToggle() {
 
 function BackgroundBlur({ x, y }: { x: number; y: number }) {
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+    <div className="pointer-events-none fixed inset-0 overflow-hidden">
       {/* Light mode: match signup/register's clean warm gradient */}
       <div className="absolute inset-0 bg-[linear-gradient(180deg,#fffdf4_0%,#f6f7fb_100%)] dark:bg-[#03080f]" />
 
@@ -160,11 +160,11 @@ export default function LoginPage() {
       onMouseMove={(e) => {
         setMousePosition({ x: e.clientX, y: e.clientY });
       }}
-      className={`${serif.variable} relative h-screen w-full overflow-hidden text-slate-900 dark:text-white`}
+      className={`${serif.variable} relative min-h-screen w-full overflow-x-hidden text-slate-900 dark:text-white`}
     >
       <BackgroundBlur x={mousePosition.x} y={mousePosition.y} />
 
-      <div className="relative z-10 flex h-full flex-col">
+      <div className="relative z-10 flex flex-col">
         <header className="flex items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <Link
             href="/"
@@ -198,7 +198,7 @@ export default function LoginPage() {
           </div>
         </header>
 
-        <section className="flex min-h-0 flex-1 items-center px-4 pb-4 sm:px-6 sm:pb-6 lg:px-8 lg:pb-8">
+        <section className="flex items-start sm:items-center px-4 pt-6 sm:pt-12 pb-8 sm:px-6 sm:pb-12 lg:px-8 lg:pb-16">
           <div className="mx-auto grid h-full w-full max-w-[1200px] min-h-0 grid-cols-1 items-center gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-8">
             <section className="hidden min-h-0 flex-col justify-center lg:flex">
               <motion.div
@@ -207,7 +207,7 @@ export default function LoginPage() {
                 transition={{ duration: 0.8 }}
                 className="max-w-[620px]"
               >
-                <h1 className="mt-6 max-w-[12ch] text-[clamp(3rem,4.8vw,5.4rem)] font-semibold leading-[0.96] tracking-[-0.05em] text-slate-900 dark:text-white">
+                <h1 className="mt-0 max-w-[12ch] text-[clamp(3rem,4.8vw,5.4rem)] font-semibold leading-[0.96] tracking-[-0.05em] text-slate-900 dark:text-white">
                   Your mind
                   <span className="mt-5 block font-[family-name:var(--font-serif)] italic font-normal text-slate-900 dark:text-teal-200/95">
                     deserve care.

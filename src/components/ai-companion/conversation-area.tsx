@@ -16,12 +16,19 @@ function formatMessageTimestamp(timestamp?: string) {
     return null;
   }
 
-  const value = new Date(timestamp);
+  // Normalize to UTC: if no timezone suffix, the server sent a bare UTC string
+  let normalized = timestamp.trim().replace(" ", "T");
+  if (!/Z$|[+-]\d{2}:\d{2}$/.test(normalized)) {
+    normalized += "Z";
+  }
+
+  const value = new Date(normalized);
   if (Number.isNaN(value.getTime())) {
     return timestamp;
   }
 
-  return value.toLocaleString(undefined, {
+  return value.toLocaleString("en-US", {
+    timeZone: "Asia/Manila",
     month: "short",
     day: "numeric",
     hour: "numeric",
@@ -76,7 +83,7 @@ function AssistantAudioButton({
       ) : isPlaying ? (
         <Volume2 size={14} />
       ) : (
-        <Play size={14} className="translate-x-[1px]" />
+        <Play size={14} className="translate-x-px" />
       )}
     </button>
   );
