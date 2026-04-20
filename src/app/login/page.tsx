@@ -1,26 +1,54 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import LoginForm from "./login-form";
+import { useState, useSyncExternalStore } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import { useTheme } from "next-themes";
 import { motion } from "framer-motion";
+import { Instrument_Serif } from "next/font/google";
+import {
+  ArrowLeft,
+  BookHeart,
+  Brain,
+  MessageCircleHeart,
+  Monitor,
+  Moon,
+  Sun,
+} from "lucide-react";
+import LoginForm from "./login-form";
 
-import { Sun, Moon, Monitor } from "lucide-react";
+const serif = Instrument_Serif({
+  weight: "400",
+  style: ["normal", "italic"],
+  subsets: ["latin"],
+  variable: "--font-serif",
+  display: "swap",
+});
+
+let loginThemeToggleHydrated = false;
+
+function subscribeHydration(callback: () => void) {
+  if (!loginThemeToggleHydrated) {
+    queueMicrotask(() => {
+      loginThemeToggleHydrated = true;
+      callback();
+    });
+  }
+  return () => {};
+}
+
+function getHydrationSnapshot() {
+  return loginThemeToggleHydrated;
+}
 
 function ThemeToggle() {
   const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return (
-      <div className="absolute right-6 top-6 h-10 w-10 rounded-xl border border-slate-200/50 bg-white/30 dark:border-white/[0.06] dark:bg-white/[0.02]" />
-    );
-  }
+  const hydrated = useSyncExternalStore(
+    subscribeHydration,
+    getHydrationSnapshot,
+    () => false,
+  );
 
   const themes = [
     { id: "light", label: "Light", Icon: Sun },
@@ -29,18 +57,21 @@ function ThemeToggle() {
   ];
 
   return (
-    <div className="absolute right-6 top-6 z-50">
+    <div className="relative">
       <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200/50 bg-white/60 text-slate-700 shadow-sm backdrop-blur-md transition-all hover:bg-white/80 dark:border-white/[0.08] dark:bg-white/[0.02] dark:text-slate-300 dark:hover:bg-white/[0.06] dark:hover:text-white"
+        type="button"
+        onClick={() => setIsOpen((current) => !current)}
+        className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200/60 bg-white/70 text-slate-700 shadow-sm backdrop-blur-2xl transition-colors hover:bg-white/85 dark:border-white/14 dark:bg-white/10 dark:text-white/80 dark:shadow-none dark:hover:bg-white/16"
         aria-label="Toggle theme"
       >
-        {theme === "dark" ? (
-          <Moon className="h-[18px] w-[18px]" strokeWidth={2.5} />
+        {!hydrated ? (
+          <Monitor className="h-4 w-4 opacity-70" />
+        ) : theme === "dark" ? (
+          <Moon className="h-4 w-4" />
         ) : theme === "light" ? (
-          <Sun className="h-[18px] w-[18px]" strokeWidth={2.5} />
+          <Sun className="h-4 w-4" />
         ) : (
-          <Monitor className="h-[18px] w-[18px]" strokeWidth={2.5} />
+          <Monitor className="h-4 w-4" />
         )}
       </button>
 
@@ -48,228 +79,207 @@ function ThemeToggle() {
         initial={false}
         animate={{
           opacity: isOpen ? 1 : 0,
-          y: isOpen ? 0 : -10,
+          y: isOpen ? 0 : -8,
           pointerEvents: isOpen ? "auto" : "none",
         }}
-        transition={{ duration: 0.2 }}
-        className="absolute right-0 mt-3 flex w-[140px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white/80 p-1.5 shadow-[0_20px_40px_rgba(0,0,0,0.05)] backdrop-blur-3xl dark:border-slate-700/50 dark:bg-slate-900/80 dark:shadow-[0_20px_40px_rgba(0,0,0,0.4)]"
+        transition={{ duration: 0.18 }}
+        className="absolute right-0 top-12 w-36 overflow-hidden rounded-2xl border border-slate-200 bg-white/85 p-1.5 shadow-2xl backdrop-blur-2xl dark:border-white/12 dark:bg-slate-950/95"
       >
         {themes.map(({ id, label, Icon }) => (
           <button
             key={id}
+            type="button"
             onClick={() => {
               setTheme(id);
               setIsOpen(false);
             }}
-            className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-[10px] font-bold uppercase tracking-widest transition-all duration-300 ${
-              theme === id
-                ? "bg-white text-teal-700 shadow-sm dark:bg-white/10 dark:text-teal-400 dark:shadow-none"
-                : "text-slate-500 hover:bg-white/50 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-white"
+            className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm transition-colors ${
+              hydrated && theme === id
+                ? "bg-teal-50 text-teal-700 dark:bg-teal-400/12 dark:text-teal-200"
+                : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-white/6 dark:hover:text-white"
             }`}
           >
-            <Icon className="h-[14px] w-[14px]" strokeWidth={2.5} />
+            <Icon className="h-4 w-4" />
             {label}
           </button>
         ))}
       </motion.div>
-
-      {/* Invisible overlay to close dropdown */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 z-[-1]"
-          onClick={() => setIsOpen(false)}
-        />
-      )}
     </div>
   );
 }
 
-// Generates random static stars/dust
-const Stardust = () => {
-  const [stars, setStars] = useState<
-    {
-      top: number;
-      left: number;
-      duration: number;
-      delay: number;
-      size: number;
-    }[]
-  >([]);
-
-  useEffect(() => {
-    setStars(
-      [...Array(30)].map(() => ({
-        top: Math.random() * 100,
-        left: Math.random() * 100,
-        duration: 10 + Math.random() * 20,
-        delay: Math.random() * 5,
-        size: Math.random() * 2 + 1,
-      })),
-    );
-  }, []);
-
-  if (stars.length === 0) return null;
-
+function BackgroundBlur({ x, y }: { x: number; y: number }) {
   return (
-    <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
-      {stars.map((star, i) => (
-        <motion.div
-          key={i}
-          className="absolute rounded-full bg-white dark:bg-teal-200"
-          style={{
-            top: `${star.top}%`,
-            left: `${star.left}%`,
-            width: star.size,
-            height: star.size,
-            opacity: 0.1,
-            boxShadow: "0 0 8px 2px rgba(255,255,255,0.4)",
-          }}
-          animate={{
-            y: [0, -100, -200],
-            opacity: [0, 0.4, 0],
-            scale: [1, 1.5, 1],
-          }}
-          transition={{
-            duration: star.duration,
-            repeat: Infinity,
-            delay: star.delay,
-            ease: "linear",
-          }}
-        />
-      ))}
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      {/* Light mode: match signup/register's clean warm gradient */}
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,#fffdf4_0%,#f6f7fb_100%)] dark:bg-[#03080f]" />
+
+      {/* Dark mode: match register's deeper navy + teal haze */}
+      <div className="absolute inset-0 hidden dark:block bg-[radial-gradient(circle_at_top_right,#17324d_0%,#0f172a_24%,#020617_100%)]" />
+      <div className="absolute -left-[14%] top-[10%] hidden h-[46rem] w-[46rem] rounded-full bg-teal-500/14 blur-[155px] dark:block" />
+      <div className="absolute left-[18%] top-[40%] hidden h-[34rem] w-[34rem] rounded-full bg-cyan-500/10 blur-[165px] dark:block" />
+      <div className="absolute right-[-12%] top-[14%] hidden h-[40rem] w-[40rem] rounded-full bg-indigo-500/18 blur-[170px] dark:block" />
+      <div className="absolute right-[6%] bottom-[-16%] hidden h-[34rem] w-[34rem] rounded-full bg-violet-500/14 blur-[160px] dark:block" />
+      <div
+        className="pointer-events-none absolute inset-0 hidden opacity-0 transition-opacity duration-700 dark:block dark:opacity-80"
+        style={{
+          background: `radial-gradient(820px circle at ${x}px ${y}px, rgba(20,184,166,0.18), transparent 42%)`,
+        }}
+      />
+      <div className="absolute inset-0 hidden dark:block bg-[radial-gradient(circle_at_center,transparent_0%,rgba(2,6,23,0.34)_56%,rgba(2,6,23,0.78)_100%)]" />
+
+      <div className="login-grain absolute inset-0 opacity-[0.06] dark:opacity-[0.12]" />
+      <div className="absolute inset-0 backdrop-blur-[18px] dark:backdrop-blur-[86px]" />
     </div>
   );
-};
+}
+
+const features = [
+  {
+    Icon: MessageCircleHeart,
+    title: "Emotional AI Companion",
+    body: "A calm voice that listens, reflects, and stays with you",
+  },
+  {
+    Icon: Brain,
+    title: "Cognitive Journals",
+    body: "Reframe difficult thoughts with gentle, guided structure",
+  },
+  {
+    Icon: BookHeart,
+    title: "Resilience Tracking",
+    body: "See small wins compound into measurable wellbeing",
+  },
+];
 
 export default function LoginPage() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
-    setMousePosition({
-      x: e.clientX,
-      y: e.clientY,
-    });
-  };
-
   return (
     <main
-      onMouseMove={handleMouseMove}
-      className="relative flex min-h-screen w-full overflow-hidden bg-[linear-gradient(180deg,#fffdf4_0%,#f6f7fb_100%)] font-sans dark:bg-none dark:bg-[#030612] transition-colors duration-700"
+      onMouseMove={(e) => {
+        setMousePosition({ x: e.clientX, y: e.clientY });
+      }}
+      className={`${serif.variable} relative h-screen w-full overflow-hidden text-slate-900 dark:text-white`}
     >
-      <ThemeToggle />
+      <BackgroundBlur x={mousePosition.x} y={mousePosition.y} />
 
-      {/* ── Interactive Cursor Glow ── */}
-      <div
-        className="pointer-events-none absolute inset-0 z-0 opacity-0 transition-opacity duration-700 dark:opacity-100"
-        style={{
-          background: `radial-gradient(800px circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(20, 184, 166, 0.12), transparent 40%)`,
-        }}
-      />
-
-      {/* ── Background Layers ── */}
-      <div className="pointer-events-none absolute inset-0 z-0 hidden dark:block transition-colors duration-700">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(11,48,56,0.8)_0%,transparent_60%),radial-gradient(ellipse_at_bottom_left,rgba(20,184,166,0.15)_0%,transparent_50%)] opacity-0 dark:opacity-100 transition-opacity duration-700" />
-      </div>
-
-      <div className="hidden opacity-60 dark:block dark:opacity-100 transition-opacity duration-700">
-        <Stardust />
-      </div>
-
-      {/* ── Ambient orbs (Dark mode only) ── */}
-      <div className="pointer-events-none absolute inset-0 z-0 hidden overflow-hidden mix-blend-multiply dark:block dark:mix-blend-normal transition-all duration-700">
-        <div className="animate-login-orb-1 absolute -left-32 top-1/4 h-[600px] w-[600px] rounded-full bg-cyan-200/40 blur-[130px] dark:bg-teal-500/15" />
-        <div className="animate-login-orb-2 absolute -right-24 bottom-1/4 h-[500px] w-[500px] rounded-full bg-blue-200/40 blur-[110px] dark:bg-indigo-900/40" />
-        <div className="animate-login-orb-3 absolute left-1/2 top-1/5 h-[300px] w-[300px] -translate-x-1/3 rounded-full bg-teal-100/50 blur-[100px] dark:bg-cyan-600/15" />
-      </div>
-
-      {/* ── Left hero panel (Clean SaaS Typography) ── */}
-      <div className="relative z-10 hidden w-[55%] flex-col justify-center px-16 lg:flex xl:px-24">
-        <motion.div>
-          {/* Brand */}
-          <div className="mb-16 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl   dark:bg-transparent">
-              <img
+      <div className="relative z-10 flex h-full flex-col">
+        <header className="flex items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+          <Link
+            href="/"
+            className="inline-flex  items-center gap-3 rounded-full border border-slate-200/60 bg-white/65 px-5.5 py-1 text-sm text-slate-800 shadow-sm backdrop-blur-2xl transition-colors hover:bg-white/80 dark:border-white/12 dark:bg-white/8 dark:text-white/86 dark:shadow-none dark:hover:bg-white/12"
+          >
+            <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-xl">
+              <Image
                 src="/alagamind_logo.png"
-                alt="AlagaMind Icon"
+                alt="AlagaMind logo"
+                width={32}
+                height={32}
                 className="h-full w-full object-cover"
+                priority
               />
-            </div>
-            <span className="text-xl tracking-tight text-slate-800 drop-shadow-sm dark:text-white/90">
-              <span className="font-extrabold">Alaga</span>
+            </span>
+            <span className="tracking-tight">
+              <span className="font-semibold">Alaga</span>
               <span className="font-light">Mind</span>
             </span>
+          </Link>
+
+          <div className="flex items-center gap-3">
+            <Link
+              href="/"
+              className="hidden items-center gap-1.5 rounded-full border border-slate-200/60 bg-white/65 px-3.5 py-2 text-sm text-slate-700 shadow-sm backdrop-blur-2xl transition-colors hover:bg-white/80 dark:border-white/12 dark:bg-white/8 dark:text-white/78 dark:shadow-none dark:hover:bg-white/12 sm:inline-flex"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </Link>
+            <ThemeToggle />
           </div>
+        </header>
 
-          {/* Hero copy */}
-          <div className="max-w-[480px]">
-            <p className="mb-6 text-[11px] font-bold uppercase tracking-[0.3em] text-slate-500 dark:text-teal-400">
-              Mental Wellness Intelligence
-            </p>
-            <h1 className="text-[3.2rem] font-medium leading-[1.1] tracking-tight text-slate-900 drop-shadow-sm dark:text-white xl:text-[4rem]">
-              Your mind
-              <br />
-              <span className="font-bold text-slate-900 dark:bg-gradient-to-r dark:from-teal-300 dark:via-cyan-300 dark:to-indigo-300 dark:bg-clip-text dark:text-transparent">
-                deserves care.
-              </span>
-            </h1>
-            <p className="mt-6 text-[15px] leading-relaxed text-slate-600 dark:text-slate-400/90">
-              Your all-in-one companion for mental wellbeing — with AI support,
-              journaling, reframing, resilience tracking, and exercises to help
-              you feel better and grow stronger.
-            </p>
-
-            {/* Clean Feature List */}
-            <div className="mt-12 flex flex-col gap-4">
-              {[
-                { icon: "🧠", label: "Emotional AI Companion" },
-                { icon: "📓", label: "Smart Cognitive Journals" },
-                { icon: "📊", label: "Resilience Quotient Tracking" },
-              ].map((f, idx) => (
-                <motion.div
-                  key={f.label}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: idx * 0.15 + 0.5 }}
-                  className="flex items-center gap-3 text-sm font-medium text-slate-700 dark:text-slate-300"
-                >
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-300/50 backdrop-blur-sm dark:bg-white/5 shadow-sm text-base">
-                    {f.icon}
+        <section className="flex min-h-0 flex-1 items-center px-4 pb-4 sm:px-6 sm:pb-6 lg:px-8 lg:pb-8">
+          <div className="mx-auto grid h-full w-full max-w-[1200px] min-h-0 grid-cols-1 items-center gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-8">
+            <section className="hidden min-h-0 flex-col justify-center lg:flex">
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+                className="max-w-[620px]"
+              >
+                <h1 className="mt-6 max-w-[12ch] text-[clamp(3rem,4.8vw,5.4rem)] font-semibold leading-[0.96] tracking-[-0.05em] text-slate-900 dark:text-white">
+                  Your mind
+                  <span className="mt-5 block font-[family-name:var(--font-serif)] italic font-normal text-slate-900 dark:text-teal-200/95">
+                    deserve care.
                   </span>
-                  {f.label}
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </motion.div>
-      </div>
+                </h1>
 
-      {/* ── Right side — Login form area (Floating Card) ── */}
-      <div className="relative z-10 flex w-full flex-col items-center justify-center px-6 py-12 lg:w-[45%] lg:px-12 bg-transparent transition-colors duration-700">
-        {/* Mobile brand — visible below lg */}
-        <div className="mb-10 flex items-center gap-3 lg:hidden">
-          <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-lg dark:bg-transparent">
-            <img
-              src="/alagamind_icon.png"
-              alt="AlagaMind Icon"
-              className="h-full w-full object-cover"
-            />
-          </div>
-          <span className="text-2xl tracking-tight text-slate-900 drop-shadow-sm dark:text-white/90">
-            <span className="font-extrabold">Alaga</span>
-            <span className="font-light">Mind</span>
-          </span>
-        </div>
+                <p className="mt-5 max-w-[54ch] text-[15px] leading-8 text-slate-600 dark:text-white/70">
+                  An all-in-one companion for emotional wellbeing - AI support,
+                  cognitive journaling, and resilience tracking, in one quiet
+                  place.
+                </p>
 
-        <section className="w-full max-w-[480px]">
-          <LoginForm />
+                <div className="mt-7 grid max-w-[640px] gap-3">
+                  {features.map(({ Icon, title, body }) => (
+                    <div
+                      key={title}
+                      className="flex items-start gap-4 rounded-3xl border border-slate-200 bg-white/70 px-5 py-4 shadow-sm backdrop-blur-2xl dark:border-white/10 dark:bg-white/8 dark:shadow-none"
+                    >
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-teal-200/50 bg-teal-50 text-teal-700 dark:border-teal-300/18 dark:bg-teal-400/10 dark:text-teal-200">
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <h2 className="text-[15px] font-semibold text-slate-900 dark:text-white">
+                          {title}
+                        </h2>
+                        <p className="mt-1 text-[13px] leading-6 text-slate-600 dark:text-white/64">
+                          {body}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            </section>
+
+            <section className="flex min-h-0 items-center justify-center lg:justify-end">
+              <div className="flex w-full max-w-[470px] flex-col justify-center">
+                <div className="mb-4 text-center lg:hidden">
+                  <h1 className="text-[2.1rem] font-semibold leading-[1.02] tracking-[-0.04em] text-slate-900 dark:text-white">
+                    Sign in to your calm workspace.
+                  </h1>
+                  <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-white/68">
+                    Private access for journaling, reflections, and guided
+                    mental wellness support.
+                  </p>
+                </div>
+
+                <LoginForm />
+
+                <div className="mt-4 flex items-center justify-center gap-4 text-[11px] uppercase tracking-[0.18em] text-slate-500 dark:text-white/42">
+                  <span className="flex justify-center items-center ">
+                    <span className="text-2xl">©</span> 2026 AlagaMind
+                  </span>
+                  <span className="h-1 w-1 rounded-full bg-slate-400/40 dark:bg-white/20" />
+                  <Link
+                    href="#"
+                    className="transition-colors hover:text-slate-700 dark:hover:text-white/70"
+                  >
+                    Privacy
+                  </Link>
+                  <Link
+                    href="#"
+                    className="transition-colors hover:text-slate-700 dark:hover:text-white/70"
+                  >
+                    Terms
+                  </Link>
+                </div>
+              </div>
+            </section>
+          </div>
         </section>
-
-        {/* Mobile / General footer */}
-        <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-8 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
-          <div className="opacity-80 mix-blend-overlay">© 2026 ALGMND</div>
-        </div>
       </div>
     </main>
   );
 }
-
