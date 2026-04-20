@@ -18,6 +18,24 @@
   --animate-login-orb-1: login-orb-1 18s ease-in-out infinite;
   --animate-login-orb-2: login-orb-2 22s ease-in-out infinite;
   --animate-login-orb-3: login-orb-3 15s ease-in-out infinite;
+  --animate-login-mesh: login-mesh 28s ease-in-out infinite;
+  --animate-login-shimmer: login-shimmer 2.4s linear infinite;
+}
+
+/* Subtle grain/noise overlay for the login surface */
+.login-grain {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.55 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  background-size: 240px 240px;
+}
+
+@keyframes login-mesh {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50%      { transform: translate3d(-2%, 1.5%, 0) scale(1.04); }
+}
+
+@keyframes login-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
 body {
