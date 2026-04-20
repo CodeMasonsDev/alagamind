@@ -4,7 +4,7 @@ import { ThemeProvider } from "@/components/providers/theme-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Alagamind v1",
+  title: "AlagaMind",
   description: "Your Al-powered mental wellness companion.",
   icons: {
     icon: "/alagamind_logo.png",
