@@ -25,7 +25,7 @@ export default function LongMenu({ onDelete, onUpdate }: Props) {
   };
 
   return (
-    <div>
+    <div className="text-slate-600 dark:text-white">
       <IconButton
         aria-label="more"
         id="long-button"
@@ -33,6 +33,7 @@ export default function LongMenu({ onDelete, onUpdate }: Props) {
         aria-expanded={open ? "true" : undefined}
         aria-haspopup="true"
         onClick={handleClick}
+        sx={{ color: "inherit" }}
       >
         <MoreVertIcon />
       </IconButton>

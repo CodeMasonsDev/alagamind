@@ -72,6 +72,9 @@ export default function JournalPaper({
           background: rgba(248, 113, 113, 0.18);
           box-shadow: inset 0 0 0 1px rgba(239, 68, 68, 0.18);
         }
+        .dark .journal-highlight-content [data-sentiment-highlight] {
+          color: #ffffff;
+        }
         .dark .journal-highlight-content [data-sentiment-highlight="positive"] {
           background: rgba(20, 184, 166, 0.22);
           box-shadow: inset 0 0 0 1px rgba(45, 212, 191, 0.25);

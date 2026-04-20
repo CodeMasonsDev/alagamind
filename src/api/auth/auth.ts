@@ -23,8 +23,13 @@ export type SessionUser = {
 export type UpdateProfilePayload = {
   firstname: string;
   lastname: string;
+  email?: string;
+};
+
+export type UpdatePasswordPayload = {
   email: string;
-  password: string;
+  currentPassword: string;
+  newPassword: string;
 };
 
 const DEFAULT_AUTH_CLIENT_ID =
@@ -113,6 +118,24 @@ export async function updateProfile(payload: UpdateProfilePayload) {
   }
 
   return data as { message: string; user: SessionUser | null };
+}
+
+export async function updatePassword(payload: UpdatePasswordPayload) {
+  const res = await fetch("/api/auth/password", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await res.json().catch(() => null);
+
+  if (!res.ok) {
+    throw new Error(data?.message ?? "Failed to update password");
+  }
+
+  return data as { message: string };
 }
 
 export async function uploadProfilePicture(file: File) {
