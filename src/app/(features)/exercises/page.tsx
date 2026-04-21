@@ -486,7 +486,6 @@ function LibraryGrid({
           {items.map((item) => (
             <ProtocolCard key={item.id} protocol={item} />
           ))}
-          <BrowseLibraryCard />
         </div>
       )}
     </section>
@@ -546,24 +545,6 @@ function ProtocolCard({ protocol }: { protocol: Protocol }) {
   }
 
   return <article className={cardClasses}>{content}</article>;
-}
-
-function BrowseLibraryCard() {
-  return (
-    <article className="grid h-full min-h-[230px] place-items-center rounded-2xl border border-dashed border-slate-300 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/50 p-5 text-center shadow-sm">
-      <div>
-        <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-500">
-          <Plus size={20} />
-        </span>
-        <h3 className="mt-4 text-lg font-bold text-slate-900 dark:text-slate-100">
-          Browse Library
-        </h3>
-        <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-500">
-          View 40+ Additional Protocols
-        </p>
-      </div>
-    </article>
-  );
 }
 
 function FooterStrip() {
