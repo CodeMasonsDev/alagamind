@@ -46,11 +46,16 @@ export function InsightsPill({
   tone?: "slate" | "teal" | "amber" | "rose" | "blue";
 }) {
   const toneStyles = {
-    slate: "border-slate-200 dark:border-slate-800 bg-slate-100 text-slate-700 dark:text-slate-300",
-    teal: "border-teal-200 bg-teal-50 text-teal-700",
-    amber: "border-amber-200 bg-amber-50 text-amber-700",
-    rose: "border-rose-200 bg-rose-50 text-rose-700",
-    blue: "border-sky-200 bg-sky-50 text-sky-700",
+    slate:
+      "border-slate-200 bg-slate-100 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300",
+    teal:
+      "border-teal-200 bg-teal-50 text-teal-700 dark:border-teal-800/60 dark:bg-teal-900/30 dark:text-teal-200",
+    amber:
+      "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800/60 dark:bg-amber-900/30 dark:text-amber-200",
+    rose:
+      "border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-800/60 dark:bg-rose-900/30 dark:text-rose-200",
+    blue:
+      "border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-800/60 dark:bg-sky-900/30 dark:text-sky-200",
   };
 
   return (

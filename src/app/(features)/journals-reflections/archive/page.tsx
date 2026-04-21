@@ -424,14 +424,6 @@ function FilterToolbar({
             onChange={(value) => onSelectedDateChange(value as DateFilter)}
           />
 
-          <FilterSelect
-            prefix="Tags"
-            value={selectedTag}
-            options={tagFilterOptions}
-            active={selectedTag !== "all"}
-            onChange={onSelectedTagChange}
-          />
-
           <button
             type="button"
             disabled={!canClearFilters}

@@ -27,7 +27,21 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function asNumber(value: unknown, fallback = 0) {
-  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const normalized = value.trim();
+    if (!normalized) {
+      return fallback;
+    }
+
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  }
+
+  return fallback;
 }
 
 function asString(value: unknown, fallback = "") {
@@ -46,6 +60,18 @@ function asStringArray(value: unknown) {
 
 function asArray<T>(value: unknown, mapper: (item: unknown) => T): T[] {
   return Array.isArray(value) ? value.map(mapper) : [];
+}
+
+function pickValue(
+  source: Record<string, unknown>,
+  keys: string[],
+): unknown | undefined {
+  for (const key of keys) {
+    if (key in source) {
+      return source[key];
+    }
+  }
+  return undefined;
 }
 
 function normalizeOverview(value: unknown): OverviewMetrics | null {
@@ -222,13 +248,27 @@ function normalizeModuleContributionItem(
   const item = isRecord(value) ? value : {};
 
   return {
-    key: asString(item.key),
-    label: asString(item.label),
-    weight: asNumber(item.weight),
-    actual_points: asNumber(item.actual_points),
-    max_points: asNumber(item.max_points),
-    summary: asString(item.summary),
-    deferred: Boolean(item.deferred),
+    key: asString(
+      pickValue(item, ["key", "module_key", "moduleKey", "id", "name"]),
+    ),
+    label: asString(
+      pickValue(item, ["label", "module_label", "moduleLabel", "title", "name"]),
+    ),
+    weight: asNumber(
+      pickValue(item, ["weight", "weight_percent", "weightPercent"]),
+    ),
+    actual_points: asNumber(
+      pickValue(item, ["actual_points", "actualPoints", "points", "actual"]),
+    ),
+    max_points: asNumber(
+      pickValue(item, ["max_points", "maxPoints", "maximum_points", "max"]),
+    ),
+    summary: asString(
+      pickValue(item, ["summary", "description", "details", "subtitle"]),
+    ),
+    deferred: Boolean(
+      pickValue(item, ["deferred", "is_deferred", "isDeferred", "defer"]),
+    ),
   };
 }
 
@@ -237,9 +277,13 @@ function normalizeModuleContribution(value: unknown): ModuleContribution | null 
     return null;
   }
 
+  const rawModules = pickValue(value, ["modules", "module_contribution", "items"]);
+
   return {
-    current_rq_score: asNumber(value.current_rq_score),
-    modules: asArray(value.modules, normalizeModuleContributionItem),
+    current_rq_score: asNumber(
+      pickValue(value, ["current_rq_score", "currentRqScore", "current_score"]),
+    ),
+    modules: asArray(rawModules, normalizeModuleContributionItem),
   };
 }
 

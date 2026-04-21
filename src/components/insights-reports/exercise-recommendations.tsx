@@ -26,7 +26,7 @@ export default function ExerciseRecommendations({
               <Link
                 key={`${item.title}-${index}`}
                 href={item.href || "/exercises"}
-                className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 p-4 transition-colors hover:bg-slate-100"
+                className="rounded-2xl border border-slate-200 bg-slate-50 p-4 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800/60 dark:hover:bg-slate-800"
               >
                 <p
                   className={`text-sm font-semibold uppercase tracking-[0.18em] ${
@@ -44,11 +44,11 @@ export default function ExerciseRecommendations({
                 <p className="mt-2 text-xl font-semibold tracking-tight text-slate-950 dark:text-slate-100">
                   {item.title}
                 </p>
-                <p className="mt-1.5 text-base text-slate-500 dark:text-slate-400">
+                <p className="mt-1.5 text-base text-slate-500 dark:text-slate-300">
                   {item.duration || "Flexible"} · {item.category || "Protocol"}
                 </p>
                 {item.reason ? (
-                  <p className="mt-3 text-sm leading-6 text-slate-400">
+                  <p className="mt-3 text-sm leading-6 text-slate-500 dark:text-slate-400">
                     {item.reason}
                   </p>
                 ) : null}
@@ -64,11 +64,6 @@ export default function ExerciseRecommendations({
                 </InsightsPill>
               ))}
             </div>
-            {exerciseRecommendations?.score_source ? (
-              <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
-                Score source: {exerciseRecommendations.score_source}
-              </p>
-            ) : null}
           </div>
         </>
       ) : (
