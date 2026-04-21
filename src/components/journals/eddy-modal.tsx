@@ -205,7 +205,7 @@ export default function EddyModal({
             E
           </div>
           <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-            Eddy
+            Eddia
           </span>
           <span className="rounded-full bg-teal-50 px-1.5 py-0.5 text-[10px] font-medium text-teal-600 dark:bg-teal-900/40 dark:text-teal-400">
             AI Writing Assistant
@@ -304,13 +304,13 @@ export default function EddyModal({
       <div className="p-4 pt-3">
         <div className="mb-2.5">
           <label
-            htmlFor="eddy-language"
+            htmlFor="Eddia-language"
             className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500"
           >
             Response language
           </label>
           <select
-            id="eddy-language"
+            id="Eddia-language"
             value={language}
             onChange={(e) => setLanguage(e.target.value as EddyLanguage)}
             disabled={isStreaming}
@@ -333,8 +333,8 @@ export default function EddyModal({
               messages.length > 0
                 ? "Ask a follow-up…"
                 : selectedText
-                  ? "Ask Eddy about this text…"
-                  : "Ask Eddy anything…"
+                  ? "Ask Eddia about this text…"
+                  : "Ask Eddia anything…"
             }
             disabled={isStreaming}
             className="flex-1 bg-transparent text-xs text-slate-800 placeholder-slate-400 outline-none disabled:opacity-50 dark:text-slate-100 dark:placeholder-slate-500"
