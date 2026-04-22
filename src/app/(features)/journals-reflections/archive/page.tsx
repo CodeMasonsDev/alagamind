@@ -78,7 +78,6 @@ export default function JournalsArchivePage() {
   const [journals, setJournals] = useState<JournalEntri[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // const userId = "7e9793a6-c652-4b3a-8bed-780c221ee33a";
   const [profile, setProfile] = useState<SessionUser | null>(null);
 
   useEffect(() => {
