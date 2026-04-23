@@ -545,7 +545,7 @@ function ListRow({ entry }: { entry: JournalEntri }) {
       className="grid grid-cols-[130px_190px_minmax(280px,1fr)_130px_100px] items-center gap-4 border-b border-slate-100 px-5 py-4 transition-colors hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/50 last:border-b-0"
     >
       <div>
-        <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-medium uppercase text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+        <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-medium uppercase text-slate-700 dark:bg-slate-800 dark:text-slate-300 invisible">
           {entry.mood}
         </span>
       </div>
@@ -592,25 +592,17 @@ function JournalCard({ entries, onDelete, onUpdate }: Props) {
             {formatCardDate(entries.createdAt)}
           </p>
 
-          <section className="flex items-start gap-2">
-            <span
-              className={`rounded-md border px-2 py-3 text-[10px] font-bold uppercase ${entries.moodClass}`}
-            >
-              {entries.mood}
-            </span>
-
-            <div
-              onClick={(e) => {
-                e.stopPropagation();
-                e.preventDefault();
-              }}
-            >
-              <LongMenu
-                onDelete={() => onDelete(entries.userId, entries.id)}
-                onUpdate={() => onUpdate(entries.userId, entries.id)}
-              />
-            </div>
-          </section>
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+            }}
+          >
+            <LongMenu
+              onDelete={() => onDelete(entries.userId, entries.id)}
+              onUpdate={() => onUpdate(entries.userId, entries.id)}
+            />
+          </div>
         </div>
 
         <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
