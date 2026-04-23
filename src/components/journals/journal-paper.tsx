@@ -72,6 +72,13 @@ export default function JournalPaper({
           background: rgba(248, 113, 113, 0.18);
           box-shadow: inset 0 0 0 1px rgba(239, 68, 68, 0.18);
         }
+        .journal-highlight-content [data-sentiment-inaccurate] {
+          background: rgba(100, 116, 139, 0.15);
+          border-radius: 0.35rem;
+          padding: 0.08rem 0.18rem;
+          box-decoration-break: clone;
+          -webkit-box-decoration-break: clone;
+        }
         .dark .journal-highlight-content [data-sentiment-highlight] {
           color: #ffffff;
         }
@@ -87,6 +94,9 @@ export default function JournalPaper({
           background: rgba(248, 113, 113, 0.22);
           box-shadow: inset 0 0 0 1px rgba(252, 165, 165, 0.22);
         }
+        .dark .journal-highlight-content [data-sentiment-inaccurate] {
+          background: rgba(148, 163, 184, 0.15);
+        }
       `}</style>
     </section>
   );
@@ -99,7 +109,7 @@ function buildHighlightedJournalHtml(
 ) {
   const sanitized = sanitizeJournalHtml(content);
 
-  if (!selectedSentiment || highlightedSegments.length === 0) {
+  if (highlightedSegments.length === 0) {
     return sanitized;
   }
 
@@ -107,26 +117,44 @@ function buildHighlightedJournalHtml(
     return sanitized;
   }
 
-  const matchingTexts = Array.from(
-    new Set(
-      highlightedSegments
-        .filter(
-          (segment) => normalizeSentiment(segment.sentiment) === selectedSentiment,
-        )
-        .map((segment) => normalizeWhitespace(resolveSegmentText(segment)))
-        .filter(Boolean),
-    ),
-  );
-
-  if (matchingTexts.length === 0) {
-    return sanitized;
-  }
-
   const parser = new DOMParser();
   const document = parser.parseFromString(sanitized, "text/html");
 
-  for (const text of matchingTexts) {
-    highlightTextInDocument(document.body, text, selectedSentiment);
+  // Separate accurate and inaccurate segments
+  const accurateSegments = highlightedSegments.filter((s) => s.is_accurate !== false);
+  const inaccurateSegments = highlightedSegments.filter((s) => s.is_accurate === false);
+
+  // Highlight accurate segments with sentiment colors (only if a sentiment is selected)
+  if (selectedSentiment && accurateSegments.length > 0) {
+    const matchingTexts = Array.from(
+      new Set(
+        accurateSegments
+          .filter(
+            (segment) => normalizeSentiment(segment.sentiment) === selectedSentiment,
+          )
+          .map((segment) => normalizeWhitespace(resolveSegmentText(segment)))
+          .filter(Boolean),
+      ),
+    );
+
+    for (const text of matchingTexts) {
+      highlightTextInDocument(document.body, text, selectedSentiment);
+    }
+  }
+
+  // Mark inaccurate segments with transparent background (only when a sentiment is selected)
+  if (selectedSentiment && inaccurateSegments.length > 0) {
+    const inaccurateTexts = Array.from(
+      new Set(
+        inaccurateSegments
+          .map((segment) => normalizeWhitespace(resolveSegmentText(segment)))
+          .filter(Boolean),
+      ),
+    );
+
+    for (const text of inaccurateTexts) {
+      highlightTextInDocument(document.body, text, "inaccurate");
+    }
   }
 
   return document.body.innerHTML;
@@ -181,7 +209,7 @@ function normalizedQuillHtml(content: string) {
 function highlightTextInDocument(
   root: HTMLElement,
   targetText: string,
-  sentiment: HighlightableSentiment,
+  sentiment: HighlightableSentiment | "inaccurate",
 ) {
   const ownerDocument = root.ownerDocument ?? document;
   const walker = ownerDocument.createTreeWalker(root, NodeFilter.SHOW_TEXT);
@@ -238,7 +266,7 @@ function wrapTextRange(
   textNode: Text,
   start: number,
   length: number,
-  sentiment: HighlightableSentiment,
+  sentiment: HighlightableSentiment | "inaccurate",
 ) {
   const ownerDocument = textNode.ownerDocument ?? document;
   const range = ownerDocument.createRange();
@@ -246,7 +274,11 @@ function wrapTextRange(
   range.setEnd(textNode, start + length);
 
   const marker = ownerDocument.createElement("mark");
-  marker.setAttribute("data-sentiment-highlight", sentiment);
+  if (sentiment === "inaccurate") {
+    marker.setAttribute("data-sentiment-inaccurate", "true");
+  } else {
+    marker.setAttribute("data-sentiment-highlight", sentiment);
+  }
   marker.className = "not-italic";
 
   range.surroundContents(marker);

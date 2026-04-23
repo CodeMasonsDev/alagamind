@@ -251,10 +251,7 @@ export default function MyJournal({ params }: MyJournalProps) {
             journal={journal}
             selectedSentiment={selectedSentiment}
             highlightedSegments={
-              selectedSentiment &&
-              insightsCache[journal_id]?.sentiment?.segments
-                ? insightsCache[journal_id].sentiment.segments
-                : []
+              insightsCache[journal_id]?.sentiment?.segments ?? []
             }
           />
         </div>
@@ -492,8 +489,17 @@ function AiInsightsSidebar({
     userId,
   ]);
 
-  const metrics = buildSentimentMetrics(effectiveState.percentages);
-  const segmentCount = effectiveState.sentiment?.segments.length ?? 0;
+  // Filter to only accurate segments for percentage calculations
+  const accurateSegments = effectiveState.sentiment?.segments.filter((s) => s.is_accurate !== false) ?? [];
+  const recalculatedPercentages = calculateAccurateSegmentPercentages(accurateSegments);
+
+  // Use recalculated percentages if segment data was loaded, otherwise use API percentages
+  const percentagesForDisplay = effectiveState.sentiment !== null
+    ? { ...effectiveState.percentages, percentages: recalculatedPercentages ?? { positive: 0, neutral: 0, negative: 0 } }
+    : effectiveState.percentages;
+
+  const metrics = buildSentimentMetrics(percentagesForDisplay);
+  const segmentCount = accurateSegments.length;
   const suggestedReframe =
     effectiveState.percentages?.suggested_reframe?.trim() ||
     "No reframe suggestion is available for this journal yet.";
@@ -524,9 +530,19 @@ function AiInsightsSidebar({
           <>
             <section className="space-y-4 border-b border-slate-200 pb-6 dark:border-slate-800">
               <div className="flex items-center justify-between gap-3">
-                <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400 dark:text-slate-500">
-                  Sentiment Analysis
-                </h2>
+                <div className="flex items-center gap-1">
+                  <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400 dark:text-slate-500">
+                    Sentiment Analysis
+                  </h2>
+                  <div className="relative group inline-block cursor-help">
+                    <span className="text-[10px] border border-slate-400 text-slate-400 rounded-full w-4 h-4 inline-flex items-center justify-center leading-none hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                      ?
+                    </span>
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-slate-900 text-white text-xs rounded px-2 py-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 text-center whitespace-normal dark:bg-slate-950">
+                      Gray highlighted text indicates segments where sentiment accuracy is uncertain.
+                    </div>
+                  </div>
+                </div>
                 <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400 dark:text-slate-500">
                   {segmentCount} segments analyzed
                 </p>
@@ -890,4 +906,40 @@ function clearSessionCache(key: string) {
   } catch (error) {
     console.warn("Failed to clear journal session cache:", error);
   }
+}
+
+function calculateAccurateSegmentPercentages(
+  segments: JournalSentimentSegment[],
+): { negative: number; neutral: number; positive: number } | null {
+  if (!segments || segments.length === 0) {
+    return { positive: 0, neutral: 0, negative: 0 };
+  }
+
+  let positiveCount = 0;
+  let neutralCount = 0;
+  let negativeCount = 0;
+
+  for (const segment of segments) {
+    const sentiment = String(segment.sentiment ?? "neutral").toLowerCase().trim();
+
+    if (sentiment.includes("positive")) {
+      positiveCount += 1;
+    } else if (sentiment.includes("neutral")) {
+      neutralCount += 1;
+    } else {
+      negativeCount += 1;
+    }
+  }
+
+  const total = positiveCount + neutralCount + negativeCount;
+
+  if (total === 0) {
+    return null;
+  }
+
+  return {
+    positive: (positiveCount / total) * 100,
+    neutral: (neutralCount / total) * 100,
+    negative: (negativeCount / total) * 100,
+  };
 }

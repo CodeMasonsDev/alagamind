@@ -7,6 +7,7 @@ export type JournalSentimentSegment = {
   text: string;
   sentiment: string;
   confidence: number;
+  is_accurate: boolean;
 };
 
 type RawJournalSentimentSegment = {
@@ -16,6 +17,7 @@ type RawJournalSentimentSegment = {
   sentence?: string | null;
   sentiment?: string | null;
   confidence?: number | null;
+  is_accurate?: boolean | null;
 };
 
 type RawJournalSentimentResponse = {
@@ -126,5 +128,6 @@ function normalizeJournalSentimentSegment(
       typeof segment.confidence === "number" && Number.isFinite(segment.confidence)
         ? segment.confidence
         : 0,
+    is_accurate: segment.is_accurate !== false,
   };
 }
