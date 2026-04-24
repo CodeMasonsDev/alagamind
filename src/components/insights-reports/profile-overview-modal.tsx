@@ -60,10 +60,10 @@ export default function ProfileOverviewModal({
                 id="profile-overview-title"
                 className="mt-4 text-[1.85rem] font-semibold tracking-tight text-slate-950 dark:text-slate-100"
               >
-                Profile overview summary
+                Client Overview & Insights
               </h2>
               <p className="mt-2 max-w-xl text-sm leading-6 text-slate-600 dark:text-slate-400">
-                Generated guidance based on your recent emotional signals, recurring themes, and reflection patterns.
+                Comprehensive analysis of client resilience patterns, emotional distribution, behavioral trends, and recommendation signals for therapeutic planning.
               </p>
             </div>
           <button
@@ -93,19 +93,17 @@ export default function ProfileOverviewModal({
               </div>
             </div>
           ) : error ? (
-            <div className="rounded-3xl border border-rose-200 bg-[linear-gradient(180deg,#fff7f7_0%,#fff1f2_100%)] px-5 py-5 shadow-sm">
-              <div className="flex items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-rose-100 text-rose-600">
-                  <ShieldAlert className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-rose-700">
-                    Overview unavailable
-                  </p>
-                  <p className="mt-1 text-sm leading-6 text-rose-700">
-                    {error}
-                  </p>
-                </div>
+            <div className="flex min-h-72 flex-col items-center justify-center gap-4 text-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-400">
+                <ShieldAlert className="h-6 w-6" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-base font-semibold text-slate-900 dark:text-slate-100">
+                  No overview available yet
+                </p>
+                <p className="max-w-sm text-sm text-slate-500 dark:text-slate-400">
+                  There is no overview summary generated for this profile yet. Check back after more sessions have been logged.
+                </p>
               </div>
             </div>
           ) : insights ? (

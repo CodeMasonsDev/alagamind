@@ -82,7 +82,7 @@ export function CheckInModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-md p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-gray-600/40 p-4"
       onClick={handleBackdropClick}
       role="dialog"
       aria-modal="true"

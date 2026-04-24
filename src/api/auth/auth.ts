@@ -93,7 +93,13 @@ export async function getMe() {
 
   console.log("🔥 RESPONSE:", res);
 
-  if (!res.ok) throw new Error("Unauthorized");
+  if (!res.ok) {
+    if (res.status === 401) {
+      const { handleUnauthorized } = await import("@/lib/auth-error-handler");
+      handleUnauthorized();
+    }
+    throw new Error("Unauthorized");
+  }
 
   const data = await res.json();
 
