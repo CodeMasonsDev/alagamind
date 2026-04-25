@@ -3,7 +3,7 @@
 import { login } from "@/api/auth/auth";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+
 import React, { useId, useState, useSyncExternalStore } from "react";
 import { useTheme } from "next-themes";
 import { motion } from "framer-motion";
@@ -123,7 +123,6 @@ const fadeUp = {
 };
 
 export default function MHPRegisterPage() {
-  const router = useRouter();
   const firstNameId = useId();
   const lastNameId = useId();
   const emailId = useId();
@@ -158,6 +157,7 @@ export default function MHPRegisterPage() {
           password: formData.password,
         },
       );
+      console.log(res);
 
       if (!res.data) {
         throw new Error("Registration failed");
@@ -169,10 +169,9 @@ export default function MHPRegisterPage() {
           password: formData.password,
           clientId: "Client1",
         });
-        router.replace("/mentalhealth-professionals");
-        router.refresh();
+        window.location.href = "/mentalhealth-professionals";
       } catch {
-        router.replace("/mentalhealth-professionals/login?registered=1");
+        window.location.href = "/mentalhealth-professionals/login?registered=1";
       }
     } catch (err) {
       setError(

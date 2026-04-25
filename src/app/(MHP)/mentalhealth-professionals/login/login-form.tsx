@@ -2,7 +2,7 @@
 
 import { login } from "@/api/auth/auth";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import React, { useId, useState, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -140,7 +140,6 @@ function Field({
 }
 
 function MHPLoginFormInner() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const emailId = useId();
   const passwordId = useId();
@@ -168,8 +167,7 @@ function MHPLoginFormInner() {
     setIsSubmitting(true);
     try {
       await login({ email, password, clientId: "Client1" });
-      router.replace("/mentalhealth-professionals");
-      router.refresh();
+      window.location.href = "/mentalhealth-professionals";
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to sign in.");
     } finally {
