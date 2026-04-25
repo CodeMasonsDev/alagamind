@@ -167,8 +167,7 @@ function MHPLoginFormInner() {
     setIsSubmitting(true);
     try {
       await login({ email, password });
-      router.replace("/mentalhealth-professionals");
-      router.refresh();
+      window.location.href = "/mentalhealth-professionals";
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to sign in.");
     } finally {
