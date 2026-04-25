@@ -7,7 +7,6 @@ import {
   BarChart3,
   BookOpen,
   ChevronsUpDown,
-  Command,
   Dumbbell,
   HelpCircle,
   LayoutDashboard,
@@ -15,6 +14,7 @@ import {
   LogOut,
   MessageSquare,
   Settings,
+  UserSearch,
 } from "lucide-react";
 import { getMe, logout, type SessionUser } from "@/api/auth/auth";
 import ProfileAvatar from "@/components/shared/profile-avatar";
@@ -70,6 +70,11 @@ const NAVIGATION_DATA: NavGroup[] = [
         label: "Insights & Reports",
         icon: BarChart3,
         href: "/insights-reports",
+      },
+      {
+        label: "Seek Professionals",
+        icon: UserSearch,
+        href: "/seek-professionals",
       },
       // {
       //   label: "History & Sessions",

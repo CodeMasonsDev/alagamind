@@ -28,7 +28,10 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
-    "**/*.mts"
+    "**/*.mts",
+    "src/app/(MHP)/mentalhealth-professionals",
+    "src/app/(MHP)/mentalhealth-professionals/[clientId]/login",
+    "src/app/(MHP)/register"
   ],
   "exclude": ["node_modules"]
 }

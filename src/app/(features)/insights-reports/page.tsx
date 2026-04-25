@@ -12,7 +12,6 @@ import ModuleContribution from "@/components/insights-reports/module-contributio
 import OverviewMetrics from "@/components/insights-reports/overview-metrics";
 import ProfileOverviewModal from "@/components/insights-reports/profile-overview-modal";
 import RangeSelector from "@/components/insights-reports/range-selector";
-import RqScoreTrend from "@/components/insights-reports/rq-score-trend";
 import {
   InsightsReportsEmptyState,
   InsightsReportsErrorState,
@@ -56,6 +55,7 @@ export default function InsightsReportsPage() {
       isMounted = false;
     };
   }, []);
+
 
   const { data, isLoading, isRefreshing, error, warnings, refetch } =
     useInsightsReports(profile?.id ?? null, range);
