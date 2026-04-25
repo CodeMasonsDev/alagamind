@@ -20,9 +20,12 @@ axiosInstance.interceptors.response.use(
 
       const pathname =
         typeof window !== "undefined" ? window.location.pathname : "";
-      const loginUrl = pathname.includes("/mentalhealth-professionals")
-        ? "/mentalhealth-professionals/login"
-        : "/login";
+      let loginUrl = "/login";
+      if (pathname.includes("/admin")) {
+        loginUrl = "/admin/login";
+      } else if (pathname.includes("/mentalhealth-professionals")) {
+        loginUrl = "/mentalhealth-professionals/login";
+      }
 
       if (typeof window !== "undefined") {
         window.location.href = loginUrl;
