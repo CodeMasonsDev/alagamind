@@ -5,6 +5,8 @@ import { DashboardMetricsProvider } from "@/components/providers/dashboard-metri
 import { ReflectionsProvider } from "@/components/providers/reflections-provider";
 import { cookies } from "next/headers";
 import { ACCESS_TOKEN_COOKIE } from "@/lib/auth-cookies";
+import { hasRole } from "@/lib/auth-roles";
+import { getJwtRoles } from "@/lib/auth-token";
 import { redirect } from "next/navigation";
 
 export default async function FeaturesLayout({
@@ -17,6 +19,12 @@ export default async function FeaturesLayout({
 
   if (!accessToken) {
     redirect("/login");
+  }
+
+  const roles = getJwtRoles(accessToken);
+
+  if (hasRole(roles, "MHP")) {
+    redirect("/mentalhealth-professionals");
   }
 
   return (
