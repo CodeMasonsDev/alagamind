@@ -5,8 +5,13 @@ type JwtPayload = Record<string, unknown>;
 
 function decodeBase64Url(value: string) {
   const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
-  const padding = normalized.length % 4 === 0 ? 0 : 4 - (normalized.length % 4);
+  const padding =
+    normalized.length % 4 === 0 ? 0 : 4 - (normalized.length % 4);
   const padded = normalized.padEnd(normalized.length + padding, "=");
+
+  if (typeof atob === "function") {
+    return atob(padded);
+  }
 
   return Buffer.from(padded, "base64").toString("utf8");
 }

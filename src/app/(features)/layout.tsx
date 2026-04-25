@@ -23,6 +23,10 @@ export default async function FeaturesLayout({
 
   const roles = getJwtRoles(accessToken);
 
+  if (hasRole(roles, "Admin")) {
+    redirect("/admin");
+  }
+
   if (hasRole(roles, "MHP")) {
     redirect("/mentalhealth-professionals");
   }

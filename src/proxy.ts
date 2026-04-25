@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ACCESS_TOKEN_COOKIE } from "./lib/auth-cookies";
+import { hasRole } from "./lib/auth-roles";
+import { getJwtRoles } from "./lib/auth-token";
 
 const protectedRoutes = [
   "/dashboard",
@@ -17,9 +19,16 @@ const mhpRoutes = [
   "/mentalhealth-professionals",
 ];
 
+const adminRoutes = ["/admin"];
+
+function redirectTo(path: string, request: NextRequest) {
+  return NextResponse.redirect(new URL(path, request.url));
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const hasAccessToken = request.cookies.has(ACCESS_TOKEN_COOKIE);
+  const accessToken = request.cookies.get(ACCESS_TOKEN_COOKIE)?.value;
+  const hasAccessToken = typeof accessToken === "string" && accessToken.length > 0;
 
   const isProtected = protectedRoutes.some((route) =>
     pathname.startsWith(route),
@@ -29,19 +38,101 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith(route),
   );
 
+  const isAdminRoute = adminRoutes.some((route) =>
+    pathname.startsWith(route),
+  );
+
   const isMHPAuth = pathname.startsWith("/mentalhealth-professionals/login") ||
-                    pathname.startsWith("/mentalhealth-professionals/register");
+    pathname.startsWith("/mentalhealth-professionals/register");
+  const isAdminAuth = pathname.startsWith("/admin/login");
+  const isClientAuth = pathname === "/login" || pathname === "/signup";
 
   // Regular user routes
   if (isProtected && !hasAccessToken) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    return redirectTo("/login", request);
   }
 
   // MHP routes must also require a token.
   if (isMHPRoute && !isMHPAuth && !hasAccessToken) {
-    return NextResponse.redirect(
-      new URL("/mentalhealth-professionals/login", request.url),
-    );
+    return redirectTo("/mentalhealth-professionals/login", request);
+  }
+
+  if (isAdminRoute && !isAdminAuth && !hasAccessToken) {
+    return redirectTo("/admin/login", request);
+  }
+
+  if (!hasAccessToken) {
+    return NextResponse.next();
+  }
+
+  const roles = getJwtRoles(accessToken);
+  const isMHP = hasRole(roles, "MHP");
+  const isAdmin = hasRole(roles, "Admin");
+
+  if (isClientAuth) {
+    if (isAdmin) {
+      return redirectTo("/admin", request);
+    }
+
+    if (isMHP) {
+      return redirectTo("/mentalhealth-professionals", request);
+    }
+
+    return redirectTo("/dashboard", request);
+  }
+
+  if (isMHPAuth) {
+    if (isAdmin) {
+      return redirectTo("/admin", request);
+    }
+
+    if (isMHP) {
+      return redirectTo("/mentalhealth-professionals", request);
+    }
+
+    return redirectTo("/dashboard", request);
+  }
+
+  if (isAdminAuth) {
+    if (isAdmin) {
+      return redirectTo("/admin", request);
+    }
+
+    if (isMHP) {
+      return redirectTo("/mentalhealth-professionals", request);
+    }
+
+    return redirectTo("/dashboard", request);
+  }
+
+  if (isProtected) {
+    if (isAdmin) {
+      return redirectTo("/admin", request);
+    }
+
+    if (isMHP) {
+      return redirectTo("/mentalhealth-professionals", request);
+    }
+  }
+
+  if (isMHPRoute && !isMHPAuth) {
+    if (isAdmin) {
+      return redirectTo("/admin", request);
+    }
+
+    if (!isMHP) {
+      return redirectTo("/dashboard", request);
+    }
+  }
+
+  if (isAdminRoute && !isAdminAuth) {
+    if (isMHP) {
+      return redirectTo("/mentalhealth-professionals", request);
+    }
+
+    if (!isAdmin) {
+      return redirectTo("/dashboard", request);
+    }
   }
 
   return NextResponse.next();
@@ -59,6 +150,7 @@ export const config = {
     "/help-support/:path*",
     "/insights-reports/:path*",
     "/mentalhealth-professionals/:path*",
+    "/admin/:path*",
     "/login",
     "/signup",
   ],
