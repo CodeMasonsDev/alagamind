@@ -8,6 +8,8 @@ import React, { useId, useState, useSyncExternalStore } from "react";
 import { useTheme } from "next-themes";
 import { motion } from "framer-motion";
 import { ArrowLeft, Monitor, Moon, Sun } from "lucide-react";
+import axiosInstance from "@/lib/axios";
+import { BASEURLDOTNETAPI } from "@/lib/base";
 
 let mhpRegisterThemeToggleHydrated = false;
 
@@ -147,27 +149,26 @@ export default function MHPRegisterPage() {
     setIsSubmitting(true);
 
     try {
-      const res = await fetch("/api/MHPSeekControllers/Register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      const res = await axiosInstance.post(
+        `${BASEURLDOTNETAPI}api/MHPSeekControllers/Register`,
+        {
           email: formData.email,
           firstName: formData.firstName,
           lastName: formData.lastName,
           password: formData.password,
-        }),
-      });
+        },
+      );
 
-      const data = await res.json().catch(() => null);
-
-      if (!res.ok) {
-        throw new Error(data?.message ?? "Registration failed");
+      if (!res.data) {
+        throw new Error("Registration failed");
       }
 
       try {
-        await login({ email: formData.email, password: formData.password, clientId: "Client1" });
+        await login({
+          email: formData.email,
+          password: formData.password,
+          clientId: "Client1",
+        });
         router.replace("/mentalhealth-professionals");
         router.refresh();
       } catch {
@@ -251,9 +252,9 @@ export default function MHPRegisterPage() {
                 variants={fadeUp}
                 className="mt-4 max-w-[52ch] mx-auto text-[15px] leading-relaxed text-slate-600 dark:text-slate-400/90"
               >
-                Join AlagaMind as a mental health professional. Manage your clients,
-                track progress, and provide exceptional care through our professional
-                platform.
+                Join AlagaMind as a mental health professional. Manage your
+                clients, track progress, and provide exceptional care through
+                our professional platform.
               </motion.p>
             </motion.div>
           </section>
@@ -445,8 +446,8 @@ export default function MHPRegisterPage() {
                       className="font-bold text-teal-600 transition-colors hover:text-teal-700 hover:underline dark:text-teal-300 dark:hover:text-teal-200"
                     >
                       Professional Terms
-                    </Link>
-                    {" "}and agree to the platform guidelines.
+                    </Link>{" "}
+                    and agree to the platform guidelines.
                   </label>
                 </motion.div>
 
