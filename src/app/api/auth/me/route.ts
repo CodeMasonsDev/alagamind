@@ -4,6 +4,7 @@ import type { AxiosError } from "axios";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { ACCESS_TOKEN_COOKIE, decodeAuthCookie } from "@/lib/auth-cookies";
+import { normalizeRoles } from "@/lib/auth-roles";
 import { BASEURLDOTNETAPI } from "@/lib/base";
 import { getProfilePicturePublicUrl } from "@/lib/profile-picture";
 
@@ -59,7 +60,7 @@ export async function GET() {
       email: user.email,
       firstname: user.firstname,
       lastname: user.lastname,
-      roles: user.roles,
+      roles: normalizeRoles(user.roles),
       profileImageUrl: await getProfilePicturePublicUrl(user.id),
     });
   } catch (error) {
