@@ -21,8 +21,19 @@ const mhpRoutes = [
 
 const adminRoutes = ["/admin"];
 
+function applyNoStore(response: NextResponse) {
+  response.headers.set(
+    "Cache-Control",
+    "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
+  );
+  response.headers.set("Pragma", "no-cache");
+  response.headers.set("Expires", "0");
+  response.headers.set("x-middleware-cache", "no-cache");
+  return response;
+}
+
 function redirectTo(path: string, request: NextRequest) {
-  return NextResponse.redirect(new URL(path, request.url));
+  return applyNoStore(NextResponse.redirect(new URL(path, request.url)));
 }
 
 export async function proxy(request: NextRequest) {
@@ -62,7 +73,7 @@ export async function proxy(request: NextRequest) {
   }
 
   if (!hasAccessToken) {
-    return NextResponse.next();
+    return applyNoStore(NextResponse.next());
   }
 
   const roles = getJwtRoles(accessToken);
@@ -135,7 +146,7 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  return NextResponse.next();
+  return applyNoStore(NextResponse.next());
 }
 
 export const config = {
