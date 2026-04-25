@@ -11,7 +11,7 @@ import {
   Settings,
   Users,
 } from "lucide-react";
-import { getMe, type SessionUser } from "@/api/auth/auth";
+import { getMe, logout, type SessionUser } from "@/api/auth/auth";
 
 const MHP_BASE = "/mentalhealth-professionals";
 
@@ -58,9 +58,15 @@ export default function MHPSidebar() {
     [pathname],
   );
 
-  function handleLogout() {
-    setIsLoggingOut(true);
-    router.replace("/mentalhealth-professionals/login");
+  async function handleLogout() {
+    try {
+      setIsLoggingOut(true);
+      await logout();
+    } finally {
+      setProfileMenuOpen(false);
+      router.replace("/mentalhealth-professionals/login");
+      router.refresh();
+    }
   }
 
   return (
@@ -142,7 +148,7 @@ export default function MHPSidebar() {
             </div>
             <button
               type="button"
-              onClick={handleLogout}
+              onClick={() => void handleLogout()}
               disabled={isLoggingOut}
               className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-rose-100 bg-rose-50 px-3 py-2.5 text-sm font-semibold text-rose-700 transition-colors hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-70 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-400 dark:hover:bg-rose-500/20"
             >
