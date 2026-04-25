@@ -2,7 +2,7 @@
 
 import { login } from "@/api/auth/auth";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import React, { useId, useState, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -152,7 +152,7 @@ function MHPLoginFormInner() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const wasJustRegistered = searchParams.get("registered") === "1";
-
+  const router = useRouter();
   const emailLooksValid = /^\S+@\S+\.\S+$/.test(email);
   const emailState: "default" | "valid" | "error" =
     email.length > 0 && !emailLooksValid
@@ -166,8 +166,9 @@ function MHPLoginFormInner() {
     setError(null);
     setIsSubmitting(true);
     try {
-      await login({ email, password, clientId: "Client1" });
-      window.location.href = "/mentalhealth-professionals";
+      await login({ email, password });
+      router.replace("/mentalhealth-professionals");
+      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to sign in.");
     } finally {
