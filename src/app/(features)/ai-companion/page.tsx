@@ -883,9 +883,6 @@ export default function AiCompanionPage() {
         },
         onDone: async (response) => {
           setIsTyping(false);
-          if (response.language_preference) {
-            setLanguagePreference(response.language_preference);
-          }
           const messageId = ensureAssistantMessage(response.response);
           updateMessageById(messageId, (message) => {
             if (message.role !== "assistant" || message.kind !== "text") {
