@@ -50,7 +50,8 @@ export default function Composer({
   const [recordingPhase, setRecordingPhase] = useState<RecordingPhase>("idle");
   const [micError, setMicError] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
-  const [waveformBars, setWaveformBars] = useState<number[]>(EMPTY_WAVEFORM_BARS);
+  const [waveformBars, setWaveformBars] =
+    useState<number[]>(EMPTY_WAVEFORM_BARS);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
 
   const isClientReady = useSyncExternalStore(
@@ -71,7 +72,8 @@ export default function Composer({
   const isVoiceRailVisible = isRecording || isBusy;
   const isComposerLocked = isDisabled || isTyping || isBusy;
   const canSend = input.trim().length > 0 && !isComposerLocked && !isRecording;
-  const timerLabel = isRecording || isBusy ? formatDuration(recordingSeconds) : null;
+  const timerLabel =
+    isRecording || isBusy ? formatDuration(recordingSeconds) : null;
 
   const statusLabel = micError
     ? micError
@@ -333,7 +335,10 @@ export default function Composer({
   ]);
 
   const stopRecording = useCallback(() => {
-    if (!mediaRecorderRef.current || mediaRecorderRef.current.state === "inactive") {
+    if (
+      !mediaRecorderRef.current ||
+      mediaRecorderRef.current.state === "inactive"
+    ) {
       return;
     }
 
@@ -356,7 +361,14 @@ export default function Composer({
     }
 
     void startRecording();
-  }, [isBusy, isDisabled, isRecording, isTyping, startRecording, stopRecording]);
+  }, [
+    isBusy,
+    isDisabled,
+    isRecording,
+    isTyping,
+    startRecording,
+    stopRecording,
+  ]);
 
   return (
     <section className="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/90 dark:border-slate-800 dark:bg-slate-950/90 dark:supports-[backdrop-filter]:bg-slate-950/85">
@@ -455,15 +467,21 @@ export default function Composer({
 
               <button
                 type="button"
-                disabled={isDisabled || isTyping || !isMediaRecorderSupported || isBusy}
+                disabled={
+                  isDisabled || isTyping || !isMediaRecorderSupported || isBusy
+                }
                 onClick={handleMicToggle}
                 className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border transition-colors ${
                   isRecording
                     ? "border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300 dark:hover:bg-rose-500/15"
                     : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
                 } disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-300 dark:disabled:border-slate-800 dark:disabled:bg-slate-900 dark:disabled:text-slate-600`}
-                aria-label={isRecording ? "Stop voice recording" : "Start voice recording"}
-                title={isRecording ? "Stop voice recording" : "Start voice recording"}
+                aria-label={
+                  isRecording ? "Stop voice recording" : "Start voice recording"
+                }
+                title={
+                  isRecording ? "Stop voice recording" : "Start voice recording"
+                }
               >
                 {isBusy ? (
                   <Loader2 size={18} className="animate-spin" />
@@ -562,7 +580,6 @@ function formatDuration(totalSeconds: number) {
 /* ── Custom Language Dropdown ──────────────────────────────── */
 
 const LANGUAGE_OPTIONS: { value: LanguagePreference; label: string }[] = [
-  { value: "auto", label: "Auto" },
   { value: "english", label: "English" },
   { value: "bisaya", label: "Bisaya" },
   { value: "tagalog", label: "Tagalog" },
@@ -582,7 +599,7 @@ function LanguageSelect({
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const listRef = useRef<HTMLUListElement | null>(null);
   const selectedLabel =
-    LANGUAGE_OPTIONS.find((o) => o.value === value)?.label ?? "Auto";
+    LANGUAGE_OPTIONS.find((o) => o.value === value)?.label ?? "English";
 
   function handleToggle() {
     if (disabled) return;
@@ -660,7 +677,11 @@ function LanguageSelect({
           className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-800"
         >
           {LANGUAGE_OPTIONS.map((option) => (
-            <li key={option.value} role="option" aria-selected={value === option.value}>
+            <li
+              key={option.value}
+              role="option"
+              aria-selected={value === option.value}
+            >
               <button
                 type="button"
                 onClick={() => {
