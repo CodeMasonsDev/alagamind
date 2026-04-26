@@ -63,24 +63,19 @@ export const SUGGESTIONS: Suggestion[] = [];
 const LANGUAGE_PREFERENCE_STORAGE_KEY = "ai-companion.language-preference";
 
 function isLanguagePreference(value: unknown): value is LanguagePreference {
-  return (
-    value === "auto" ||
-    value === "english" ||
-    value === "bisaya" ||
-    value === "tagalog"
-  );
+  return value === "english" || value === "bisaya" || value === "tagalog";
 }
 
 function readStoredLanguagePreference() {
   if (typeof window === "undefined") {
-    return "auto" as const;
+    return "english" as const;
   }
 
   const storedValue = window.localStorage.getItem(
     LANGUAGE_PREFERENCE_STORAGE_KEY,
   );
 
-  return isLanguagePreference(storedValue) ? storedValue : "auto";
+  return isLanguagePreference(storedValue) ? storedValue : "english";
 }
 
 function sortSessionsByUpdatedAt(nextSessions: UserSession[]) {
@@ -161,7 +156,9 @@ function resolveSessionGreetingLanguage(
   languagePreference: LanguagePreference,
   interfaceLanguage: "english" | "tagalog" | "bisaya",
 ) {
-  return languagePreference === "auto" ? interfaceLanguage : languagePreference;
+  return languagePreference === "english"
+    ? interfaceLanguage
+    : languagePreference;
 }
 
 function buildInitialAssistantGreeting(
@@ -209,7 +206,7 @@ export default function AiCompanionPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [languagePreference, setLanguagePreference] =
-    useState<LanguagePreference>("auto");
+    useState<LanguagePreference>("english");
   const [isTyping, setIsTyping] = useState(false);
   const [messageAudio, setMessageAudio] = useState<
     Record<number, MessageAudioState>
@@ -374,7 +371,8 @@ export default function AiCompanionPage() {
       if (session && session.history.length === 0) {
         // Only stream the greeting if we are explicitly asked to or if it's a new empty session
         // we haven't greeted yet in this local UI instance.
-        const existingGreeting = sessionGreetingsRef.current[session.session_id];
+        const existingGreeting =
+          sessionGreetingsRef.current[session.session_id];
         if (!existingGreeting || forceGreeting) {
           streamEmptySessionGreeting(session, latestGreetingRef.current);
         } else {
