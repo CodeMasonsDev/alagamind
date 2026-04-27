@@ -287,9 +287,9 @@ function FeaturedProtocolCard({ protocol }: { protocol: FeaturedProtocol }) {
             <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-teal-500/20 text-teal-200">
               <Icon size={18} />
             </span>
-            <span className="rounded-md border border-teal-300/30 bg-teal-300/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-teal-100">
+            {/* <span className="rounded-md border border-teal-300/30 bg-teal-300/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-teal-100">
               {protocol.badge}
-            </span>
+            </span> */}
           </div>
 
           <h2 className="text-2xl font-bold tracking-tight text-white">
@@ -336,9 +336,9 @@ function FeaturedProtocolCard({ protocol }: { protocol: FeaturedProtocol }) {
         <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400">
           <Icon size={18} />
         </span>
-        <span className="rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+        {/* <span className="rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
           {protocol.badge}
-        </span>
+        </span> */}
       </div>
 
       <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">

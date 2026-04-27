@@ -63,17 +63,19 @@ export default function ProfileOverviewModal({
                 Client Overview & Insights
               </h2>
               <p className="mt-2 max-w-xl text-sm leading-6 text-slate-600 dark:text-slate-400">
-                Comprehensive analysis of client resilience patterns, emotional distribution, behavioral trends, and recommendation signals for therapeutic planning.
+                Comprehensive analysis of client resilience patterns, emotional
+                distribution, behavioral trends, and recommendation signals for
+                therapeutic planning.
               </p>
             </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-2 text-slate-400 shadow-sm transition-colors hover:bg-white dark:bg-slate-900 hover:text-slate-700 dark:text-slate-300"
-            aria-label="Close overview modal"
-          >
-            <X className="h-5 w-5" />
-          </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-2 text-slate-400 shadow-sm transition-colors hover:bg-white dark:bg-slate-900 hover:text-slate-700 dark:text-slate-300"
+              aria-label="Close overview modal"
+            >
+              <X className="h-5 w-5" />
+            </button>
           </div>
         </div>
 
@@ -102,7 +104,8 @@ export default function ProfileOverviewModal({
                   No overview available yet
                 </p>
                 <p className="max-w-sm text-sm text-slate-500 dark:text-slate-400">
-                  There is no overview summary generated for this profile yet. Check back after more sessions have been logged.
+                  There is no overview summary generated for this profile yet.
+                  Check back after more sessions have been logged.
                 </p>
               </div>
             </div>
@@ -114,7 +117,8 @@ export default function ProfileOverviewModal({
                     Snapshot
                   </p>
                   <p className="mt-3 text-2xl font-semibold tracking-tight text-slate-950 dark:text-slate-100">
-                    {insights.sections[0]?.title || "Personalized emotional overview"}
+                    {insights.sections[0]?.title ||
+                      "Personalized emotional overview"}
                   </p>
                   <p className="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-400">
                     {insights.sections[0]?.content ||
@@ -135,12 +139,12 @@ export default function ProfileOverviewModal({
                     value={formatToken(insights.recommended_companion_approach)}
                     accentClass="from-teal-50 dark:from-teal-900/20 to-white dark:to-slate-800 text-teal-700 dark:text-teal-400"
                   />
-                  <SummaryCard
+                  {/* <SummaryCard
                     icon={<Sparkles className="h-4 w-4" />}
                     label="Generated"
                     value={formatGeneratedAt(insights.generated_at)}
                     accentClass="from-amber-50 dark:from-amber-900/20 to-white dark:to-slate-800 text-amber-700 dark:text-amber-400"
-                  />
+                  /> */}
                 </section>
               </div>
 
@@ -151,7 +155,8 @@ export default function ProfileOverviewModal({
                       Key Signals
                     </p>
                     <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                      Structured themes extracted from your current profile context.
+                      Structured themes extracted from your current profile
+                      context.
                     </p>
                   </div>
                   <div className="rounded-full border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-slate-600 dark:text-slate-400">
@@ -246,7 +251,9 @@ function SummaryCard({
           {label}
         </span>
       </div>
-      <p className="mt-3 text-base font-semibold text-slate-950 dark:text-slate-100">{value}</p>
+      <p className="mt-3 text-base font-semibold text-slate-950 dark:text-slate-100">
+        {value}
+      </p>
     </article>
   );
 }
