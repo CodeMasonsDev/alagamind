@@ -159,6 +159,24 @@ export default function SignupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    if (!formData.firstName.trim()) {
+      setError("First name is required.");
+      return;
+    }
+    if (!formData.lastName.trim()) {
+      setError("Last name is required.");
+      return;
+    }
+    if (formData.password.length < 8) {
+      setError("Password must be at least 8 characters long.");
+      return;
+    }
+    if (!agreed) {
+      setError("You must acknowledge the Terms of Resilience to continue.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -445,7 +463,7 @@ export default function SignupPage() {
                         type="password"
                         placeholder="••••••••"
                         value={formData.password}
-                        minLength={6}
+                        minLength={8}
                         onChange={(e) =>
                           setFormData((prev) => ({
                             ...prev,
@@ -480,7 +498,8 @@ export default function SignupPage() {
                     >
                       I acknowledge the{" "}
                       <Link
-                        href="#"
+                        href="/terms-of-resilience"
+                        target="_blank"
                         className="font-bold text-teal-600 transition-colors hover:text-teal-700 hover:underline dark:text-teal-300 dark:hover:text-teal-200"
                       >
                         Terms of Resilience

@@ -40,8 +40,6 @@ import { DEFAULT_PROFILE_PICTURE_URL } from "@/lib/profile-picture-constants";
 
 type PreferenceState = {
   language: SupportedLanguage;
-  productUpdates: boolean;
-  supportAnnouncements: boolean;
   anonymizedInsights: boolean;
 };
 
@@ -87,8 +85,6 @@ export default function SettingsPage() {
 
   const [preferences, setPreferences] = useState<PreferenceState>({
     language,
-    productUpdates: true,
-    supportAnnouncements: true,
     anonymizedInsights: false,
   });
 
@@ -159,9 +155,6 @@ export default function SettingsPage() {
         language: isSupportedLanguage(parsed.language)
           ? parsed.language
           : language,
-        productUpdates: parsed.productUpdates ?? current.productUpdates,
-        supportAnnouncements:
-          parsed.supportAnnouncements ?? current.supportAnnouncements,
         anonymizedInsights:
           parsed.anonymizedInsights ?? current.anonymizedInsights,
       }));
@@ -759,6 +752,72 @@ export default function SettingsPage() {
           </section>
         </div>
 
+        {/* Privacy & Consent */}
+        <section className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+          <div className="border-b border-slate-200 dark:border-slate-800 px-6 py-5">
+            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
+              Privacy & Consent
+            </p>
+            <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950 dark:text-white">
+              Data & communication preferences
+            </h2>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              Control how AlagaMind uses your data and which communications you receive.
+            </p>
+          </div>
+
+          <div className="space-y-3 px-6 py-6">
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">
+              Data usage
+            </p>
+
+            <ConsentToggle
+              label="Anonymized insights"
+              description="Allow AlagaMind to use anonymized, non-identifiable data from your sessions to improve AI responses and therapeutic recommendations."
+              checked={preferences.anonymizedInsights}
+              onChange={(v) =>
+                setPreferences((c) => ({ ...c, anonymizedInsights: v }))
+              }
+            />
+
+            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50 px-4 py-3 text-sm text-slate-500 dark:text-slate-400">
+              <p className="font-semibold text-slate-700 dark:text-slate-300">
+                What data do we store?
+              </p>
+              <ul className="mt-2 list-inside list-disc space-y-1 text-xs leading-relaxed">
+                <li>Your profile name and email (required for your account)</li>
+                <li>AI companion conversation history (stored per session)</li>
+                <li>Journal entries and sentiment scores (private to you)</li>
+                <li>Exercise completion records and progress data</li>
+                <li>Language and theme preferences (stored locally on this device)</li>
+              </ul>
+            </div>
+
+            {preferencesSuccess ? (
+              <StatusBanner tone="success" message={preferencesSuccess} />
+            ) : null}
+
+            <button
+              type="button"
+              onClick={() => void handlePreferencesSave()}
+              disabled={isSavingPreferences}
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 dark:border-transparent bg-slate-900 dark:bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-slate-800 dark:hover:bg-teal-500 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isSavingPreferences ? (
+                <>
+                  <LoaderCircle className="h-4 w-4 animate-spin" />
+                  Saving
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4" />
+                  Save privacy preferences
+                </>
+              )}
+            </button>
+          </div>
+        </section>
+
         <section className="rounded-3xl border border-rose-200 dark:border-rose-900/30 bg-white dark:bg-slate-900 shadow-sm">
           <div className="border-b border-rose-100 dark:border-rose-900/30 px-6 py-5">
             <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-rose-500 dark:text-rose-400">
@@ -979,5 +1038,45 @@ function StatusBanner({
     <p className={`rounded-2xl border px-4 py-3 text-sm ${styles}`}>
       {message}
     </p>
+  );
+}
+
+function ConsentToggle({
+  label,
+  description,
+  checked,
+  onChange,
+}: {
+  label: string;
+  description: string;
+  checked: boolean;
+  onChange: (value: boolean) => void;
+}) {
+  return (
+    <div className="flex items-start justify-between gap-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50 px-4 py-4">
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+          {label}
+        </p>
+        <p className="mt-0.5 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+          {description}
+        </p>
+      </div>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        onClick={() => onChange(!checked)}
+        className={`relative mt-0.5 inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 ${
+          checked ? "bg-teal-600 dark:bg-teal-500" : "bg-slate-200 dark:bg-slate-700"
+        }`}
+      >
+        <span
+          className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${
+            checked ? "translate-x-5" : "translate-x-0"
+          }`}
+        />
+      </button>
+    </div>
   );
 }
