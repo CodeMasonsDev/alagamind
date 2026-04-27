@@ -609,6 +609,70 @@ function ProductShowcase() {
   );
 }
 
+const developers = [
+  { name: "Developer 1", role: "Project Manager", image: "/devs/dev1.png" },
+  {
+    name: "Developer 2",
+    role: "Full-Stack Developer",
+    image: "/devs/dev2.png",
+  },
+  { name: "Developer 3", role: "QA Tester", image: "/devs/dev3.png" },
+  { name: "Developer 4", role: "Front-End Developer", image: "/devs/dev4.png" },
+];
+
+function DevelopersSection() {
+  return (
+    <section className="relative z-10 mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28 lg:px-8">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+        viewport={{ once: true, margin: "-100px" }}
+        className="text-center mb-14"
+      >
+        <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.3em] text-teal-600 dark:text-teal-400">
+          The People Behind It
+        </p>
+        <h2 className="text-4xl sm:text-5xl font-bold text-slate-900 dark:text-white mb-4">
+          Meet the Developers
+        </h2>
+        <p className="text-lg text-slate-600 dark:text-slate-400 max-w-xl mx-auto">
+          A dedicated team building tools for better mental wellness in the
+          Philippines.
+        </p>
+      </motion.div>
+
+      <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
+        {developers.map((dev, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: i * 0.08 }}
+            viewport={{ once: true, margin: "-80px" }}
+            className="group flex flex-col items-center text-center"
+          >
+            <div className="relative mb-4 h-32 w-32 sm:h-40 sm:w-40 overflow-hidden rounded-3xl border-2 border-slate-200/60 shadow-lg transition-all duration-300 group-hover:border-teal-300 group-hover:shadow-xl group-hover:shadow-teal-500/10 dark:border-white/10 dark:group-hover:border-teal-500/50">
+              <Image
+                src={dev.image}
+                alt={dev.name}
+                fill
+                className="object-cover transition-transform duration-300 group-hover:scale-105"
+              />
+            </div>
+            <p className="font-bold text-slate-900 dark:text-white leading-tight">
+              {dev.name}
+            </p>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              {dev.role}
+            </p>
+          </motion.div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function CTASection() {
   return (
     <section className="relative z-10 mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-32 lg:px-8">
@@ -798,6 +862,7 @@ export default function Home() {
         <HeroSection />
         <FeaturesSection />
         <ProductShowcase />
+        <DevelopersSection />
         <CTASection />
         <Footer />
       </div>
