@@ -374,14 +374,16 @@ function LoginFormInner() {
               <p className="mt-2.5 text-center text-[11.25px] leading-relaxed text-slate-500 dark:text-slate-500">
                 By signing in, you agree to our{" "}
                 <Link
-                  href="#"
+                  href="/terms-of-resilience"
+                  target="_blank"
                   className="text-slate-700 underline-offset-2 hover:underline dark:text-slate-300"
                 >
                   Terms
                 </Link>{" "}
                 &{" "}
                 <Link
-                  href="#"
+                  href="/privacy-policy"
+                  target="_blank"
                   className="text-slate-700 underline-offset-2 hover:underline dark:text-slate-300"
                 >
                   Privacy Policy
