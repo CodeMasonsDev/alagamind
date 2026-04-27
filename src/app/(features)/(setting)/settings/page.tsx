@@ -22,6 +22,8 @@ import {
   updatePassword,
   type SessionUser,
 } from "@/api/auth/auth";
+import axiosInstance from "@/lib/axios";
+import { BASEURLDOTNETAPI } from "@/lib/base";
 import LanguagePreferenceSelector, {
   getSupportedLanguageLabel,
   getSupportedLanguagePreview,
@@ -67,6 +69,11 @@ export default function SettingsPage() {
     null,
   );
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [deleteAccountError, setDeleteAccountError] = useState<string | null>(
+    null,
+  );
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -288,6 +295,29 @@ export default function SettingsPage() {
     } finally {
       router.replace("/login");
       router.refresh();
+    }
+  }
+
+  async function handleDeleteAccount() {
+    if (!profile?.id) return;
+
+    setIsDeletingAccount(true);
+    setDeleteAccountError(null);
+
+    try {
+      await axiosInstance.delete(`${BASEURLDOTNETAPI}api/User/Delete`, {
+        params: { id: profile.id },
+      });
+
+      await logout();
+      router.replace("/login");
+      router.refresh();
+    } catch (error) {
+      setDeleteAccountError(
+        error instanceof Error ? error.message : "Failed to delete account.",
+      );
+      setIsDeletingAccount(false);
+      setConfirmDelete(false);
     }
   }
 
@@ -777,7 +807,7 @@ export default function SettingsPage() {
 
             <div className="rounded-2xl border border-rose-200 dark:border-rose-900/30 bg-rose-50/70 dark:bg-rose-900/10 p-5">
               <div className="flex items-start gap-3">
-                <span className="inline-flex p-2  items-center justify-center rounded-2xl bg-white dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 shadow-sm dark:border dark:border-rose-800">
+                <span className="inline-flex p-2 items-center justify-center rounded-2xl bg-white dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 shadow-sm dark:border dark:border-rose-800">
                   <Trash2 className="h-5 w-5" />
                 </span>
                 <div>
@@ -785,29 +815,67 @@ export default function SettingsPage() {
                     Delete account
                   </h3>
                   <p className="mt-1 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-                    The current backend still has no delete-account endpoint, so
-                    this action stays locked rather than faking a destructive
-                    flow in the client.
+                    Permanently delete your account and all associated data.
+                    This action cannot be undone.
                   </p>
                 </div>
               </div>
 
-              <div className="mt-4 flex items-start gap-2 rounded-2xl border border-rose-100 dark:border-rose-900/30 bg-white dark:bg-rose-900/20 px-3 py-3 text-sm text-rose-700 dark:text-rose-400">
-                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-                <span>
-                  Wire this area only after the backend exposes a real account
-                  deletion endpoint.
-                </span>
-              </div>
+              {deleteAccountError ? (
+                <div className="mt-4 flex items-start gap-2 rounded-2xl border border-rose-100 dark:border-rose-900/30 bg-white dark:bg-rose-900/20 px-3 py-3 text-sm text-rose-700 dark:text-rose-400">
+                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span>{deleteAccountError}</span>
+                </div>
+              ) : null}
 
-              <button
-                type="button"
-                disabled
-                className="mt-5 inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-white dark:bg-rose-900/20 px-4 py-2.5 text-sm font-semibold text-rose-400 dark:text-rose-500"
-              >
-                <Trash2 className="h-4 w-4" />
-                Delete account unavailable
-              </button>
+              {confirmDelete ? (
+                <div className="mt-5 space-y-3">
+                  <p className="text-sm font-semibold text-rose-700 dark:text-rose-400">
+                    Are you sure? This will permanently delete your account.
+                  </p>
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => void handleDeleteAccount()}
+                      disabled={isDeletingAccount}
+                      className="inline-flex items-center gap-2 rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {isDeletingAccount ? (
+                        <>
+                          <LoaderCircle className="h-4 w-4 animate-spin" />
+                          Deleting...
+                        </>
+                      ) : (
+                        <>
+                          <Trash2 className="h-4 w-4" />
+                          Yes, delete my account
+                        </>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setConfirmDelete(false);
+                        setDeleteAccountError(null);
+                      }}
+                      disabled={isDeletingAccount}
+                      className="inline-flex items-center gap-2 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 transition-colors hover:bg-slate-50 dark:hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setConfirmDelete(true)}
+                  disabled={isLoadingProfile || !profile}
+                  className="mt-5 inline-flex items-center gap-2 rounded-xl border border-rose-300 dark:border-rose-800 bg-white dark:bg-rose-900/20 px-4 py-2.5 text-sm font-semibold text-rose-700 dark:text-rose-400 transition-colors hover:bg-rose-100 dark:hover:bg-rose-900/30 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Delete account
+                </button>
+              )}
             </div>
           </div>
         </section>
