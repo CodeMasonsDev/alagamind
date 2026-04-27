@@ -283,7 +283,9 @@ function normalizeModuleContribution(value: unknown): ModuleContribution | null 
     current_rq_score: asNumber(
       pickValue(value, ["current_rq_score", "currentRqScore", "current_score"]),
     ),
-    modules: asArray(rawModules, normalizeModuleContributionItem),
+    modules: asArray(rawModules, normalizeModuleContributionItem).filter(
+      (m) => m.label.toLowerCase() !== "exercises & protocols",
+    ),
   };
 }
 
