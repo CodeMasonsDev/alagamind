@@ -88,6 +88,7 @@ function WellnessIntelligence() {
   );
   const [resilienceData, setResilienceData] =
     useState<ResilienceQuotientResponse | null>(null);
+  const [resilienceError, setResilienceError] = useState(false);
 
   const GetUserState = async (userId: string) => {
     const res = await GetCurrentState(userId);
@@ -109,26 +110,32 @@ function WellnessIntelligence() {
 
   const FetchRQScore = async (userId: string, refresh: boolean) => {
     const res = await getQuotientResilienceScore({ userId, refresh });
-    if (!res) return null;
-
-    console.log("QR score:", res.score);
-
+    if (!res) {
+      setResilienceError(true);
+      return null;
+    }
+    setResilienceError(false);
     setResilienceData(res);
   };
 
   useEffect(() => {
+    if (!userId) return;
+
     const run = async () => {
-      await Promise.all([
-        GetUserState(userId),
-        FetchRQScore(userId, true),
-        refreshFocusMomentum(userId),
-      ]);
+      try {
+        await Promise.all([
+          GetUserState(userId),
+          FetchRQScore(userId, true),
+          refreshFocusMomentum(userId),
+        ]);
+      } catch {
+        setResilienceError(true);
+      }
     };
 
-    if (userId) {
-      void run();
-    }
-  }, [refreshFocusMomentum, userId]);
+    void run();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, refreshFocusMomentum]);
 
   const activeEmotion =
     emotions.find((emotion) => emotion.label === selectedEmotion) ??
@@ -152,10 +159,16 @@ function WellnessIntelligence() {
     setLastLoggedIntensity(intensity);
     setShowToast(true);
     setToastKey((prev) => prev + 1);
-    void Promise.allSettled([
-      CalculateRQ(userId),
-      refreshFocusMomentum(userId),
-    ]);
+    if (userId) {
+      void Promise.allSettled([
+        CalculateRQ(userId),
+        refreshFocusMomentum(userId),
+      ]).then((results) => {
+        if (results.some((r) => r.status === "rejected")) {
+          setResilienceError(true);
+        }
+      });
+    }
   };
 
   useEffect(() => {
@@ -261,44 +274,57 @@ function WellnessIntelligence() {
             </div>
 
             <div className="flex-1 flex flex-col items-center justify-center relative my-4 min-h-[22px]">
-              <div
-                className={`absolute inset-8 rounded-full blur-3xl opacity-60 ${resilienceTier.glow}`}
-              />
-              {/* SVG Circular Progress */}
-              <svg
-                viewBox="0 0 36 36"
-                className="w-32 h-32 transform -rotate-90 relative"
-              >
-                <path
-                  className="text-slate-100"
-                  strokeWidth="3"
-                  stroke="currentColor"
-                  fill="none"
-                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                />
-                <path
-                  className={resilienceTier.ring}
-                  strokeDasharray={`${resilienceStrokeValue}, 100`}
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  stroke="currentColor"
-                  fill="none"
-                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                />
-              </svg>
-              <div className="absolute flex flex-col items-center justify-center">
-                <span className="text-4xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
-                  {resilienceScore}
-                </span>
-                <span className="mt-1 text-[10px] font-bold tracking-widest text-slate-400 dark:text-slate-400 uppercase">
-                  Score
-                </span>
-                <span
-                  className={`mt-3 inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold tracking-widest uppercase ${resilienceTier.soft}`}
-                >
-                  {resilienceTier.label}
-                </span>
-              </div>
+              {resilienceError && !resilienceData ? (
+                <div className="flex flex-col items-center justify-center gap-2 py-6">
+                  <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">
+                    Unable to load score
+                  </span>
+                  <span className="text-[10px] text-slate-300 dark:text-slate-600">
+                    Check your connection and try again
+                  </span>
+                </div>
+              ) : (
+                <>
+                  <div
+                    className={`absolute inset-8 rounded-full blur-3xl opacity-60 ${resilienceTier.glow}`}
+                  />
+                  {/* SVG Circular Progress */}
+                  <svg
+                    viewBox="0 0 36 36"
+                    className="w-32 h-32 transform -rotate-90 relative"
+                  >
+                    <path
+                      className="text-slate-100"
+                      strokeWidth="3"
+                      stroke="currentColor"
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                    <path
+                      className={resilienceTier.ring}
+                      strokeDasharray={`${resilienceStrokeValue}, 100`}
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      stroke="currentColor"
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                  </svg>
+                  <div className="absolute flex flex-col items-center justify-center">
+                    <span className="text-4xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
+                      {resilienceScore}
+                    </span>
+                    <span className="mt-1 text-[10px] font-bold tracking-widest text-slate-400 dark:text-slate-400 uppercase">
+                      Score
+                    </span>
+                    <span
+                      className={`mt-3 inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold tracking-widest uppercase ${resilienceTier.soft}`}
+                    >
+                      {resilienceTier.label}
+                    </span>
+                  </div>
+                </>
+              )}
             </div>
 
             <div className="space-y-3">
