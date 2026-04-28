@@ -41,7 +41,7 @@ const EMOTIONS = [
 type CheckInModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  userId: string;
+  userId: string | undefined;
   onSuccess: (state: number, intensity: number) => void;
 };
 
@@ -58,6 +58,7 @@ export function CheckInModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!userId) return;
     setError(null);
     setIsSubmitting(true);
 
