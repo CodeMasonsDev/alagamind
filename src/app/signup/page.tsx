@@ -450,7 +450,7 @@ export default function SignupPage() {
                       Password
                     </label>
                     <div
-                      className={`relative rounded-2xl border transition-all duration-500 ${inputRing("password")}`}
+                      className={`relative overflow-hidden rounded-2xl border transition-all duration-500 ${inputRing("password")}`}
                     >
                       <div
                         className={`absolute inset-0 transition-opacity duration-500 ${
