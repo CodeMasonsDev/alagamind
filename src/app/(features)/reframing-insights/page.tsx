@@ -37,13 +37,15 @@ let profilePromise: Promise<SessionUser> | null = null;
 function getCachedMe(): Promise<SessionUser> {
   if (cachedProfile) return Promise.resolve(cachedProfile);
   if (!profilePromise) {
-    profilePromise = getMe().then((user) => {
-      cachedProfile = user;
-      return user;
-    }).catch((error) => {
-      profilePromise = null;
-      throw error;
-    });
+    profilePromise = getMe()
+      .then((user) => {
+        cachedProfile = user;
+        return user;
+      })
+      .catch((error) => {
+        profilePromise = null;
+        throw error;
+      });
   }
   return profilePromise;
 }
@@ -316,10 +318,7 @@ export default function MoodTrendsPage() {
         : [];
 
       // Store in cache for this thought
-      reframeCacheRef.current.set(
-        String(response.thought_id),
-        nextReframes,
-      );
+      reframeCacheRef.current.set(String(response.thought_id), nextReframes);
 
       setGeneratedThoughtId(String(response.thought_id));
       setGeneratedReframes(nextReframes);
@@ -683,7 +682,9 @@ function TopMetric({
           </span>
         ) : null}
       </div>
-      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{detail}</p>
+      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+        {detail}
+      </p>
     </div>
   );
 }
@@ -757,26 +758,35 @@ function ReframeCard({
   const palette =
     reframe.id === "logical"
       ? {
-          shell: "border-violet-100 bg-violet-50/40 dark:border-violet-900/30 dark:bg-violet-950/20",
+          shell:
+            "border-violet-100 bg-violet-50/40 dark:border-violet-900/30 dark:bg-violet-950/20",
           heading: "text-violet-700 dark:text-violet-300",
-          badge: "border-violet-100 bg-white text-violet-700 dark:border-violet-900/30 dark:bg-slate-900 dark:text-violet-300",
+          badge:
+            "border-violet-100 bg-white text-violet-700 dark:border-violet-900/30 dark:bg-slate-900 dark:text-violet-300",
           button: "bg-violet-600 text-white hover:bg-violet-700",
-          savedButton: "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-200",
+          savedButton:
+            "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-200",
         }
       : reframe.id === "compassionate"
         ? {
-            shell: "border-pink-100 bg-pink-50/45 dark:border-pink-900/30 dark:bg-pink-950/20",
+            shell:
+              "border-pink-100 bg-pink-50/45 dark:border-pink-900/30 dark:bg-pink-950/20",
             heading: "text-pink-700 dark:text-pink-300",
-            badge: "border-pink-100 bg-white text-pink-700 dark:border-pink-900/30 dark:bg-slate-900 dark:text-pink-300",
+            badge:
+              "border-pink-100 bg-white text-pink-700 dark:border-pink-900/30 dark:bg-slate-900 dark:text-pink-300",
             button: "bg-pink-600 text-white hover:bg-pink-700",
-            savedButton: "bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-200",
+            savedButton:
+              "bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-200",
           }
         : {
-            shell: "border-orange-100 bg-orange-50/45 dark:border-orange-900/30 dark:bg-orange-950/20",
+            shell:
+              "border-orange-100 bg-orange-50/45 dark:border-orange-900/30 dark:bg-orange-950/20",
             heading: "text-orange-700 dark:text-orange-300",
-            badge: "border-orange-100 bg-white text-orange-700 dark:border-orange-900/30 dark:bg-slate-900 dark:text-orange-300",
+            badge:
+              "border-orange-100 bg-white text-orange-700 dark:border-orange-900/30 dark:bg-slate-900 dark:text-orange-300",
             button: "bg-orange-500 text-white hover:bg-orange-600",
-            savedButton: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-200",
+            savedButton:
+              "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-200",
           };
 
   return (
@@ -865,9 +875,6 @@ function InsightsDrawer({
             <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950 dark:text-slate-100">
               Updates live as you save reframes
             </h2>
-            <p className="mt-1 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-              This drawer comes from the right and hovers over the workspace.
-            </p>
           </div>
           <button
             type="button"
@@ -955,7 +962,9 @@ function DistortionRow({ label, value }: { label: string; value: number }) {
   return (
     <div>
       <div className="flex items-center justify-between ">
-        <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{label}</p>
+        <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
+          {label}
+        </p>
         <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">
           {formatPercent(value)}
         </span>
@@ -1039,7 +1048,9 @@ function PatternCard({ pattern }: { pattern: DetectedPattern }) {
               <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">
                 {pattern.title}
               </p>
-              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{subtitle}</p>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                {subtitle}
+              </p>
             </div>
 
             <span className="shrink-0 text-sm font-semibold text-slate-500 dark:text-slate-400">
@@ -1108,7 +1119,9 @@ function EmptyThoughtsState() {
 function DrawerEmptyState({ message }: { message: string }) {
   return (
     <div className="mt-3 rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 px-4 py-5 dark:border-slate-700 dark:bg-slate-800/50">
-      <p className="text-sm leading-7 text-slate-500 dark:text-slate-400">{message}</p>
+      <p className="text-sm leading-7 text-slate-500 dark:text-slate-400">
+        {message}
+      </p>
     </div>
   );
 }
@@ -1117,7 +1130,10 @@ function ThoughtListLoadingState() {
   return (
     <div className="space-y-3">
       {Array.from({ length: 3 }).map((_, index) => (
-        <div key={index} className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+        <div
+          key={index}
+          className="border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900"
+        >
           <div className="animate-pulse space-y-3">
             <div className="h-5 w-4/5 bg-slate-100 dark:bg-slate-800" />
             <div className="h-5 w-3/5 bg-slate-100 dark:bg-slate-800" />
@@ -1171,7 +1187,10 @@ function LoadingState() {
       </div>
       <div className="mt-5 grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
         {Array.from({ length: 3 }).map((_, index) => (
-          <div key={index} className="border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+          <div
+            key={index}
+            className="border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900"
+          >
             <div className="animate-pulse space-y-4">
               <div className="h-3 w-24 bg-slate-200 dark:bg-slate-700" />
               <div className="h-3 w-32 bg-slate-100 dark:bg-slate-800" />
