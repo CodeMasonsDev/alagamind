@@ -1,9 +1,5 @@
 import Link from "next/link";
-import {
-  EmptySectionCopy,
-  InsightsPill,
-  InsightsReportsSection,
-} from "./ui";
+import { EmptySectionCopy, InsightsPill, InsightsReportsSection } from "./ui";
 import type { ExerciseRecommendations as ExerciseRecommendationsData } from "@/features/insights-reports/types";
 
 export default function ExerciseRecommendations({
@@ -28,7 +24,7 @@ export default function ExerciseRecommendations({
                 href={item.href || "/exercises"}
                 className="rounded-2xl border border-slate-200 bg-slate-50 p-4 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800/60 dark:hover:bg-slate-800"
               >
-                <p
+                {/* <p
                   className={`text-sm font-semibold uppercase tracking-[0.18em] ${
                     index === 0
                       ? "text-teal-600"
@@ -40,7 +36,7 @@ export default function ExerciseRecommendations({
                   {item.match_score > 0
                     ? `${Math.round(item.match_score)}% Match`
                     : item.category || "Recommended"}
-                </p>
+                </p> */}
                 <p className="mt-2 text-xl font-semibold tracking-tight text-slate-950 dark:text-slate-100">
                   {item.title}
                 </p>

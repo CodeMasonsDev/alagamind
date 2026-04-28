@@ -610,14 +610,18 @@ function ProductShowcase() {
 }
 
 const developers = [
-  { name: "Developer 1", role: "Project Manager", image: "/devs/dev1.png" },
+  { name: "Edriane Diaz", role: "Project Manager", image: "/devs/dev1.png" },
   {
-    name: "Developer 2",
+    name: "Carl Conrad Declaro",
     role: "Full-Stack Developer",
     image: "/devs/dev2.png",
   },
-  { name: "Developer 3", role: "QA Tester", image: "/devs/dev3.png" },
-  { name: "Developer 4", role: "Front-End Developer", image: "/devs/dev4.png" },
+  { name: "Edrian Sangco", role: "QA Tester", image: "/devs/dev3.png" },
+  {
+    name: "Evan Gabriel Batac",
+    role: "Front-End Developer",
+    image: "/devs/dev4.png",
+  },
 ];
 
 function DevelopersSection() {
