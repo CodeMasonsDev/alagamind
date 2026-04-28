@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import React, { useId, useState, useSyncExternalStore } from "react";
 import { useTheme } from "next-themes";
 import { motion } from "framer-motion";
-import { ArrowLeft, Monitor, Moon, Sun } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, Monitor, Moon, Sun } from "lucide-react";
 
 let signupThemeToggleHydrated = false;
 
@@ -155,6 +155,7 @@ export default function SignupPage() {
   const [agreed, setAgreed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -449,7 +450,7 @@ export default function SignupPage() {
                       Password
                     </label>
                     <div
-                      className={`relative overflow-hidden rounded-2xl border transition-all duration-500 ${inputRing("password")}`}
+                      className={`relative rounded-2xl border transition-all duration-500 ${inputRing("password")}`}
                     >
                       <div
                         className={`absolute inset-0 transition-opacity duration-500 ${
@@ -460,7 +461,7 @@ export default function SignupPage() {
                       />
                       <input
                         id={passwordId}
-                        type="password"
+                        type={showPassword ? "text" : "password"}
                         placeholder="••••••••"
                         value={formData.password}
                         minLength={8}
@@ -472,9 +473,21 @@ export default function SignupPage() {
                         }
                         onFocus={() => setFocusedField("password")}
                         onBlur={() => setFocusedField(null)}
-                        className="relative w-full bg-white px-5 py-4 text-sm font-medium tracking-widest text-slate-900 placeholder:text-slate-400 transition-all focus:outline-none dark:bg-black/20 dark:text-white dark:placeholder:text-slate-600"
+                        className="relative w-full bg-white px-5 py-4 pr-12 text-sm font-medium tracking-widest text-slate-900 placeholder:text-slate-400 transition-all focus:outline-none dark:bg-black/20 dark:text-white dark:placeholder:text-slate-600"
                         required
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((prev) => !prev)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
+                        aria-label={showPassword ? "Hide password" : "Show password"}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
                     </div>
                   </motion.div>
 
