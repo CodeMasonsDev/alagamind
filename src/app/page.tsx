@@ -173,13 +173,10 @@ function Navbar() {
             href="/"
             className="flex items-center gap-2 font-bold text-slate-900 dark:text-white"
           >
-            <Image
-              src="/alagamind_logo.png"
+            <img
+              src="/alagamind.png?v=2"
               alt="AlagaMind logo"
-              width={28}
-              height={28}
-              className="h-7 w-7"
-              priority
+              className="h-7 w-7 object-contain"
             />
             <span className="hidden sm:inline">AlagaMind</span>
           </Link>

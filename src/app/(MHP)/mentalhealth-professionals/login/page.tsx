@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useSyncExternalStore } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import { motion } from "framer-motion";
@@ -169,13 +168,10 @@ export default function MHPLoginPage() {
             className="inline-flex  items-center gap-3 rounded-full border border-slate-200/60 bg-white/65 px-5.5 py-1 text-sm text-slate-800 shadow-sm backdrop-blur-2xl transition-colors hover:bg-white/80 dark:border-white/12 dark:bg-white/8 dark:text-white/86 dark:shadow-none dark:hover:bg-white/12"
           >
             <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-xl">
-              <Image
-                src="/alagamind_logo.png"
+              <img
+                src="/alagamind.png?v=2"
                 alt="AlagaMind logo"
-                width={32}
-                height={32}
-                className="h-full w-full object-cover"
-                priority
+                className="h-full w-full object-contain"
               />
             </span>
             <span className="tracking-tight">
