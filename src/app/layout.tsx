@@ -7,9 +7,9 @@ export const metadata: Metadata = {
   title: "AlagaMind",
   description: "Your Al-powered mental wellness companion.",
   icons: {
-    icon: "/alagamind_logo.png",
-    shortcut: "/alagamind_logo.png",
-    apple: "/alagamind_logo.png",
+    icon: "/alagamind.png",
+    shortcut: "/alagamind.png",
+    apple: "/alagamind.png",
   },
 };
 

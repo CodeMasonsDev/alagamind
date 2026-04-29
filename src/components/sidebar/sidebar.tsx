@@ -189,9 +189,9 @@ export default function Sidebar() {
         <div className="mb-2 flex items-center gap-3">
           <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg  dark:bg-transparent">
             <img
-              src="/alagamind_logo.png"
+              src="/alagamind.png?v=2"
               alt="AlagaMind Icon"
-              className="h-full w-full object-cover"
+              className="h-full w-full object-contain"
             />
           </div>
           <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
