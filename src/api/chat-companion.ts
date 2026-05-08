@@ -225,6 +225,38 @@ function findSseEventBoundary(buffer: string) {
   return Math.min(windowsBoundaryIndex, unixBoundaryIndex);
 }
 
+function stripSensitiveData(text: string): string {
+  if (!text) return text;
+  
+  let sanitized = text;
+  // Strip email addresses
+  sanitized = sanitized.replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, "[EMAIL HIDDEN]");
+  
+  // Strip phone numbers (various common formats)
+  sanitized = sanitized.replace(/\b(?:\+?(\d{1,3}))?[-. (]*(\d{3})[-. )]*(\d{3})[-. ]*(\d{4})(?: *x(\d+))?\b/g, "[PHONE HIDDEN]");
+  
+  // Strip SSN
+  sanitized = sanitized.replace(/\b\d{3}-\d{2}-\d{4}\b/g, "[SSN HIDDEN]");
+  
+  // Strip credit card numbers (basic check)
+  sanitized = sanitized.replace(/\b(?:\d[ -]*?){13,16}\b/g, "[CARD HIDDEN]");
+  
+  // Strip IPv4 Addresses
+  sanitized = sanitized.replace(/\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b/g, "[IP HIDDEN]");
+
+  // Strip Date of Birth patterns (MM/DD/YYYY, YYYY-MM-DD, etc)
+  sanitized = sanitized.replace(/\b(0[1-9]|1[0-2])\/(0[1-9]|[12]\d|3[01])\/(19|20)\d{2}\b/g, "[DOB HIDDEN]");
+  sanitized = sanitized.replace(/\b(19|20)\d{2}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])\b/g, "[DOB HIDDEN]");
+
+  // Basic name identification (e.g., "My name is John Doe", "I am Jane")
+  sanitized = sanitized.replace(/\b(name is|i am|i'm|call me) ([A-Z][a-z]+(?: [A-Z][a-z]+)?)\b/gi, "$1 [NAME HIDDEN]");
+  
+  // Addresses (very basic - number followed by capitalized words ending in Street, Ave, Rd, etc.)
+  sanitized = sanitized.replace(/\b\d{1,5}\s+(?:[A-Z][a-z]+\s+)+(?:Street|St|Avenue|Ave|Road|Rd|Boulevard|Blvd|Lane|Ln|Drive|Dr|Court|Ct)\b/gi, "[ADDRESS HIDDEN]");
+
+  return sanitized;
+}
+
 export async function chat({
   user_message,
   session_id,
@@ -232,8 +264,9 @@ export async function chat({
   language_preference = "auto",
 }: ChatRequest) {
   try {
+    const sanitized_message = stripSensitiveData(user_message);
     const response = await axiosInstance.post<ChatResponse>("api/chat/", {
-      user_message,
+      user_message: sanitized_message,
       session_id,
       user_id,
       language_preference,
@@ -258,6 +291,7 @@ export async function chatStream(
   }: ChatRequest,
   handlers: ChatStreamHandlers,
 ) {
+  const sanitized_message = stripSensitiveData(user_message);
   const response = await fetch("/api/chat/stream", {
     method: "POST",
     headers: {
@@ -266,7 +300,7 @@ export async function chatStream(
       "Cache-Control": "no-cache",
     },
     body: JSON.stringify({
-      user_message,
+      user_message: sanitized_message,
       session_id,
       user_id,
       language_preference,
