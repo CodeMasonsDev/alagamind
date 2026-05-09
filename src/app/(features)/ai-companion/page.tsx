@@ -170,15 +170,15 @@ function buildInitialAssistantGreeting(
   switch (language) {
     case "tagalog":
       return safeName
-        ? `Kumusta, ${safeName}. Nandito ako para makinig at tumulong sa paraang kaya ko. Ano ang gusto mong pag-usapan ngayon?`
+        ? `Kumusta, Nandito ako para makinig at tumulong sa paraang kaya ko. Ano ang gusto mong pag-usapan ngayon?`
         : "Kumusta. Nandito ako para makinig at tumulong sa paraang kaya ko. Ano ang gusto mong pag-usapan ngayon?";
     case "bisaya":
       return safeName
-        ? `Kumusta, ${safeName}. Naa ko diri aron maminaw ug motabang sa akong mahimo. Unsa ang gusto nimong hisgutan karon?`
+        ? `Kumusta,  Naa ko diri aron maminaw ug motabang sa akong mahimo. Unsa ang gusto nimong hisgutan karon?`
         : "Kumusta. Naa ko diri aron maminaw ug motabang sa akong mahimo. Unsa ang gusto nimong hisgutan karon?";
     default:
       return safeName
-        ? `Hi ${safeName}. I'm here to listen and help where I can. What would you like to talk about today?`
+        ? `Hi, I'm here to listen and help where I can. What would you like to talk about today?`
         : "Hi. I'm here to listen and help where I can. What would you like to talk about today?";
   }
 }
