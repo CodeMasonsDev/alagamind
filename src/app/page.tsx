@@ -613,7 +613,7 @@ const developers = [
     role: "Full-Stack Developer",
     image: "/devs/dev2.png",
   },
-  { name: "Edrian Sangco", role: "QA Tester", image: "/devs/dev3.png" },
+  { name: "Edrian Sangco", role: "Backend Developer", image: "/devs/dev3.png" },
   {
     name: "Evan Gabriel Batac",
     role: "Front-End Developer",
